@@ -1,0 +1,27 @@
+# ---- Node / 前端 ----
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# ---- Java / Maven ----
+target/
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# ---- 环境变量（含密钥，绝不能提交）----
+.env
+.env.local
+.env.*.local
+
+# ---- IDE / 系统 ----
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# ---- 日志 ----
+*.log
+logs/
