@@ -1,0 +1,68 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: $bg-page;
+  color: $text-main;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+// 桌面端限宽居中
+.page {
+  max-width: $content-max-width;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: $bg-page;
+  padding-bottom: 68px; // 给底部 Tabbar 留位
+}
+
+.page-body {
+  padding: 12px 16px;
+}
+
+.card {
+  background: $bg-card;
+  border-radius: $radius-card;
+  box-shadow: $shadow-card;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.text-light {
+  color: $text-light;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// 渐变头部
+.hero {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%);
+  color: #fff;
+  padding: 28px 20px 44px;
+  border-radius: 0 0 24px 24px;
+}
+
+.empty-tip {
+  text-align: center;
+  color: $text-light;
+  font-size: 14px;
+  padding: 48px 16px;
+}

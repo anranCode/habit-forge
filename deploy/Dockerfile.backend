@@ -1,0 +1,6 @@
+# 精简版：直接使用本地预构建的 JAR（不在服务器上跑 Maven）
+FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY habitforge-backend.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-jar", "app.jar"]

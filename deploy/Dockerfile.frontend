@@ -1,0 +1,5 @@
+# 精简版：直接使用本地预构建的 dist（不在服务器上跑 npm）
+FROM nginx:alpine
+COPY dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80

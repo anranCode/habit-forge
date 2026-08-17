@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0.35
+    container_name: habitforge-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?please set MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: habitforge
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker-data/mysql:/var/lib/mysql
+      - ./habitforge-backend/src/main/resources/db:/docker-entrypoint-initdb.d:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.2.4-alpine
+    container_name: habitforge-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./docker-data/redis:/data
+
+  backend:
+    build:
+      context: ./habitforge-backend
+      dockerfile: Dockerfile
+    container_name: habitforge-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    # 日记图片走 MinIO，容器内通过 host.docker.internal 访问宿主/外部实例
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/habitforge?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:?please set MYSQL_ROOT_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      JWT_SECRET: ${JWT_SECRET:?please set JWT_SECRET (generate with: openssl rand -hex 32)}
+      # MinIO 对象存储（日记图片）：必填，通过 .env 或环境变量注入
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:?please set MINIO_ENDPOINT (e.g. http://localhost:9000)}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?please set MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?please set MINIO_SECRET_KEY}
+
+  frontend:
+    build:
+      context: ./habitforge-frontend
+      dockerfile: Dockerfile
+    container_name: habitforge-frontend
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

@@ -1,0 +1,41 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: habitforge
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+  servlet:
+    multipart:
+      # 业务层限制单图 5MB, 这里留 1MB 余量; nginx 侧 client_max_body_size 20m
+      max-file-size: 6MB
+      max-request-size: 10MB
+
+server:
+  port: 8080
+
+# MinIO 对象存储(endpoint/凭据由 profile 提供)
+minio:
+  bucket: habitforge-images
+
+# MyBatis-Plus
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: ASSIGN_UUID
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# JWT (secret 由 profile/环境变量提供)
+jwt:
+  expiration: 604800000  # 7天
+
+# 日志
+logging:
+  level:
+    com.habitforge: DEBUG

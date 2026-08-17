@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://mysql:3306/habitforge?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      max-lifetime: 600000
+      keepalive-time: 120000
+      connection-timeout: 10000
+      validation-timeout: 5000
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:redis}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      database: 0
+
+jwt:
+  secret: ${JWT_SECRET}
+
+# MinIO: 生产走宿主机实例(host.docker.internal), 凭据必须由 .env 提供
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://host.docker.internal:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  # 生产密钥必须通过环境变量注入,不要在此留默认值
+  secret-key: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY is required in prod}
+
+# CORS 允许的来源模式(逗号分隔);生产只放行精确访问来源,换域名/端口时用环境变量覆盖
+app:
+  cors:
+    allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:}
+
+logging:
+  level:
+    com.habitforge: INFO

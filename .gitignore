@@ -1,0 +1,40 @@
+# Java / Maven
+habitforge-backend/target/
+*.class
+*.log
+
+# Node / Vite
+habitforge-frontend/node_modules/
+habitforge-frontend/dist/
+npm-debug.log*
+
+# IDE
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+
+# Env
+.env
+.env.local
+.env.*.local
+deploy/.env
+
+# Docker 数据卷(持久化数据,绝不提交)
+docker-data/
+
+# Python 临时/部署脚本 & 缓存(调试脚本,不进仓库)
+__pycache__/
+*.pyc
+*.pyo
+deploy_*.py
+probe_server.py
+
+# 临时/草稿文档
+babit-forge.md
+
+# 构建产物 / 部署包(不提交, 避免大文件)
+*.jar
+*.zip
+deploy/dist/
