@@ -108,6 +108,15 @@ npm run dev
 4. **频率模型**：DAILY / WEEKLY_DAYS（如周一三五）/ WEEKLY_COUNT（每周 N 次，链按"周"计）。
 5. **积分体系**：打卡 +10，里程碑 7/30/100 天分别 +50/+200/+500（写入 achievements），每 100 分升 1 级。
 
+## 环境变量
+
+| 变量 | 说明 |
+|------|------|
+| `MYSQL_USER` / `MYSQL_PASSWORD` | MySQL 账号密码 |
+| `JWT_SECRET` | JWT 签名密钥（务必使用强随机值，如 `openssl rand -hex 32`） |
+| `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | MinIO 对象存储（日记图片） |
+| `APP_CORS_ALLOWED_ORIGIN_PATTERNS` | CORS 允许来源（生产环境必填） |
+
 ## Roadmap（v1.1+）
 
 - [ ] 补卡保护卡（每月 1 次）
@@ -116,3 +125,7 @@ npm run dev
 - [ ] 习惯契约（contracts 表已建，问责伙伴手填姓名）
 - [ ] 复盘中心（reviews 表已建）
 - [ ] 打卡提醒推送
+
+## 📄 License
+
+MIT
