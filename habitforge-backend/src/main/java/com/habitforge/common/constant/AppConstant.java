@@ -14,6 +14,18 @@ public final class AppConstant {
     /** 章节首次完成（非DONE→DONE）获得积分 */
     public static final int POINTS_PER_CHAPTER_DONE = 20;
 
+    /** 每日复习达标获得积分（当日累计复习满 REVIEW_REWARD_MIN_CARDS 张奖励一次） */
+    public static final int POINTS_PER_DAILY_REVIEW = 10;
+
+    /** 触发每日复习积分奖励的最小当日复习张数 */
+    public static final int REVIEW_REWARD_MIN_CARDS = 5;
+
+    /** 错题连对该次数自动标记掌握（mastered=1） */
+    public static final int WRONG_MASTER_STREAK = 2;
+
+    /** 到期复习队列默认上限 */
+    public static final int REVIEW_QUEUE_DEFAULT_LIMIT = 50;
+
     /** 等级阈值：每满 100 分升 1 级 */
     public static final int POINTS_PER_LEVEL = 100;
 

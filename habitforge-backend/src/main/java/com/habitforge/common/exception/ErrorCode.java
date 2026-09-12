@@ -49,7 +49,14 @@ public enum ErrorCode {
     // 学习模块 7xxx（其余 7xxx 由 P1 补齐）
     SUBJECT_NOT_FOUND(7001, "科目不存在"),
     CHAPTER_NOT_FOUND(7002, "章节不存在"),
-    CHAPTER_PARENT_INVALID(7003, "父章节无效（不能是自己或自己的子孙，会形成环）");
+    CHAPTER_PARENT_INVALID(7003, "父章节无效（不能是自己或自己的子孙，会形成环）"),
+
+    // 学习模块 P1 7xxx（闪卡/笔记/题库/错题本）
+    FLASHCARD_NOT_FOUND(7004, "闪卡不存在"),
+    REVIEW_RATING_INVALID(7005, "复习评分无效（1-4）"),
+    NOTE_NOT_FOUND(7006, "笔记不存在"),
+    QUESTION_NOT_FOUND(7007, "题目不存在"),
+    WRONG_NOT_FOUND(7008, "错题记录不存在");
 
     private final int code;
     private final String message;
