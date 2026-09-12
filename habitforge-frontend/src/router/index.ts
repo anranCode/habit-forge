@@ -94,6 +94,72 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '科目详情' }
   },
   {
+    path: '/study/review',
+    name: 'ReviewSession',
+    component: () => import('@/views/study/ReviewSession.vue'),
+    meta: { title: '闪卡复习' }
+  },
+  {
+    path: '/study/flashcards/create',
+    name: 'FlashcardCreate',
+    component: () => import('@/views/study/FlashcardEdit.vue'),
+    meta: { title: '新建闪卡' }
+  },
+  {
+    path: '/study/notes/create',
+    name: 'NoteCreate',
+    component: () => import('@/views/study/NoteEdit.vue'),
+    meta: { title: '新建笔记' }
+  },
+  {
+    path: '/study/notes/edit/:id',
+    name: 'NoteEdit',
+    component: () => import('@/views/study/NoteEdit.vue'),
+    meta: { title: '编辑笔记' }
+  },
+  {
+    path: '/study/notes/:id',
+    name: 'NoteDetail',
+    component: () => import('@/views/study/NoteDetail.vue'),
+    meta: { title: '笔记详情' }
+  },
+  {
+    path: '/study/questions',
+    name: 'QuestionBank',
+    component: () => import('@/views/study/QuestionBank.vue'),
+    meta: { title: '题库' }
+  },
+  {
+    path: '/study/questions/create',
+    name: 'QuestionCreate',
+    component: () => import('@/views/study/QuestionEdit.vue'),
+    meta: { title: '新建题目' }
+  },
+  {
+    path: '/study/questions/edit/:id',
+    name: 'QuestionEdit',
+    component: () => import('@/views/study/QuestionEdit.vue'),
+    meta: { title: '编辑题目' }
+  },
+  {
+    path: '/study/questions/:id',
+    name: 'QuestionDetail',
+    component: () => import('@/views/study/QuestionDetail.vue'),
+    meta: { title: '题目详情' }
+  },
+  {
+    path: '/study/wrongs',
+    name: 'WrongBook',
+    component: () => import('@/views/study/WrongBook.vue'),
+    meta: { title: '错题本' }
+  },
+  {
+    path: '/study/wrongs/practice',
+    name: 'WrongPractice',
+    component: () => import('@/views/study/WrongPractice.vue'),
+    meta: { title: '错题练习' }
+  },
+  {
     path: '/track',
     name: 'Track',
     component: () => import('@/views/track/Track.vue'),
