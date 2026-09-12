@@ -5,7 +5,6 @@ spring:
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
     hikari:
-    hikari:
       # 远程 MySQL 会掐掉空闲连接：缩短连接寿命 + 定期保活探测
       max-lifetime: 600000
       keepalive-time: 120000

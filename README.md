@@ -24,7 +24,7 @@
 ## 技术栈
 
 - **前端**: Vue 3 + TypeScript + Vite 5 + Vant 4 + Pinia + Vue Router + Axios + Day.js
-- **后端**: Spring Boot 3.2 + Spring Security + JWT (jjwt 0.12) + MyBatis-Plus 3.5.5
+- **后端**: Spring Boot 3.5 + Spring Security + JWT (jjwt 0.12) + MyBatis-Plus 3.5.5
 - **存储**: MySQL 8.0 + Redis 7（打卡限流 + 登出 token 黑名单）
 - **部署**: Docker Compose（mysql + redis + backend + frontend/nginx）
 
