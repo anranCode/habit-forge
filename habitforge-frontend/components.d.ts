@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppTabbar: typeof import('./src/components/common/AppTabbar.vue')['default']
     CalendarHeatmap: typeof import('./src/components/calendar/CalendarHeatmap.vue')['default']
+    ChapterTree: typeof import('./src/components/study/ChapterTree.vue')['default']
     HabitCard: typeof import('./src/components/habit/HabitCard.vue')['default']
     HabitCheckButton: typeof import('./src/components/habit/HabitCheckButton.vue')['default']
     HabitForm: typeof import('./src/components/habit/HabitForm.vue')['default']
@@ -16,6 +17,8 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StatsCard: typeof import('./src/components/stats/StatsCard.vue')['default']
+    StudyTaskCard: typeof import('./src/components/study/StudyTaskCard.vue')['default']
+    SubjectCard: typeof import('./src/components/study/SubjectCard.vue')['default']
     VanButton: typeof import('vant/es')['Button']
     VanCell: typeof import('vant/es')['Cell']
     VanCellGroup: typeof import('vant/es')['CellGroup']

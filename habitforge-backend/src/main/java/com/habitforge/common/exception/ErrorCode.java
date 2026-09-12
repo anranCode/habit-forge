@@ -44,7 +44,12 @@ public enum ErrorCode {
 
     // 习惯心得 5xxx
     REFLECTION_NOT_FOUND(5001, "心得不存在"),
-    REFLECTION_DUPLICATE(5002, "这条心得已经记录过啦");
+    REFLECTION_DUPLICATE(5002, "这条心得已经记录过啦"),
+
+    // 学习模块 7xxx（其余 7xxx 由 P1 补齐）
+    SUBJECT_NOT_FOUND(7001, "科目不存在"),
+    CHAPTER_NOT_FOUND(7002, "章节不存在"),
+    CHAPTER_PARENT_INVALID(7003, "父章节无效（不能是自己或自己的子孙，会形成环）");
 
     private final int code;
     private final String message;

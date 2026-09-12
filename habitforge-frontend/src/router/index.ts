@@ -70,6 +70,30 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '记录详情' }
   },
   {
+    path: '/study',
+    name: 'StudyHome',
+    component: () => import('@/views/study/StudyHome.vue'),
+    meta: { title: '学习中心' }
+  },
+  {
+    path: '/study/subjects/create',
+    name: 'SubjectCreate',
+    component: () => import('@/views/study/SubjectEdit.vue'),
+    meta: { title: '新建科目' }
+  },
+  {
+    path: '/study/subjects/edit/:id',
+    name: 'SubjectEdit',
+    component: () => import('@/views/study/SubjectEdit.vue'),
+    meta: { title: '编辑科目' }
+  },
+  {
+    path: '/study/subjects/:id',
+    name: 'SubjectDetail',
+    component: () => import('@/views/study/SubjectDetail.vue'),
+    meta: { title: '科目详情' }
+  },
+  {
     path: '/track',
     name: 'Track',
     component: () => import('@/views/track/Track.vue'),

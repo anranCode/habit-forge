@@ -5,9 +5,11 @@ import { showSuccessToast } from 'vant'
 import type { Habit } from '@/types/habit'
 import type { JournalDetail, Reflection } from '@/types/journal'
 import { useHabitStore, useCheckinStore, useUserStore } from '@/stores'
-import { apiTodayJournal, apiReflectionsByJournal } from '@/api'
+import { apiTodayJournal, apiReflectionsByJournal, apiStudyOverview } from '@/api'
+import type { StudyOverview } from '@/types/study'
 import HabitCard from '@/components/habit/HabitCard.vue'
 import ReflectionEditor from '@/components/record/ReflectionEditor.vue'
+import StudyTaskCard from '@/components/study/StudyTaskCard.vue'
 import { greeting, todayStr, weekdayCn } from '@/utils/date'
 import { moodEmoji } from '@/utils/format'
 import dayjs from 'dayjs'
@@ -24,6 +26,8 @@ const showCheckinDialog = ref(false)
 // 今日记录（journal）与今日心得（reflections）
 const todayJournal = ref<JournalDetail | null>(null)
 const reflections = ref<Reflection[]>([])
+// 学习中心汇总（P0 到期卡/错题恒 0）
+const studyOverview = ref<StudyOverview | null>(null)
 const showReflectionEditor = ref(false)
 const reflectionHabit = ref<Habit | null>(null)
 const activeReflection = ref<Reflection | null>(null)
@@ -62,6 +66,15 @@ async function load() {
   }
   await habitStore.loadToday()
   await loadJournalAndReflections()
+  await loadStudyOverview()
+}
+
+async function loadStudyOverview() {
+  try {
+    studyOverview.value = await apiStudyOverview()
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
 }
 
 async function loadJournalAndReflections() {
@@ -207,6 +220,9 @@ function goCreate() {
         <p>今天没有安排的习惯</p>
         <van-button size="small" type="primary" color="#ff7a00" round @click="goCreate">去创建一个</van-button>
       </div>
+
+      <!-- 学习中心任务卡 -->
+      <StudyTaskCard :overview="studyOverview" @click="router.push('/study')" />
 
       <!-- 今日记录 -->
       <div class="card journal-card" @click="goTodayJournal">

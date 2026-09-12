@@ -11,6 +11,9 @@ public final class AppConstant {
     /** 每次打卡获得积分 */
     public static final int POINTS_PER_CHECKIN = 10;
 
+    /** 章节首次完成（非DONE→DONE）获得积分 */
+    public static final int POINTS_PER_CHAPTER_DONE = 20;
+
     /** 等级阈值：每满 100 分升 1 级 */
     public static final int POINTS_PER_LEVEL = 100;
 

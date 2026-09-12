@@ -95,6 +95,7 @@ async function logout() {
       </div>
 
       <van-cell-group inset style="margin-top: 12px">
+        <van-cell title="📚 学习中心" is-link label="科目章节进度 · 考试倒计时" @click="router.push('/study')" />
         <van-cell title="关于 HabitForge" value="v1.0 · 基于《掌控习惯》四大定律" />
       </van-cell-group>
 
