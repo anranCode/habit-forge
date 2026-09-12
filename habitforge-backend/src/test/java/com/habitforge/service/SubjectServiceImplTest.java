@@ -8,9 +8,15 @@ import com.habitforge.modules.study.dto.SubjectCreateRequest;
 import com.habitforge.modules.study.dto.SubjectResponse;
 import com.habitforge.modules.study.dto.SubjectUpdateRequest;
 import com.habitforge.modules.study.entity.Chapter;
+import com.habitforge.modules.study.entity.Flashcard;
+import com.habitforge.modules.study.entity.Question;
 import com.habitforge.modules.study.entity.Subject;
+import com.habitforge.modules.study.entity.WrongQuestion;
 import com.habitforge.modules.study.mapper.ChapterMapper;
+import com.habitforge.modules.study.mapper.FlashcardMapper;
+import com.habitforge.modules.study.mapper.QuestionMapper;
 import com.habitforge.modules.study.mapper.SubjectMapper;
+import com.habitforge.modules.study.mapper.WrongQuestionMapper;
 import com.habitforge.modules.study.service.impl.SubjectServiceImpl;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +50,13 @@ class SubjectServiceImplTest {
     private SubjectMapper subjectMapper;
     @Mock
     private ChapterMapper chapterMapper;
+    // P1: 科目列表附到期卡/错题聚合(Mockito 默认返回空 List → 计数 0)
+    @Mock
+    private FlashcardMapper flashcardMapper;
+    @Mock
+    private QuestionMapper questionMapper;
+    @Mock
+    private WrongQuestionMapper wrongQuestionMapper;
 
     @InjectMocks
     private SubjectServiceImpl subjectService;
@@ -59,6 +72,9 @@ class SubjectServiceImplTest {
         MybatisConfiguration configuration = new MybatisConfiguration();
         TableInfoHelper.initTableInfo(new MapperBuilderAssistant(configuration, ""), Subject.class);
         TableInfoHelper.initTableInfo(new MapperBuilderAssistant(configuration, ""), Chapter.class);
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(configuration, ""), Flashcard.class);
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(configuration, ""), Question.class);
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(configuration, ""), WrongQuestion.class);
     }
 
     private Subject subject(String id, String userId, LocalDate examDate) {

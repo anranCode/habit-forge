@@ -43,4 +43,15 @@ public class RedisUtil {
         }
         return count != null && count <= limit;
     }
+
+    // ============ 一次性事件标记：SETNX + TTL ============
+
+    /**
+     * 原子"仅首次"标记（如当日奖励发放标记）。
+     *
+     * @return true = 本次设置成功(此前不存在); false = 标记已存在
+     */
+    public boolean setIfAbsent(String key, String value, Duration ttl) {
+        return Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(key, value, ttl));
+    }
 }

@@ -46,6 +46,7 @@ export interface WrongQuestion {
 export interface QuestionQuery {
   subjectId?: string
   chapterId?: string
+  questionType?: string
   sourceType?: string
   difficulty?: number
   keyword?: string

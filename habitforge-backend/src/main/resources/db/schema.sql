@@ -371,7 +371,7 @@ CREATE TABLE IF NOT EXISTS questions (
     options         TEXT            NULL COMMENT '选项JSON数组字符串(简答/判断可空)',
     answer          VARCHAR(1000)   NOT NULL COMMENT '标准答案',
     analysis        TEXT            NULL COMMENT '解析',
-    source_type     VARCHAR(20)     DEFAULT 'CUSTOM' COMMENT '来源: EXAM真题/MOCK模拟/CUSTOM自编',
+    source_type     VARCHAR(20)     DEFAULT 'CUSTOM' COMMENT '来源: PAST_EXAM真题/TEXTBOOK教材/CUSTOM自编/AI生成',
     source_detail   VARCHAR(100)    NULL COMMENT '来源详情(如: 2025年10月真题)',
     difficulty      TINYINT         NULL COMMENT '难度1-5',
     created_at      DATETIME        DEFAULT CURRENT_TIMESTAMP,

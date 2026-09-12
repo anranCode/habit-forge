@@ -106,6 +106,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '新建闪卡' }
   },
   {
+    path: '/study/notes',
+    name: 'NoteList',
+    component: () => import('@/views/study/NoteList.vue'),
+    meta: { title: '笔记' }
+  },
+  {
     path: '/study/notes/create',
     name: 'NoteCreate',
     component: () => import('@/views/study/NoteEdit.vue'),

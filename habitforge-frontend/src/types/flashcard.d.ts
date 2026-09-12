@@ -26,7 +26,7 @@ export interface ReviewQueueResponse {
   cards: Flashcard[]
   /** 今日到期总数 */
   dueTotal: number
-  /** 未到期新卡总数 */
+  /** 今日到期的新卡总数（dueTotal 的子集，repetition=0） */
   newTotal: number
 }
 

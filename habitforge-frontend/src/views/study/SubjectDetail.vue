@@ -180,6 +180,43 @@ async function onRemove(c: Chapter) {
         </div>
       </div>
       <div class="legend text-light">点击圆点切换状态：未开始 → 进行中 → 已完成</div>
+
+      <!-- 学习工具入口（角标数据来自科目实时汇总 dueCards/wrongCount） -->
+      <div class="section-title">🧰 学习工具</div>
+      <van-cell-group inset class="tools-group">
+        <van-cell
+          title="🃏 闪卡复习"
+          :label="subject?.dueCards ? `今日到期 ${subject.dueCards} 张，开始复习` : '基于 SM-2 间隔重复，今日无到期'"
+          is-link
+          @click="router.push(`/study/review?subjectId=${subjectId}`)"
+        >
+          <template v-if="subject?.dueCards" #value>
+            <van-badge :content="subject.dueCards" />
+          </template>
+        </van-cell>
+        <van-cell
+          title="📝 笔记"
+          label="Markdown 笔记，按科目/章节归档"
+          is-link
+          @click="router.push(`/study/notes?subjectId=${subjectId}`)"
+        />
+        <van-cell
+          title="❓ 题库"
+          label="单选/多选/判断/简答题，按科目筛选"
+          is-link
+          @click="router.push(`/study/questions?subjectId=${subjectId}`)"
+        />
+        <van-cell
+          title="📕 错题本"
+          :label="subject?.wrongCount ? `待重练 ${subject.wrongCount} 道，连对 2 次自动摘除` : '记录答错的题，重练到掌握'"
+          is-link
+          @click="router.push(`/study/wrongs?subjectId=${subjectId}`)"
+        >
+          <template v-if="subject?.wrongCount" #value>
+            <van-badge :content="subject.wrongCount" />
+          </template>
+        </van-cell>
+      </van-cell-group>
     </div>
 
     <!-- 新建章节弹窗 -->
@@ -248,6 +285,12 @@ async function onRemove(c: Chapter) {
   font-size: 11px;
   text-align: center;
   margin-top: 4px;
+}
+
+.tools-group {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
 }
 
 .add-pop {

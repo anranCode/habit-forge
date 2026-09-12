@@ -32,7 +32,7 @@ function goCreate() {
     <van-nav-bar title="学习中心" left-arrow @click-left="router.back()" />
 
     <div class="page-body">
-      <!-- 顶部汇总条（P0 到期卡/错题/今日复习恒 0，照常渲染） -->
+      <!-- 顶部汇总条（apiStudyOverview 实时数据：到期卡/错题/今日复习） -->
       <div class="card sum-bar">
         <div class="sum">
           <div class="num">{{ overview?.dueCardsTotal ?? 0 }}</div>
@@ -46,6 +46,22 @@ function goCreate() {
           <div class="num">{{ overview?.reviewedToday ?? 0 }}</div>
           <div class="lb">今日复习</div>
         </div>
+      </div>
+
+      <!-- 今日待复习快捷入口 -->
+      <div class="card review-entry" @click="router.push('/study/review')">
+        <div class="left">
+          <div class="t">🃏 今日待复习</div>
+          <div class="d text-light">
+            {{
+              (overview?.dueCardsTotal ?? 0) > 0
+                ? `${overview?.dueCardsTotal} 张卡到期，复习满 5 张有积分奖励`
+                : '今日无到期卡，去创建新闪卡吧'
+            }}
+          </div>
+        </div>
+        <van-badge v-if="(overview?.dueCardsTotal ?? 0) > 0" :content="overview!.dueCardsTotal" />
+        <van-icon name="arrow" color="#8a94a6" />
       </div>
 
       <!-- 科目卡片列表 -->
@@ -86,6 +102,27 @@ function goCreate() {
       font-size: 12px;
       color: $text-light;
       margin-top: 2px;
+    }
+  }
+}
+
+.review-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+
+  .left {
+    flex: 1;
+
+    .t {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .d {
+      font-size: 12px;
+      margin-top: 4px;
     }
   }
 }

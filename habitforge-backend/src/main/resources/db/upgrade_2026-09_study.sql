@@ -1,9 +1,15 @@
 -- ============================================================
--- 增量升级: 学习模块 P0（科目 Subject + 章节 Chapter）
+-- 增量升级: 学习模块 P0(科目/章节) + P1(闪卡/复习日志/笔记/笔记图片/题库/错题)
 -- 日期: 2026-09-12
 -- 适用: 已存在 12 张表(至 habit_reflections)的存量库
 --
--- 回滚(如需撤销本次升级):
+-- 回滚(如需撤销本次升级, 按 FK 依赖序先删子表再删父表):
+--   DROP TABLE IF EXISTS wrong_questions;
+--   DROP TABLE IF EXISTS questions;
+--   DROP TABLE IF EXISTS note_images;
+--   DROP TABLE IF EXISTS notes;
+--   DROP TABLE IF EXISTS card_review_logs;
+--   DROP TABLE IF EXISTS flashcards;
 --   DROP TABLE IF EXISTS chapters;
 --   DROP TABLE IF EXISTS subjects;
 --   ( chapters 自引用与外键指向 subjects, 必须先删 chapters 再删 subjects )
@@ -134,7 +140,7 @@ CREATE TABLE IF NOT EXISTS questions (
     options         TEXT            NULL COMMENT '选项JSON数组字符串(简答/判断可空)',
     answer          VARCHAR(1000)   NOT NULL COMMENT '标准答案',
     analysis        TEXT            NULL COMMENT '解析',
-    source_type     VARCHAR(20)     DEFAULT 'CUSTOM' COMMENT '来源: EXAM真题/MOCK模拟/CUSTOM自编',
+    source_type     VARCHAR(20)     DEFAULT 'CUSTOM' COMMENT '来源: PAST_EXAM真题/TEXTBOOK教材/CUSTOM自编/AI生成',
     source_detail   VARCHAR(100)    NULL COMMENT '来源详情(如: 2025年10月真题)',
     difficulty      TINYINT         NULL COMMENT '难度1-5',
     created_at      DATETIME        DEFAULT CURRENT_TIMESTAMP,
