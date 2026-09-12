@@ -54,4 +54,33 @@ public class RedisUtil {
     public boolean setIfAbsent(String key, String value, Duration ttl) {
         return Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(key, value, ttl));
     }
+
+    // ============ 分布式锁 + 限流退还（AI 生成防双击/费用退还） ============
+
+    /**
+     * 抢锁：SETNX + 秒级 TTL（key 由调用方给全名，如 habitforge:ai:lock:{userId}，沿 setIfAbsent 约定不加前缀）。
+     *
+     * @return true = 抢到; false = 已有人持有
+     */
+    public boolean tryLock(String key, String value, long timeoutSeconds) {
+        return Boolean.TRUE.equals(
+                redis.opsForValue().setIfAbsent(key, value, Duration.ofSeconds(timeoutSeconds)));
+    }
+
+    /** 释放锁（仅用于短 TTL 幂等锁场景，生成结束 finally 调用）。 */
+    public void unlock(String key) {
+        redis.delete(key);
+    }
+
+    /**
+     * 限流退还：对 tryAcquire 计数 DECR 1（上游失败未耗费用时调用）。
+     * 计数被减为负（窗口已翻转后误退）则直接删键。
+     */
+    public void release(String key) {
+        String fullKey = RATE_LIMIT_PREFIX + key;
+        Long count = redis.opsForValue().increment(fullKey, -1);
+        if (count != null && count < 0) {
+            redis.delete(fullKey);
+        }
+    }
 }

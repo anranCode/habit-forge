@@ -11,6 +11,19 @@ spring:
       # 业务层限制单图 5MB, 这里留 1MB 余量; nginx 侧 client_max_body_size 20m
       max-file-size: 6MB
       max-request-size: 10MB
+  # Spring AI — Anthropic 兼容端点(阿里云百炼 TokenPlan)
+  # api-key 只经环境变量 AI_API_KEY 注入, 严禁写入任何提交
+  ai:
+    anthropic:
+      base-url: ${AI_BASE_URL:https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic}
+      api-key: ${AI_API_KEY:}
+      chat:
+        options:
+          model: ${AI_MODEL:qwen3.8-flash}
+          temperature: 0.5
+          max-tokens: 2000
+    retry:
+      max-attempts: 2  # 上游失败重试 1 次
 
 server:
   port: 8080
@@ -34,6 +47,18 @@ mybatis-plus:
 # JWT (secret 由 profile/环境变量提供)
 jwt:
   expiration: 604800000  # 7天
+
+# AI 今日安排 — 业务护栏参数(非敏感; 开关/凭证走环境变量)
+app:
+  ai:
+    enabled: ${AI_ENABLED:false}          # 总开关: false 时生成接口返 6001, 不影响其他功能
+    daily-generate-limit: 5               # 每人每日生成次数上限
+    journal-days: 3                       # 上下文取近 N 天日记
+    journal-chars-per-day: 600            # 每篇日记截断字数
+    reflection-limit: 10                  # 心得条数上限
+    reflection-chars: 200                 # 心得每字段截断字数
+    min-blocks: 3                         # 有效块少于该数视为解析失败(6005)
+    max-blocks: 12                        # 超出截断
 
 # 日志
 logging:

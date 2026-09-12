@@ -14,6 +14,10 @@ spring:
       host: ${SPRING_DATA_REDIS_HOST:redis}
       port: ${SPRING_DATA_REDIS_PORT:6379}
       database: 0
+  ai:
+    anthropic:
+      # 生产 token 必须经环境变量注入, 不留默认值
+      api-key: ${AI_API_KEY}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -29,6 +33,9 @@ minio:
 app:
   cors:
     allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:}
+  ai:
+    # 生产默认开启 AI(可 AI_ENABLED=false 紧急关闭)
+    enabled: ${AI_ENABLED:true}
 
 logging:
   level:

@@ -57,6 +57,9 @@ services:
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:?please set MINIO_ENDPOINT (e.g. http://localhost:9000)}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?please set MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?please set MINIO_SECRET_KEY}
+      # AI 今日安排（TokenPlan Anthropic 兼容端点）：token 必填经 .env 注入，严禁写入提交
+      AI_API_KEY: ${AI_API_KEY:?please set AI_API_KEY}
+      AI_ENABLED: ${AI_ENABLED:-true}
 
   frontend:
     build:

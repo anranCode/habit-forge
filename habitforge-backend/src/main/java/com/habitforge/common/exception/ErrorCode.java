@@ -46,6 +46,20 @@ public enum ErrorCode {
     REFLECTION_NOT_FOUND(5001, "心得不存在"),
     REFLECTION_DUPLICATE(5002, "这条心得已经记录过啦"),
 
+    // AI 今日安排 6xxx
+    AI_NOT_CONFIGURED(6001, "AI 服务未启用"),
+    AI_GENERATE_LIMITED(6002, "今日生成次数已达上限"),
+    AI_GENERATING(6003, "AI 正在生成中，请稍候"),
+    AI_SERVICE_ERROR(6004, "AI 服务调用失败"),
+    AI_RESPONSE_INVALID(6005, "AI 返回内容无法解析"),
+    AI_FREE_SLOT_REQUIRED(6006, "请先设置今日空闲时段"),
+
+    // 计划域 60xx
+    PLAN_NOT_FOUND(6011, "今日计划不存在"),
+    PLAN_BLOCK_NOT_FOUND(6012, "计划块不存在"),
+    PLAN_BLOCK_STATUS_INVALID(6013, "计划块状态不允许该操作"),
+    FREE_SLOT_INVALID(6014, "空闲时段不合法"),
+
     // 学习模块 7xxx（其余 7xxx 由 P1 补齐）
     SUBJECT_NOT_FOUND(7001, "科目不存在"),
     CHAPTER_NOT_FOUND(7002, "章节不存在"),

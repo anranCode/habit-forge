@@ -166,6 +166,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '错题练习' }
   },
   {
+    path: '/plan',
+    name: 'PlanToday',
+    component: () => import('@/views/plan/PlanToday.vue'),
+    meta: { title: '今日安排' }
+  },
+  {
     path: '/track',
     name: 'Track',
     component: () => import('@/views/track/Track.vue'),
