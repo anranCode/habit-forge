@@ -20,6 +20,7 @@
 | 间隔重复 | 闪卡 SM-2 四档评分复习队列，每日复习满 5 张 +10 积分 |
 | 学习笔记 | Markdown 笔记 + 图片上传（MinIO），前端 marked+DOMPurify 渲染 |
 | 错题本 | 题库录入 + 错题重练，连对 2 次自动摘除 |
+| AI 今日安排 | 空闲时段录入 → AI 生成结构化时间块 → 一键采纳 → 完成并联动打卡 |
 
 ## 技术栈
 
@@ -120,6 +121,8 @@ npm run dev
 | `JWT_SECRET` | JWT 签名密钥（务必使用强随机值，如 `openssl rand -hex 32`） |
 | `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | MinIO 对象存储（日记图片） |
 | `APP_CORS_ALLOWED_ORIGIN_PATTERNS` | CORS 允许来源（生产环境必填） |
+| `AI_API_KEY` | AI 服务密钥（百炼 TokenPlan，生产必填；缺失则不启用 AI） |
+| `AI_ENABLED` | AI 今日安排总开关（prod 默认 true，设 false 时生成接口返 6001，不影响其他功能） |
 
 ## Roadmap（v1.1+）
 

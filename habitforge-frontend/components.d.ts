@@ -8,14 +8,18 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppTabbar: typeof import('./src/components/common/AppTabbar.vue')['default']
+    BlockItem: typeof import('./src/components/plan/BlockItem.vue')['default']
+    BlockList: typeof import('./src/components/plan/BlockList.vue')['default']
     CalendarHeatmap: typeof import('./src/components/calendar/CalendarHeatmap.vue')['default']
     ChapterTree: typeof import('./src/components/study/ChapterTree.vue')['default']
     FlashcardFlip: typeof import('./src/components/study/FlashcardFlip.vue')['default']
+    FreeSlotEditor: typeof import('./src/components/plan/FreeSlotEditor.vue')['default']
     HabitCard: typeof import('./src/components/habit/HabitCard.vue')['default']
     HabitCheckButton: typeof import('./src/components/habit/HabitCheckButton.vue')['default']
     HabitForm: typeof import('./src/components/habit/HabitForm.vue')['default']
     MarkdownEditor: typeof import('./src/components/study/MarkdownEditor.vue')['default']
     MarkdownPreview: typeof import('./src/components/study/MarkdownPreview.vue')['default']
+    PlanCard: typeof import('./src/components/plan/PlanCard.vue')['default']
     QuestionCard: typeof import('./src/components/study/QuestionCard.vue')['default']
     ReflectionEditor: typeof import('./src/components/record/ReflectionEditor.vue')['default']
     ReviewProgress: typeof import('./src/components/study/ReviewProgress.vue')['default']

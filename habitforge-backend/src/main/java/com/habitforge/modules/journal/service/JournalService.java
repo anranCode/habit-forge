@@ -24,6 +24,9 @@ public interface JournalService {
     /** 详情（含关联习惯 + 图片） */
     JournalDetailResponse getDetail(String userId, String id);
 
+    /** 近 N 个自然日含正文的日记（AI 上下文只读; journalDate 倒序, 截断由调用方做） */
+    List<Journal> listRecentWithContent(String userId, int days);
+
     JournalDetailResponse update(String userId, String id, JournalUpdateRequest request);
 
     /** 物理删除 + 子表 CASCADE + MinIO 对象 best-effort 清理 */

@@ -18,6 +18,8 @@ spring:
     anthropic:
       # 生产 token 必须经环境变量注入, 不留默认值
       api-key: ${AI_API_KEY}
+    # 出站 HTTP 超时(connect 5s / read 45s)与 retry.max-attempts 在 application.yml 中统一配置,
+    # prod 继承该基配置(Spring Boot 合并 application.yml + application-prod.yml), 此处无需重复
 
 jwt:
   secret: ${JWT_SECRET}

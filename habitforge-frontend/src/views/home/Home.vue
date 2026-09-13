@@ -5,11 +5,13 @@ import { showSuccessToast } from 'vant'
 import type { Habit } from '@/types/habit'
 import type { JournalDetail, Reflection } from '@/types/journal'
 import { useHabitStore, useCheckinStore, useUserStore } from '@/stores'
-import { apiTodayJournal, apiReflectionsByJournal, apiStudyOverview } from '@/api'
+import { apiTodayJournal, apiReflectionsByJournal, apiStudyOverview, apiPlanToday } from '@/api'
 import type { StudyOverview } from '@/types/study'
+import type { DailyPlan } from '@/types/plan'
 import HabitCard from '@/components/habit/HabitCard.vue'
 import ReflectionEditor from '@/components/record/ReflectionEditor.vue'
 import StudyTaskCard from '@/components/study/StudyTaskCard.vue'
+import PlanCard from '@/components/plan/PlanCard.vue'
 import { greeting, todayStr, weekdayCn } from '@/utils/date'
 import { moodEmoji } from '@/utils/format'
 import dayjs from 'dayjs'
@@ -28,6 +30,8 @@ const todayJournal = ref<JournalDetail | null>(null)
 const reflections = ref<Reflection[]>([])
 // 学习中心汇总（P0 到期卡/错题恒 0）
 const studyOverview = ref<StudyOverview | null>(null)
+// 今日 AI 安排摘要（未生成时 null）
+const plan = ref<DailyPlan | null>(null)
 const showReflectionEditor = ref(false)
 const reflectionHabit = ref<Habit | null>(null)
 const activeReflection = ref<Reflection | null>(null)
@@ -67,6 +71,15 @@ async function load() {
   await habitStore.loadToday()
   await loadJournalAndReflections()
   await loadStudyOverview()
+  await loadPlan()
+}
+
+async function loadPlan() {
+  try {
+    plan.value = await apiPlanToday()
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
 }
 
 async function loadStudyOverview() {
@@ -185,6 +198,9 @@ function goCreate() {
     </div>
 
     <div class="page-body">
+      <!-- AI 今日安排摘要卡（顶部主入口：未生成→引导录空闲时段，已生成→进度摘要） -->
+      <PlanCard :plan="plan" @click="router.push('/plan')" />
+
       <!-- 今日进度 -->
       <div class="card">
         <div class="flex-between">

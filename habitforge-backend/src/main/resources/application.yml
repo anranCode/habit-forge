@@ -25,6 +25,16 @@ spring:
     retry:
       max-attempts: 2  # 上游失败重试 1 次
 
+  # 出站 HTTP 客户端超时(Boot 自动配置的 ClientHttpRequestFactory)
+  # AnthropicApi 的非流式调用走 Boot 自动配置的 RestClient.Builder(由 AnthropicChatAutoConfiguration
+  # 注入 ObjectProvider<RestClient.Builder>), 该 Builder 经 RestClientBuilderConfigurer 套用
+  # spring.http.client 下的两项超时, 故在此配置即可覆盖整条 LLM 调用链路。
+  # 最坏耗时 ≈ read-timeout(45s) × max-attempts(2) = 90s < AppConstant.AI_LOCK_TTL_SECONDS(120s)
+  http:
+    client:
+      connect-timeout: 5s
+      read-timeout: 45s
+
 server:
   port: 8080
 

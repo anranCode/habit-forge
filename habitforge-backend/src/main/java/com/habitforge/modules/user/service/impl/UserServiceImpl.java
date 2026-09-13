@@ -34,6 +34,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String getIdentityGoal(String userId) {
+        User user = userMapper.selectById(userId);
+        return user == null ? null : user.getIdentityGoal();
+    }
+
+    @Override
     public void addPoints(String userId, int delta) {
         User user = userMapper.selectById(userId);
         if (user == null) {

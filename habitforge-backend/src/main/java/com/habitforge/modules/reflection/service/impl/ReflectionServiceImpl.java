@@ -154,6 +154,40 @@ public class ReflectionServiceImpl implements ReflectionService {
                 .toList();
     }
 
+    @Override
+    public List<ReflectionResponse> listRecentByUser(String userId, int limit) {
+        if (limit <= 0) {
+            return List.of();
+        }
+        // 心得无 user_id 列, 经由本人日记反查(AI 上下文只读)。
+        // 只用两条核心查询, 且都带 LIMIT:
+        // ①最近 limit 篇本人日记 —— 同时充当 journal map, 免去随后的 selectBatchIds 重复查询;
+        // ②这批日记 id 范围内最近 limit 条心得。
+        // (习惯名富化是不可并入的批量点查, 见下方 selectBatchIds。)
+        List<Journal> journals = journalMapper.selectList(new LambdaQueryWrapper<Journal>()
+                .eq(Journal::getUserId, userId)
+                .orderByDesc(Journal::getCreatedAt)
+                .last("LIMIT " + limit));
+        if (journals.isEmpty()) {
+            return List.of();
+        }
+        Map<String, Journal> journalMap = journals.stream()
+                .collect(Collectors.toMap(Journal::getId, Function.identity(), (a, b) -> a));
+        List<HabitReflection> list = reflectionMapper.selectList(new LambdaQueryWrapper<HabitReflection>()
+                .in(HabitReflection::getJournalId, journalMap.keySet())
+                .orderByDesc(HabitReflection::getCreatedAt)
+                .last("LIMIT " + limit));
+        if (list.isEmpty()) {
+            return List.of();
+        }
+        List<String> habitIds = list.stream().map(HabitReflection::getHabitId).distinct().toList();
+        Map<String, String> habitNames = habitMapper.selectBatchIds(habitIds).stream()
+                .collect(Collectors.toMap(Habit::getId, Habit::getName));
+        return list.stream()
+                .map(r -> toResponse(r, habitNames.get(r.getHabitId()), journalMap.get(r.getJournalId())))
+                .toList();
+    }
+
     // ================= 内部方法 =================
 
     /** 归属校验：心得存在且所属日记属于当前用户 */

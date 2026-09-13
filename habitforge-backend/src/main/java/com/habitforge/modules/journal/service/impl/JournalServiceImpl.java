@@ -129,6 +129,18 @@ public class JournalServiceImpl implements JournalService {
         return buildDetail(getOwned(userId, id));
     }
 
+    @Override
+    public List<Journal> listRecentWithContent(String userId, int days) {
+        if (days <= 0) {
+            return List.of();
+        }
+        // AI 上下文只读: 近 N 个自然日含正文, journalDate 倒序
+        return journalMapper.selectList(new LambdaQueryWrapper<Journal>()
+                .eq(Journal::getUserId, userId)
+                .ge(Journal::getJournalDate, LocalDate.now().minusDays(days - 1L))
+                .orderByDesc(Journal::getJournalDate));
+    }
+
     // ================= 更新 / 删除 =================
 
     @Override

@@ -31,6 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -172,5 +175,49 @@ class ReflectionServiceImplTest {
         assertEquals("journal-new", list.get(0).getJournalId());
         assertEquals(LocalDate.now(), list.get(0).getJournalDate());
         assertEquals("journal-old", list.get(1).getJournalId());
+    }
+
+    /** AI 上下文路径: 日记只查一次(带 LIMIT)且复用为 journal map, 不再有 selectBatchIds 重复查询; 心得时间倒序 */
+    @Test
+    void listRecentByUser_singleJournalQuery_reusesMapAndKeepsDescOrder() {
+        Journal jNew = new Journal();
+        jNew.setId("journal-new");
+        jNew.setUserId(USER_ID);
+        jNew.setJournalDate(LocalDate.now());
+        jNew.setCreatedAt(LocalDateTime.now());
+        Journal jOld = new Journal();
+        jOld.setId("journal-old");
+        jOld.setUserId(USER_ID);
+        jOld.setJournalDate(LocalDate.now().minusDays(1));
+        jOld.setCreatedAt(LocalDateTime.now().minusDays(1));
+        when(journalMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(jNew, jOld));
+
+        HabitReflection rNew = new HabitReflection();
+        rNew.setId("ref-new");
+        rNew.setJournalId("journal-new");
+        rNew.setHabitId(HABIT_ID);
+        rNew.setResult(1);
+        rNew.setCreatedAt(LocalDateTime.now());
+        HabitReflection rOld = new HabitReflection();
+        rOld.setId("ref-old");
+        rOld.setJournalId("journal-old");
+        rOld.setHabitId(HABIT_ID);
+        rOld.setResult(0);
+        rOld.setCreatedAt(LocalDateTime.now().minusDays(1));
+        when(reflectionMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(rNew, rOld));
+
+        when(habitMapper.selectBatchIds(any())).thenReturn(List.of(habit(USER_ID)));
+
+        List<ReflectionResponse> list = reflectionService.listRecentByUser(USER_ID, 10);
+
+        assertEquals(2, list.size());
+        assertEquals("journal-new", list.get(0).getJournalId());
+        assertEquals(LocalDate.now(), list.get(0).getJournalDate());
+        assertEquals("早起", list.get(0).getHabitName());
+        assertEquals("journal-old", list.get(1).getJournalId());
+
+        verify(journalMapper, times(1)).selectList(any(LambdaQueryWrapper.class));
+        verify(journalMapper, never()).selectBatchIds(any());     // 复用 journal map, 去掉重复查询
+        verify(reflectionMapper, times(1)).selectList(any(LambdaQueryWrapper.class));
     }
 }

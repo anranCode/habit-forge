@@ -20,4 +20,7 @@ public interface ReflectionService {
 
     /** 某习惯的全部心得（时间倒序，附带日记日期/标题） */
     List<ReflectionResponse> listByHabit(String userId, String habitId);
+
+    /** 用户最近 N 条心得（AI 上下文只读; 创建时间倒序，附带习惯名/日记日期，截断由调用方做） */
+    List<ReflectionResponse> listRecentByUser(String userId, int limit);
 }

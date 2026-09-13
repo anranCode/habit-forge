@@ -47,6 +47,21 @@ public final class AppConstant {
     /** 图片上传限流：同一用户每分钟最多 10 张 */
     public static final int UPLOAD_RATE_LIMIT = 10;
 
+    /** 每日计划空闲时段条数上限 */
+    public static final int PLAN_FREE_SLOT_MAX = 8;
+
+    /** 计划块标题最大长度（AI prompt 中文约束与后端截断同值） */
+    public static final int PLAN_TITLE_MAX_CHARS = 30;
+
+    /** AI 生成并发锁 TTL（秒, 覆盖最坏 45s×2 重试再加解析耗时） */
+    public static final long AI_LOCK_TTL_SECONDS = 120L;
+
+    /** AI 每日限流窗口（小时, 25h 让"当日"窗口跨过自然日边界冗余） */
+    public static final long AI_RATE_WINDOW_HOURS = 25L;
+
+    /** AI user prompt 字符预算（超预算日记节按 3→2→1 天降档, 目标单次 ≤3k token） */
+    public static final int AI_CONTEXT_CHAR_BUDGET = 5000;
+
     /** 单张图片大小上限（5MB） */
     public static final long IMAGE_MAX_SIZE = 5L * 1024 * 1024;
 

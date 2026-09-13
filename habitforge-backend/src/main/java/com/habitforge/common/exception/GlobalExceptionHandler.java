@@ -10,8 +10,10 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import java.time.LocalDate;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +31,7 @@ public class GlobalExceptionHandler {
             case 401, 1005 -> HttpStatus.UNAUTHORIZED;
             case 403 -> HttpStatus.FORBIDDEN;
             case 404 -> HttpStatus.NOT_FOUND;
-            case 429 -> HttpStatus.TOO_MANY_REQUESTS;
+            case 429, 6002 -> HttpStatus.TOO_MANY_REQUESTS;
             default -> HttpStatus.BAD_REQUEST;
         };
         return ResponseEntity.status(status).body(Result.error(e.getCode(), e.getMessage()));
@@ -51,6 +53,18 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
         return ResponseEntity.badRequest().body(Result.error(400, msg));
+    }
+
+    /** 路径/查询参数类型转换失败 (如 GET /plans/foo) → 400, 不再落到兜底 500 */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Result<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        log.warn("参数类型转换失败: name={}, value={}, message={}", e.getName(), e.getValue(), e.getMessage());
+        String msg = "参数 " + e.getName() + " 格式不正确";
+        Class<?> required = e.getRequiredType();
+        if (required != null && LocalDate.class.isAssignableFrom(required)) {
+            msg = "参数 " + e.getName() + " 格式不正确，须为 yyyy-MM-dd";
+        }
+        return ResponseEntity.badRequest().body(Result.error(ErrorCode.BAD_REQUEST.getCode(), msg));
     }
 
     /** 上传文件超过 spring.servlet.multipart 限制 */
