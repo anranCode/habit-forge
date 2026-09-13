@@ -108,39 +108,46 @@ function reflectionTexts(r: Reflection): string[] {
       </template>
     </van-nav-bar>
 
-    <div class="page-body">
-      <!-- 标题 / 心情 / 正文 -->
-      <div class="card">
-        <div class="head-line">
-          <span class="date">{{ dayjs(journal.journalDate).format('YYYY年M月D日 ddd') }}</span>
-          <span v-if="journal.mood" class="mood">{{ moodEmoji(journal.mood) }} {{ moodLabel(journal.mood) }}</span>
-        </div>
-        <div v-if="journal.title" class="title">{{ journal.title }}</div>
-        <div v-if="journal.content" class="content">{{ journal.content }}</div>
-        <div v-if="!journal.title && !journal.content && !journal.images.length" class="text-light empty">
-          这一天还没有正文，点右上角编辑补充
+    <!-- 桌面端两栏：左边正文与图片，右边关联习惯与当日心得。
+         移动端 .split / .col-* 没有任何声明，DOM 顺序也不变，渲染与改造前一致 -->
+    <div class="page-body split is-rail">
+      <div class="col-main">
+          <!-- 标题 / 心情 / 正文 -->
+        <div class="card">
+          <div class="head-line">
+            <span class="date">{{ dayjs(journal.journalDate).format('YYYY年M月D日 ddd') }}</span>
+            <span v-if="journal.mood" class="mood">{{ moodEmoji(journal.mood) }} {{ moodLabel(journal.mood) }}</span>
+          </div>
+          <div v-if="journal.title" class="title">{{ journal.title }}</div>
+          <div v-if="journal.content" class="content">{{ journal.content }}</div>
+          <div v-if="!journal.title && !journal.content && !journal.images.length" class="text-light empty">
+            这一天还没有正文，点右上角编辑补充
+          </div>
+
+          <!-- 图片网格 -->
+          <div v-if="journal.images.length" class="img-grid">
+            <van-image
+              v-for="(img, idx) in journal.images"
+              :key="img.id"
+              :src="imageUrl(img.objectKey)"
+              width="100%"
+              height="100"
+              fit="cover"
+              radius="8"
+              @click="previewImages(idx)"
+            />
+          </div>
         </div>
 
-        <!-- 图片网格 -->
-        <div v-if="journal.images.length" class="img-grid">
-          <van-image
-            v-for="(img, idx) in journal.images"
-            :key="img.id"
-            :src="imageUrl(img.objectKey)"
-            width="100%"
-            height="100"
-            fit="cover"
-            radius="8"
-            @click="previewImages(idx)"
-          />
-        </div>
       </div>
 
-      <!-- 关联习惯 -->
-      <div class="card">
-        <div class="flex-between">
-          <span class="sec-title">关联的习惯</span>
-          <span class="add-link" @click="pickHabitToAdd">＋ 添加</span>
+      <div class="col-side">
+          <!-- 关联习惯 -->
+        <div class="card">
+          <div class="flex-between">
+            <span class="sec-title">关联的习惯</span>
+            <span class="add-link" @click="pickHabitToAdd">＋ 添加</span>
+      </div>
         </div>
         <div v-if="journal.habits.length" class="chips">
           <div v-for="h in journal.habits" :key="h.id" class="chip" @click="router.push(`/habits/${h.id}`)">

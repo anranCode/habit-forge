@@ -204,69 +204,77 @@ function goCreate() {
       </div>
     </div>
 
-    <div class="page-body">
-      <!-- AI 今日安排摘要卡（顶部主入口：未生成→引导录空闲时段，已生成→进度摘要） -->
-      <PlanCard :plan="plan" @click="router.push('/plan')" />
+    <!-- 桌面端两栏：左边是"今天要做什么"（安排+进度+待打卡），右边是"顺带看一眼"的侧栏。
+         移动端 .split 没有任何声明，两个 div 就是普通块级盒子，DOM 结构变了、渲染不变 -->
+    <div class="page-body split is-rail">
+      <div class="col-main">
+        <!-- AI 今日安排摘要卡（顶部主入口：未生成→引导录空闲时段，已生成→进度摘要） -->
+        <PlanCard :plan="plan" @click="router.push('/plan')" />
 
-      <!-- 今日进度 -->
-      <div class="card">
-        <div class="flex-between">
-          <span style="font-weight: 700">今日进度</span>
-          <span class="text-light">{{ doneCount }}/{{ totalCount }} · {{ progress }}%</span>
-        </div>
-        <van-progress :percentage="progress" color="#ff7a00" :show-pivot="false" style="margin-top: 12px" />
-        <div v-if="totalCount > 0 && doneCount === totalCount" class="all-done">
-          🎉 今天全部完成！你正在为想成为的人投票。
-        </div>
-      </div>
-
-      <!-- 今日待打卡 -->
-      <div class="section-title">📋 今日待打卡（{{ totalCount }}）</div>
-      <template v-if="list.length">
-        <div v-for="h in list" :key="h.id">
-          <HabitCard
-            :habit="h"
-            checkable
-            :loading="checkingId === h.id"
-            @check="askCheckin"
-            @click="goDetail"
-          />
-          <!-- 心得入口：完成 -> 记录心得；未完成 -> 记录原因；已记录 -> 查看/编辑 -->
-          <div class="reflection-entry" @click="openReflection(h)">
-            <template v-if="reflectionOf(h.id)">✍️ 已记录心得 · 查看/编辑</template>
-            <template v-else-if="h.checkedToday">✍️ 记录心得 · 为什么今天能做到？</template>
-            <template v-else>🤔 为什么没完成？记一笔</template>
+        <!-- 今日进度 -->
+        <div class="card">
+          <div class="flex-between">
+            <span style="font-weight: 700">今日进度</span>
+            <span class="text-light">{{ doneCount }}/{{ totalCount }} · {{ progress }}%</span>
+          </div>
+          <van-progress :percentage="progress" color="#ff7a00" :show-pivot="false" style="margin-top: 12px" />
+          <div v-if="totalCount > 0 && doneCount === totalCount" class="all-done">
+            🎉 今天全部完成！你正在为想成为的人投票。
           </div>
         </div>
-      </template>
-      <div v-else class="empty-tip">
-        <p>今天没有安排的习惯</p>
-        <van-button size="small" type="primary" color="#ff7a00" round @click="goCreate">去创建一个</van-button>
+
+        <!-- 今日待打卡 -->
+        <div class="section-title">📋 今日待打卡（{{ totalCount }}）</div>
+        <template v-if="list.length">
+          <div v-for="h in list" :key="h.id">
+            <HabitCard
+              :habit="h"
+              checkable
+              :loading="checkingId === h.id"
+              @check="askCheckin"
+              @click="goDetail"
+            />
+            <!-- 心得入口：完成 -> 记录心得；未完成 -> 记录原因；已记录 -> 查看/编辑 -->
+            <div class="reflection-entry" @click="openReflection(h)">
+              <template v-if="reflectionOf(h.id)">✍️ 已记录心得 · 查看/编辑</template>
+              <template v-else-if="h.checkedToday">✍️ 记录心得 · 为什么今天能做到？</template>
+              <template v-else>🤔 为什么没完成？记一笔</template>
+            </div>
+          </div>
+        </template>
+        <div v-else class="empty-tip">
+          <p>今天没有安排的习惯</p>
+          <van-button size="small" type="primary" color="#ff7a00" round @click="goCreate">去创建一个</van-button>
+        </div>
       </div>
 
-      <!-- 学习中心任务卡 -->
-      <StudyTaskCard :overview="studyOverview" @click="router.push('/study')" />
+      <div class="col-side">
+        <!-- 学习中心任务卡 -->
+        <StudyTaskCard :overview="studyOverview" @click="router.push('/study')" />
 
-      <!-- 今日记录 -->
-      <div class="card journal-card" @click="goTodayJournal">
-        <div class="flex-between">
-          <span style="font-weight: 700">📔 今日记录</span>
-          <span class="text-light">{{ todayJournal ? '查看 ›' : '去记录 ›' }}</span>
+        <!-- 今日记录 -->
+        <div class="card journal-card" @click="goTodayJournal">
+          <div class="flex-between">
+            <span style="font-weight: 700">📔 今日记录</span>
+            <span class="text-light">{{ todayJournal ? '查看 ›' : '去记录 ›' }}</span>
+          </div>
+          <div v-if="todayJournal" class="journal-line">
+            <span v-if="todayJournal.mood" class="mood">{{ moodEmoji(todayJournal.mood) }}</span>
+            <span v-if="todayJournal.title">{{ todayJournal.title }}</span>
+            <span v-else-if="todayJournal.content" class="text-light">{{
+              todayJournal.content.slice(0, 30)
+            }}</span>
+            <span v-else class="text-light">已写下今天，继续补充心得吧</span>
+          </div>
+          <div v-else class="journal-line text-light">打卡之后，写下一天的记录与心得吧</div>
         </div>
-        <div v-if="todayJournal" class="journal-line">
-          <span v-if="todayJournal.mood" class="mood">{{ moodEmoji(todayJournal.mood) }}</span>
-          <span v-if="todayJournal.title">{{ todayJournal.title }}</span>
-          <span v-else-if="todayJournal.content" class="text-light">{{ todayJournal.content.slice(0, 30) }}</span>
-          <span v-else class="text-light">已写下今天，继续补充心得吧</span>
-        </div>
-        <div v-else class="journal-line text-light">打卡之后，写下一天的记录与心得吧</div>
-      </div>
 
-      <!-- 今日建议 -->
-      <div class="card tip-card">
-        <div class="tip-title">💡 今日建议</div>
-        <div class="tip-text">{{ tips[tipIndex] }}</div>
-        <div class="tip-next text-light" @click="tipIndex = (tipIndex + 1) % tips.length">换一条 ›</div>
+        <!-- 今日建议 -->
+        <div class="card tip-card">
+          <div class="tip-title">💡 今日建议</div>
+          <div class="tip-text">{{ tips[tipIndex] }}</div>
+          <div class="tip-next text-light" @click="tipIndex = (tipIndex + 1) % tips.length">换一条 ›</div>
+        </div>
       </div>
     </div>
 

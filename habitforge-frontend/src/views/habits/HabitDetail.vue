@@ -52,75 +52,81 @@ async function cancelRecord(r: CheckinRecord) {
       </template>
     </van-nav-bar>
 
-    <div class="page-body">
-      <!-- 链数据 -->
-      <div class="streak-panel">
-        <div class="streak-item">
-          <div class="num">🔥 {{ habit.currentStreak || 0 }}</div>
-          <div class="label">当前连续</div>
+    <!-- 桌面端两栏：左边习惯本体与心得，右边打卡流水。
+         移动端 .split / .col-* 没有任何声明，DOM 顺序也不变，渲染与改造前一致 -->
+    <div class="page-body split is-rail">
+      <div class="col-main">
+        <!-- 链数据 -->
+        <div class="streak-panel">
+          <div class="streak-item">
+            <div class="num">🔥 {{ habit.currentStreak || 0 }}</div>
+            <div class="label">当前连续</div>
+          </div>
+          <div class="divider" />
+          <div class="streak-item">
+            <div class="num">🏆 {{ habit.longestStreak || 0 }}</div>
+            <div class="label">最长连续</div>
+          </div>
+          <div class="divider" />
+          <div class="streak-item">
+            <div class="num">📅 {{ totalDays }}</div>
+            <div class="label">累计打卡</div>
+          </div>
         </div>
-        <div class="divider" />
-        <div class="streak-item">
-          <div class="num">🏆 {{ habit.longestStreak || 0 }}</div>
-          <div class="label">最长连续</div>
-        </div>
-        <div class="divider" />
-        <div class="streak-item">
-          <div class="num">📅 {{ totalDays }}</div>
-          <div class="label">累计打卡</div>
-        </div>
-      </div>
 
-      <!-- 习惯信息 -->
-      <div class="card">
-        <div class="info-title">{{ categoryEmoji[habit.category] }} {{ habit.name }}</div>
-        <div class="info-grid">
-          <div v-if="habit.identityTag" class="info-item"><span class="k">身份标签</span>{{ habit.identityTag }}</div>
-          <div class="info-item"><span class="k">频率</span>{{ frequencyLabel(habit.frequencyType, habit.frequencyDays, habit.frequencyTarget) }}</div>
-          <div v-if="habit.execTime" class="info-item"><span class="k">执行时间</span>{{ habit.execTime }}</div>
-          <div v-if="habit.execPlace" class="info-item"><span class="k">执行地点</span>{{ habit.execPlace }}</div>
-          <div v-if="habit.stackAfter" class="info-item"><span class="k">习惯叠加</span>{{ habit.stackAfter }}</div>
-          <div v-if="habit.twoMinuteVersion" class="info-item"><span class="k">两分钟版本</span>{{ habit.twoMinuteVersion }}</div>
-          <div v-if="firstDate" class="info-item"><span class="k">首次打卡</span>{{ firstDate }}</div>
+        <!-- 习惯信息 -->
+        <div class="card">
+          <div class="info-title">{{ categoryEmoji[habit.category] }} {{ habit.name }}</div>
+          <div class="info-grid">
+            <div v-if="habit.identityTag" class="info-item"><span class="k">身份标签</span>{{ habit.identityTag }}</div>
+            <div class="info-item"><span class="k">频率</span>{{ frequencyLabel(habit.frequencyType, habit.frequencyDays, habit.frequencyTarget) }}</div>
+            <div v-if="habit.execTime" class="info-item"><span class="k">执行时间</span>{{ habit.execTime }}</div>
+            <div v-if="habit.execPlace" class="info-item"><span class="k">执行地点</span>{{ habit.execPlace }}</div>
+            <div v-if="habit.stackAfter" class="info-item"><span class="k">习惯叠加</span>{{ habit.stackAfter }}</div>
+            <div v-if="habit.twoMinuteVersion" class="info-item"><span class="k">两分钟版本</span>{{ habit.twoMinuteVersion }}</div>
+            <div v-if="firstDate" class="info-item"><span class="k">首次打卡</span>{{ firstDate }}</div>
+          </div>
         </div>
-      </div>
 
-      <!-- 我的心得 -->
-      <div class="section-title">✍️ 我的心得</div>
-      <div v-if="reflections.length">
-        <div v-for="r in reflections" :key="r.id" class="reflection-card" @click="router.push(`/record/${r.journalId}`)">
-          <div class="flex-between">
-            <div class="r-date">
-              {{ r.journalDate ? dayjs(r.journalDate).format('M月D日 ddd') : '-' }}
-              <span v-if="feelingEmoji(r.feeling)" class="feeling">{{ feelingEmoji(r.feeling) }}</span>
-              <span v-if="r.difficulty" class="text-light diff">⭐{{ r.difficulty }}</span>
+        <!-- 我的心得 -->
+        <div class="section-title">✍️ 我的心得</div>
+        <div v-if="reflections.length">
+          <div v-for="r in reflections" :key="r.id" class="reflection-card" @click="router.push(`/record/${r.journalId}`)">
+            <div class="flex-between">
+              <div class="r-date">
+                {{ r.journalDate ? dayjs(r.journalDate).format('M月D日 ddd') : '-' }}
+                <span v-if="feelingEmoji(r.feeling)" class="feeling">{{ feelingEmoji(r.feeling) }}</span>
+                <span v-if="r.difficulty" class="text-light diff">⭐{{ r.difficulty }}</span>
+              </div>
+              <van-tag v-if="r.result === 1" type="success" round>✅ 完成</van-tag>
+              <van-tag v-else type="danger" round>❌ 未完成</van-tag>
             </div>
-            <van-tag v-if="r.result === 1" type="success" round>✅ 完成</van-tag>
-            <van-tag v-else type="danger" round>❌ 未完成</van-tag>
+            <div v-if="r.reason" class="r-line"><span class="k">原因</span>{{ r.reason }}</div>
+            <div v-if="r.obstacle" class="r-line"><span class="k">困难</span>{{ r.obstacle }}</div>
+            <div v-if="r.learning" class="r-line"><span class="k">学到</span>{{ r.learning }}</div>
+            <div v-if="r.adjustment" class="r-line"><span class="k">调整</span>{{ r.adjustment }}</div>
+            <div class="r-jump text-light">查看当日记录（含图片） ›</div>
           </div>
-          <div v-if="r.reason" class="r-line"><span class="k">原因</span>{{ r.reason }}</div>
-          <div v-if="r.obstacle" class="r-line"><span class="k">困难</span>{{ r.obstacle }}</div>
-          <div v-if="r.learning" class="r-line"><span class="k">学到</span>{{ r.learning }}</div>
-          <div v-if="r.adjustment" class="r-line"><span class="k">调整</span>{{ r.adjustment }}</div>
-          <div class="r-jump text-light">查看当日记录（含图片） ›</div>
         </div>
+        <div v-else class="empty-tip-sm text-light">还没有心得，回今日页记一笔吧</div>
       </div>
-      <div v-else class="empty-tip-sm text-light">还没有心得，回今日页记一笔吧</div>
 
-      <!-- 打卡历史 -->
-      <div class="section-title">打卡记录</div>
-      <div v-if="records.length">
-        <van-swipe-cell v-for="r in records" :key="r.id">
-          <div class="record-row">
-            <div class="date">{{ r.checkDate }} <span class="text-light">{{ dayjs(r.checkDate).format('ddd') }}</span></div>
-            <div v-if="r.note" class="note text-light">{{ r.note }}</div>
-          </div>
-          <template #right>
-            <van-button square type="danger" text="撤销" style="height: 100%" @click="cancelRecord(r)" />
-          </template>
-        </van-swipe-cell>
+      <div class="col-side">
+        <!-- 打卡记录 -->
+        <div class="section-title">打卡记录</div>
+        <div v-if="records.length">
+          <van-swipe-cell v-for="r in records" :key="r.id">
+            <div class="record-row">
+              <div class="date">{{ r.checkDate }} <span class="text-light">{{ dayjs(r.checkDate).format('ddd') }}</span></div>
+              <div v-if="r.note" class="note text-light">{{ r.note }}</div>
+            </div>
+            <template #right>
+              <van-button square type="danger" text="撤销" style="height: 100%" @click="cancelRecord(r)" />
+            </template>
+          </van-swipe-cell>
+        </div>
+        <div v-else class="empty-tip">还没有打卡记录，从今天开始吧！</div>
       </div>
-      <div v-else class="empty-tip">还没有打卡记录，从今天开始吧！</div>
     </div>
   </div>
 </template>

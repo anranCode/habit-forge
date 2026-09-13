@@ -83,7 +83,8 @@ function onTimeConfirm({ selectedValues }: { selectedValues: string[] }) {
 </script>
 
 <template>
-  <van-form @submit="emit('submit', { ...form })">
+  <!-- is-form：桌面端把表单收窄到 760px 居中；移动端这个类没有任何声明 -->
+  <van-form class="is-form" @submit="emit('submit', { ...form })">
     <van-cell-group inset title="基本信息">
       <van-field
         v-model="form.name"

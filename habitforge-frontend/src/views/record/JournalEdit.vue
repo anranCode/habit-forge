@@ -222,7 +222,7 @@ onBeforeRouteLeave(() => {
       </template>
     </van-nav-bar>
 
-    <div class="page-body">
+    <div class="page-body is-form">
       <!-- 日期 -->
       <div class="card">
         <div class="date-row" @click="!isEdit && (showDatePicker = true)">

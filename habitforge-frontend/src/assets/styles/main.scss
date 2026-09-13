@@ -120,6 +120,63 @@ body {
     margin-bottom: 16px;
   }
 
+  /* 多栏骨架。各页把内容包进 .col-main / .col-side 两个 div，窄的一侧放 .col-side。
+     为什么移动端能"逐像素不变"：这套类名在断点之外**一条声明都没有** ——
+     两个 div 就是普通块级盒子，子元素的外边距照旧上下穿透，
+     与不包这层壳时的渲染完全一致（每条改造都用 cmp 比对过截图）。
+     纵向只给 column-gap：行间节奏继续由 .card 自己的 margin-bottom 管，
+     再叠一层 row-gap 会让同列两张卡之间多出一倍空隙。 */
+  .split {
+    display: grid;
+    column-gap: 20px;
+  }
+
+  .split > .col-main,
+  .split > .col-side {
+    min-width: 0; // 网格项默认 min-width:auto，长文本会把列撑破
+  }
+
+  // 需要横跨整行的那一项（空状态、工具条、分组标题）
+  .split > .span-all {
+    grid-column: 1 / -1;
+  }
+
+  // 主区 + 侧栏（侧栏固定 360px，主区吃掉剩余）
+  .split.is-rail {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start; // 否则侧栏会被拉得和主区一样高
+  }
+
+  // 等宽两栏 / 三栏
+  .split.is-half {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .split.is-thirds {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* 卡片流：不给列数，按 320px 最小宽自动铺满。
+     卡片高度参差时同一行的会被拉齐（默认 stretch），比定死列数耐看。 */
+  .split.is-flow {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+
+  /* 不是所有页面都适合铺满 1180px。时间线（今日安排）按时间从上往下读、
+     表单是一列输入框，宽到 1180 只会让眼睛来回扫。给它们一个居中的阅读宽度。
+     类名挂在 .page-body 上、且只在断点内生效 —— 移动端加了这个类也没有任何声明。 */
+  .is-reading {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .is-form {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   /* 从底部升起的抽屉 → 居中对话框。
      position 是由 usePopupPosition() 在 JS 里切的（不能靠 CSS 覆盖 .van-popup--bottom：
      进出场动画写在 van-popup-slide-bottom-* 的 transform 上，强改 transform 会和动画打架），

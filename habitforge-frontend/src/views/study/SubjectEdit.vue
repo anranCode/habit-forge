@@ -84,7 +84,7 @@ async function onSave() {
   <div>
     <van-nav-bar :title="isEdit ? '编辑科目' : '新建科目'" left-arrow @click-left="router.back()" />
 
-    <div class="page-body">
+    <div class="page-body is-form">
       <van-form @submit="onSave">
         <div class="card">
           <!-- 名称 -->

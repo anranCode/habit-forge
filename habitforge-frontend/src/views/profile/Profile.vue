@@ -85,32 +85,38 @@ async function logout() {
       <div class="level-tip">距离下一级还需 {{ 100 - levelProgress }} 积分</div>
     </div>
 
-    <div class="page-body">
-      <!-- 身份设定 -->
-      <div class="card">
-        <div class="flex-between">
-          <span style="font-weight: 700">🎯 身份设定</span>
-          <span class="edit-btn" @click="startEditGoal">编辑</span>
+    <!-- 桌面端两栏：左边是"我的数据"，右边是入口与账号动作。
+         移动端 .split 没有任何声明，两个 div 就是普通块级盒子，渲染与改造前一致 -->
+    <div class="page-body split is-rail">
+      <div class="col-main">
+        <!-- 身份设定 -->
+        <div class="card">
+          <div class="flex-between">
+            <span style="font-weight: 700">🎯 身份设定</span>
+            <span class="edit-btn" @click="startEditGoal">编辑</span>
+          </div>
+          <div class="identity text-light" style="margin-top: 10px">
+            {{ userStore.user?.identityGoal || '还没有设定 —— 决定你想成为谁，然后用小赢证明自己。' }}
+          </div>
         </div>
-        <div class="identity text-light" style="margin-top: 10px">
-          {{ userStore.user?.identityGoal || '还没有设定 —— 决定你想成为谁，然后用小赢证明自己。' }}
+
+        <!-- 数据总览 -->
+        <div v-if="stats" class="card">
+          <div class="flex-between"><span>累计打卡</span><b>{{ stats.totalCheckins }} 次</b></div>
+          <div class="flex-between"><span>习惯总数</span><b>{{ stats.totalHabits }} 个</b></div>
+          <div class="flex-between"><span>最长连续纪录</span><b>🏆 {{ stats.longestStreakOverall }} 天</b></div>
         </div>
       </div>
 
-      <!-- 数据总览 -->
-      <div v-if="stats" class="card">
-        <div class="flex-between"><span>累计打卡</span><b>{{ stats.totalCheckins }} 次</b></div>
-        <div class="flex-between"><span>习惯总数</span><b>{{ stats.totalHabits }} 个</b></div>
-        <div class="flex-between"><span>最长连续纪录</span><b>🏆 {{ stats.longestStreakOverall }} 天</b></div>
-      </div>
+      <div class="col-side">
+        <van-cell-group inset style="margin-top: 12px">
+          <van-cell title="📚 学习中心" is-link label="科目章节进度 · 考试倒计时" @click="router.push('/study')" />
+          <van-cell title="关于 HabitForge" value="v1.0 · 基于《掌控习惯》四大定律" />
+        </van-cell-group>
 
-      <van-cell-group inset style="margin-top: 12px">
-        <van-cell title="📚 学习中心" is-link label="科目章节进度 · 考试倒计时" @click="router.push('/study')" />
-        <van-cell title="关于 HabitForge" value="v1.0 · 基于《掌控习惯》四大定律" />
-      </van-cell-group>
-
-      <div style="padding: 24px 16px">
-        <van-button block round plain type="danger" @click="logout">退出登录</van-button>
+        <div style="padding: 24px 16px">
+          <van-button block round plain type="danger" @click="logout">退出登录</van-button>
+        </div>
       </div>
     </div>
 

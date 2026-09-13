@@ -262,7 +262,7 @@ async function save() {
       </template>
     </van-nav-bar>
 
-    <div class="page-body">
+    <div class="page-body is-form">
       <van-cell-group inset class="grp">
         <van-field
           v-model="subjectName"

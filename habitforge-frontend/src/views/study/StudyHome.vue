@@ -41,50 +41,55 @@ function goCreate() {
     </van-nav-bar>
 
     <div class="page-body">
-      <!-- 顶部汇总条（apiStudyOverview 实时数据：到期卡/错题/今日复习） -->
-      <div class="card sum-bar">
-        <div class="sum">
-          <div class="num">{{ overview?.dueCardsTotal ?? 0 }}</div>
-          <div class="lb">到期卡</div>
-        </div>
-        <div class="sum">
-          <div class="num">{{ overview?.wrongsTotal ?? 0 }}</div>
-          <div class="lb">错题</div>
-        </div>
-        <div class="sum">
-          <div class="num">{{ overview?.reviewedToday ?? 0 }}</div>
-          <div class="lb">今日复习</div>
-        </div>
-      </div>
-
-      <!-- 今日待复习快捷入口 -->
-      <div class="card review-entry" @click="router.push('/study/review')">
-        <div class="left">
-          <div class="t">🃏 今日待复习</div>
-          <div class="d text-light">
-            {{
-              (overview?.dueCardsTotal ?? 0) > 0
-                ? `${overview?.dueCardsTotal} 张卡到期，复习满 5 张有积分奖励`
-                : '今日无到期卡，去创建新闪卡吧'
-            }}
+      <!-- 桌面端把汇总条与复习入口并成一行；移动端 .split 没有任何声明，仍是上下两块 -->
+      <div class="split is-half">
+        <!-- 顶部汇总条（apiStudyOverview 实时数据：到期卡/错题/今日复习） -->
+        <div class="card sum-bar">
+          <div class="sum">
+            <div class="num">{{ overview?.dueCardsTotal ?? 0 }}</div>
+            <div class="lb">到期卡</div>
+          </div>
+          <div class="sum">
+            <div class="num">{{ overview?.wrongsTotal ?? 0 }}</div>
+            <div class="lb">错题</div>
+          </div>
+          <div class="sum">
+            <div class="num">{{ overview?.reviewedToday ?? 0 }}</div>
+            <div class="lb">今日复习</div>
           </div>
         </div>
-        <van-badge v-if="(overview?.dueCardsTotal ?? 0) > 0" :content="overview!.dueCardsTotal" />
-        <van-icon name="arrow" color="#8a94a6" />
+
+        <!-- 今日待复习快捷入口 -->
+        <div class="card review-entry" @click="router.push('/study/review')">
+          <div class="left">
+            <div class="t">🃏 今日待复习</div>
+            <div class="d text-light">
+              {{
+                (overview?.dueCardsTotal ?? 0) > 0
+                  ? `${overview?.dueCardsTotal} 张卡到期，复习满 5 张有积分奖励`
+                  : '今日无到期卡，去创建新闪卡吧'
+              }}
+            </div>
+          </div>
+          <van-badge v-if="(overview?.dueCardsTotal ?? 0) > 0" :content="overview!.dueCardsTotal" />
+          <van-icon name="arrow" color="#8a94a6" />
+        </div>
       </div>
 
-      <!-- 科目卡片列表 -->
-      <template v-if="overview && overview.subjects.length">
-        <SubjectCard v-for="s in overview.subjects" :key="s.id" :subject="s" />
-      </template>
-      <div v-else-if="!loading" class="empty-tip">
-        <p>先创建第一个科目</p>
-        <p class="sub">把自考的科目与章节拆小，进度看得见</p>
-        <van-button size="small" type="primary" color="#ff7a00" round class="create-btn" @click="goCreate">
-          新建科目
-        </van-button>
+      <!-- 科目卡片列表。桌面端自动铺成多列；移动端 .split 没有任何声明，竖排不变 -->
+      <div class="split is-flow">
+        <template v-if="overview && overview.subjects.length">
+          <SubjectCard v-for="s in overview.subjects" :key="s.id" :subject="s" />
+        </template>
+        <div v-else-if="!loading" class="empty-tip span-all">
+          <p>先创建第一个科目</p>
+          <p class="sub">把自考的科目与章节拆小，进度看得见</p>
+          <van-button size="small" type="primary" color="#ff7a00" round class="create-btn" @click="goCreate">
+            新建科目
+          </van-button>
+        </div>
+        <div v-else class="empty-tip span-all">加载中…</div>
       </div>
-      <div v-else class="empty-tip">加载中…</div>
     </div>
 
     <!-- 浮动新建按钮 -->
@@ -95,6 +100,14 @@ function goCreate() {
 </template>
 
 <style scoped lang="scss">
+/* 并排时两块的顶边要对齐：移动端那条 margin-top 是给竖直堆叠留的间距，
+   桌面端由 .split 的 column-gap 接管横向、.card 的 margin-bottom 接管纵向。 */
+@media (min-width: #{$bp-desktop}) {
+  .review-entry {
+    margin-top: 0;
+  }
+}
+
 .sum-bar {
   display: flex;
 

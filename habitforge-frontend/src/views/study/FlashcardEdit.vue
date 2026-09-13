@@ -86,7 +86,7 @@ async function onSubmit() {
   <div>
     <van-nav-bar title="新建闪卡" left-arrow @click-left="router.back()" />
 
-    <div class="page-body">
+    <div class="page-body is-form">
       <van-form @submit="onSubmit">
         <div class="card">
           <van-cell

@@ -47,7 +47,9 @@ async function onDelete() {
       </template>
     </van-nav-bar>
 
-    <div v-if="note" class="page-body">
+    <!-- is-reading：Markdown 正文在 1180px 下行长会过长，桌面端居中收窄到 900px。
+         移动端这个类没有任何声明，逐像素不变。 -->
+    <div v-if="note" class="page-body is-reading">
       <div class="card">
         <h1 class="note-title">{{ note.title }}</h1>
         <div class="note-meta text-light">

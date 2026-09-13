@@ -99,22 +99,25 @@ onMountedOrActivated(load)
         />
       </div>
 
-      <div v-if="loading" class="empty-tip">加载中…</div>
-      <template v-else-if="monthList.length">
-        <div v-for="j in monthList" :key="j.id" class="card journal-item" @click="goDetail(j)">
-          <div class="flex-between">
-            <div class="date-line">
-              <span v-if="j.mood" class="mood">{{ moodEmoji(j.mood) }}</span>
-              <span class="date">{{ dayjs(j.journalDate).format('M月D日 ddd') }}</span>
-              <van-tag v-if="j.habitCount" plain round size="medium" color="#ff7a00">{{ j.habitCount }} 个习惯</van-tag>
-              <van-tag v-if="j.imageCount" plain round size="medium" color="#3498db">🖼 {{ j.imageCount }}</van-tag>
+      <!-- 一个月的记录在桌面端铺成卡片流；移动端 .split 无声明，仍是一天一张竖排 -->
+      <div class="split is-flow">
+        <div v-if="loading" class="empty-tip span-all">加载中…</div>
+        <template v-else-if="monthList.length">
+          <div v-for="j in monthList" :key="j.id" class="card journal-item" @click="goDetail(j)">
+            <div class="flex-between">
+              <div class="date-line">
+                <span v-if="j.mood" class="mood">{{ moodEmoji(j.mood) }}</span>
+                <span class="date">{{ dayjs(j.journalDate).format('M月D日 ddd') }}</span>
+                <van-tag v-if="j.habitCount" plain round size="medium" color="#ff7a00">{{ j.habitCount }} 个习惯</van-tag>
+                <van-tag v-if="j.imageCount" plain round size="medium" color="#3498db">🖼 {{ j.imageCount }}</van-tag>
+              </div>
+              <van-icon name="arrow" color="#8a94a6" />
             </div>
-            <van-icon name="arrow" color="#8a94a6" />
+            <div v-if="j.title" class="title">{{ j.title }}</div>
           </div>
-          <div v-if="j.title" class="title">{{ j.title }}</div>
-        </div>
-      </template>
-      <div v-else class="empty-tip">这个月还没有记录</div>
+        </template>
+        <div v-else class="empty-tip span-all">这个月还没有记录</div>
+      </div>
     </div>
   </div>
 </template>

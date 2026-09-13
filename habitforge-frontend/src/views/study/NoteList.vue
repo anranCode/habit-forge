@@ -52,23 +52,26 @@ function goCreate() {
     </van-nav-bar>
 
     <div class="page-body">
-      <template v-if="list.length">
-        <div v-for="n in list" :key="n.id" class="card note-item" @click="router.push(`/study/notes/${n.id}`)">
-          <div class="flex-between">
-            <span class="title">{{ n.title }}</span>
-            <span class="time text-light">{{ dayjs(n.updatedAt).format('MM-DD HH:mm') }}</span>
+      <!-- 桌面端铺成卡片流；移动端 .split 没有任何声明，仍是一张一张竖排 -->
+      <div class="split is-flow">
+        <template v-if="list.length">
+          <div v-for="n in list" :key="n.id" class="card note-item" @click="router.push(`/study/notes/${n.id}`)">
+            <div class="flex-between">
+              <span class="title">{{ n.title }}</span>
+              <span class="time text-light">{{ dayjs(n.updatedAt).format('MM-DD HH:mm') }}</span>
+            </div>
+            <div class="excerpt text-light">{{ n.excerpt || '（无正文）' }}</div>
           </div>
-          <div class="excerpt text-light">{{ n.excerpt || '（无正文）' }}</div>
+        </template>
+        <div v-else-if="!loading" class="empty-tip span-all">
+          <p>还没有笔记</p>
+          <p class="sub">用 Markdown 整理这一科的重点，支持插入图片</p>
+          <van-button size="small" type="primary" color="#ff7a00" round class="create-btn" @click="goCreate">
+            新建笔记
+          </van-button>
         </div>
-      </template>
-      <div v-else-if="!loading" class="empty-tip">
-        <p>还没有笔记</p>
-        <p class="sub">用 Markdown 整理这一科的重点，支持插入图片</p>
-        <van-button size="small" type="primary" color="#ff7a00" round class="create-btn" @click="goCreate">
-          新建笔记
-        </van-button>
+        <div v-else class="empty-tip span-all">加载中…</div>
       </div>
-      <div v-else class="empty-tip">加载中…</div>
     </div>
   </div>
 </template>

@@ -73,34 +73,37 @@ async function remove(w: WrongQuestion) {
     </van-nav-bar>
 
     <div class="page-body">
-      <template v-if="list.length">
-        <van-button
-          block
-          round
-          type="primary"
-          color="#ff7a00"
-          class="practice-btn"
-          @click="router.push(subjectId ? `/study/wrongs/practice?subjectId=${subjectId}` : '/study/wrongs/practice')"
-        >
-          开始重练（每次最多 20 道）
-        </van-button>
+      <!-- 桌面端错题铺成卡片流，重练按钮横跨整行；移动端 .split 没有任何声明，竖排不变 -->
+      <div class="split is-flow">
+        <template v-if="list.length">
+          <van-button
+            block
+            round
+            type="primary"
+            color="#ff7a00"
+            class="practice-btn span-all"
+            @click="router.push(subjectId ? `/study/wrongs/practice?subjectId=${subjectId}` : '/study/wrongs/practice')"
+          >
+            开始重练（每次最多 20 道）
+          </van-button>
 
-        <van-swipe-cell v-for="w in list" :key="w.questionId">
-          <WrongQuestionItem :wrong="w" @click="goDetail(w)" />
-          <template #right>
-            <div class="swipe-actions">
-              <van-button square type="warning" class="swipe-btn" @click="dismiss(w)">移出</van-button>
-              <van-button square type="danger" class="swipe-btn" @click="remove(w)">删除</van-button>
-            </div>
-          </template>
-        </van-swipe-cell>
-      </template>
-      <div v-else-if="!loading" class="empty-tip">
-        <p>还没有错题</p>
-        <p class="sub">去题库做题，答错的题会自动进到这里</p>
-        <van-button size="small" round type="primary" color="#ff7a00" @click="router.push('/study/questions')">
-          逛题库
-        </van-button>
+          <van-swipe-cell v-for="w in list" :key="w.questionId">
+            <WrongQuestionItem :wrong="w" @click="goDetail(w)" />
+            <template #right>
+              <div class="swipe-actions">
+                <van-button square type="warning" class="swipe-btn" @click="dismiss(w)">移出</van-button>
+                <van-button square type="danger" class="swipe-btn" @click="remove(w)">删除</van-button>
+              </div>
+            </template>
+          </van-swipe-cell>
+        </template>
+        <div v-else-if="!loading" class="empty-tip span-all">
+          <p>还没有错题</p>
+          <p class="sub">去题库做题，答错的题会自动进到这里</p>
+          <van-button size="small" round type="primary" color="#ff7a00" @click="router.push('/study/questions')">
+            逛题库
+          </van-button>
+        </div>
       </div>
     </div>
   </div>

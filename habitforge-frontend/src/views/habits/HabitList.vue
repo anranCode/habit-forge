@@ -64,24 +64,27 @@ async function removeHabit(h: Habit) {
         </van-tabs>
       </div>
 
-      <template v-if="list.length">
-        <van-swipe-cell v-for="h in list" :key="h.id">
-          <HabitCard :habit="h" @click="goDetail" />
-          <template #right>
-            <div class="swipe-actions">
-              <van-button square :type="h.isActive ? 'warning' : 'success'" class="swipe-btn" @click="toggleArchive(h)">
-                {{ h.isActive ? '归档' : '恢复' }}
-              </van-button>
-              <van-button square type="danger" class="swipe-btn" @click="removeHabit(h)">删除</van-button>
-            </div>
-          </template>
-        </van-swipe-cell>
-      </template>
-      <div v-else class="empty-tip">
-        <p>暂无习惯</p>
-        <van-button size="small" type="primary" color="#ff7a00" round @click="router.push('/habits/create')">
-          创建第一个习惯
-        </van-button>
+      <!-- 桌面端按 320px 自动铺成多列；移动端 .split 没有任何声明，卡片照旧竖排 -->
+      <div class="split is-flow">
+        <template v-if="list.length">
+          <van-swipe-cell v-for="h in list" :key="h.id">
+            <HabitCard :habit="h" @click="goDetail" />
+            <template #right>
+              <div class="swipe-actions">
+                <van-button square :type="h.isActive ? 'warning' : 'success'" class="swipe-btn" @click="toggleArchive(h)">
+                  {{ h.isActive ? '归档' : '恢复' }}
+                </van-button>
+                <van-button square type="danger" class="swipe-btn" @click="removeHabit(h)">删除</van-button>
+              </div>
+            </template>
+          </van-swipe-cell>
+        </template>
+        <div v-else class="empty-tip span-all">
+          <p>暂无习惯</p>
+          <van-button size="small" type="primary" color="#ff7a00" round @click="router.push('/habits/create')">
+            创建第一个习惯
+          </van-button>
+        </div>
       </div>
     </div>
 

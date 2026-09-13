@@ -130,95 +130,101 @@ async function onRemove(c: Chapter) {
       </template>
     </van-nav-bar>
 
-    <div class="page-body">
-      <!-- 科目头部：进度 + 考试倒计时 -->
-      <div v-if="subject" class="card head-card">
-        <div class="flex-between">
-          <span class="sname">{{ subject.name }}</span>
-          <van-tag v-if="countdownText" round :color="countdownText === '已过考期' ? '#8a94a6' : '#ff7a00'">
-            {{ countdownText }}
-          </van-tag>
+    <!-- 桌面端两栏：左边章节目录，右边学习工具入口。
+         移动端 .split / .col-* 没有任何声明，DOM 顺序也不变，渲染与改造前一致 -->
+    <div class="page-body split is-rail">
+      <div class="col-main">
+        <!-- 科目头部：进度 + 考试倒计时 -->
+        <div v-if="subject" class="card head-card">
+          <div class="flex-between">
+            <span class="sname">{{ subject.name }}</span>
+            <van-tag v-if="countdownText" round :color="countdownText === '已过考期' ? '#8a94a6' : '#ff7a00'">
+              {{ countdownText }}
+            </van-tag>
+          </div>
+          <div class="exam-line text-light">
+            <span v-if="subject.examDate">
+              {{ dayjs(subject.examDate).format('YYYY年M月D日') }} 考试{{ subject.examSession ? ' · ' + subject.examSession : '' }}
+            </span>
+            <span v-else>未设置考试日期</span>
+          </div>
+          <div class="flex-between prog-line">
+            <span class="text-light">章节进度 {{ subject.chapterDone }}/{{ subject.chapterTotal }}</span>
+            <span class="pct">{{ progress }}%</span>
+          </div>
+          <van-progress :percentage="progress" color="#ff7a00" :show-pivot="false" />
+          <van-button
+            block
+            round
+            plain
+            type="primary"
+            color="#ff7a00"
+            size="small"
+            class="add-chapter-btn"
+            @click="openAdd()"
+          >
+            ＋ 新章节
+          </van-button>
         </div>
-        <div class="exam-line text-light">
-          <span v-if="subject.examDate">
-            {{ dayjs(subject.examDate).format('YYYY年M月D日') }} 考试{{ subject.examSession ? ' · ' + subject.examSession : '' }}
-          </span>
-          <span v-else>未设置考试日期</span>
-        </div>
-        <div class="flex-between prog-line">
-          <span class="text-light">章节进度 {{ subject.chapterDone }}/{{ subject.chapterTotal }}</span>
-          <span class="pct">{{ progress }}%</span>
-        </div>
-        <van-progress :percentage="progress" color="#ff7a00" :show-pivot="false" />
-        <van-button
-          block
-          round
-          plain
-          type="primary"
-          color="#ff7a00"
-          size="small"
-          class="add-chapter-btn"
-          @click="openAdd()"
-        >
-          ＋ 新章节
-        </van-button>
-      </div>
-      <div v-else-if="!loading" class="empty-tip">科目不存在或已删除</div>
+        <div v-else-if="!loading" class="empty-tip">科目不存在或已删除</div>
 
-      <!-- 章节树 -->
-      <div class="section-title">📖 章节目录</div>
-      <div class="card tree-card">
-        <ChapterTree
-          v-if="chapters.length"
-          :chapters="chapters"
-          @status="onStatus"
-          @rename="onRename"
-          @add="openAdd"
-          @remove="onRemove"
-        />
-        <div v-else-if="loading" class="empty-tip">加载中…</div>
-        <div v-else class="empty-tip small">
-          还没有章节，点击上方「＋ 新章节」<br />建议按教材章/节拆分，不超过 3 层
+        <!-- 章节树 -->
+        <div class="section-title">📖 章节目录</div>
+        <div class="card tree-card">
+          <ChapterTree
+            v-if="chapters.length"
+            :chapters="chapters"
+            @status="onStatus"
+            @rename="onRename"
+            @add="openAdd"
+            @remove="onRemove"
+          />
+          <div v-else-if="loading" class="empty-tip">加载中…</div>
+          <div v-else class="empty-tip small">
+            还没有章节，点击上方「＋ 新章节」<br />建议按教材章/节拆分，不超过 3 层
+          </div>
         </div>
+        <div class="legend text-light">点击圆点切换状态：未开始 → 进行中 → 已完成</div>
       </div>
-      <div class="legend text-light">点击圆点切换状态：未开始 → 进行中 → 已完成</div>
 
-      <!-- 学习工具入口（角标数据来自科目实时汇总 dueCards/wrongCount） -->
-      <div class="section-title">🧰 学习工具</div>
-      <van-cell-group inset class="tools-group">
-        <van-cell
-          title="🃏 闪卡复习"
-          :label="subject?.dueCards ? `今日到期 ${subject.dueCards} 张，开始复习` : '基于 SM-2 间隔重复，今日无到期'"
-          is-link
-          @click="router.push(`/study/review?subjectId=${subjectId}`)"
-        >
-          <template v-if="subject?.dueCards" #value>
-            <van-badge :content="subject.dueCards" />
-          </template>
-        </van-cell>
-        <van-cell
-          title="📝 笔记"
-          label="Markdown 笔记，按科目/章节归档"
-          is-link
-          @click="router.push(`/study/notes?subjectId=${subjectId}`)"
-        />
-        <van-cell
-          title="❓ 题库"
-          label="单选/多选/判断/简答题，按科目筛选"
-          is-link
-          @click="router.push(`/study/questions?subjectId=${subjectId}`)"
-        />
-        <van-cell
-          title="📕 错题本"
-          :label="subject?.wrongCount ? `待重练 ${subject.wrongCount} 道，连对 2 次自动摘除` : '记录答错的题，重练到掌握'"
-          is-link
-          @click="router.push(`/study/wrongs?subjectId=${subjectId}`)"
-        >
-          <template v-if="subject?.wrongCount" #value>
-            <van-badge :content="subject.wrongCount" />
-          </template>
-        </van-cell>
-      </van-cell-group>
+      <div class="col-side">
+        <!-- 学习工具入口（角标数据来自科目实时汇总 dueCards/wrongCount） -->
+        <div class="section-title">🧰 学习工具</div>
+        <van-cell-group inset class="tools-group">
+          <van-cell
+            title="🃏 闪卡复习"
+            :label="subject?.dueCards ? `今日到期 ${subject.dueCards} 张，开始复习` : '基于 SM-2 间隔重复，今日无到期'"
+            is-link
+            @click="router.push(`/study/review?subjectId=${subjectId}`)"
+          >
+            <template v-if="subject?.dueCards" #value>
+              <van-badge :content="subject.dueCards" />
+            </template>
+          </van-cell>
+          <van-cell
+            title="📝 笔记"
+            label="Markdown 笔记，按科目/章节归档"
+            is-link
+            @click="router.push(`/study/notes?subjectId=${subjectId}`)"
+          />
+          <van-cell
+            title="❓ 题库"
+            label="单选/多选/判断/简答题，按科目筛选"
+            is-link
+            @click="router.push(`/study/questions?subjectId=${subjectId}`)"
+          />
+          <van-cell
+            title="📕 错题本"
+            :label="subject?.wrongCount ? `待重练 ${subject.wrongCount} 道，连对 2 次自动摘除` : '记录答错的题，重练到掌握'"
+            is-link
+            @click="router.push(`/study/wrongs?subjectId=${subjectId}`)"
+          >
+            <template v-if="subject?.wrongCount" #value>
+              <van-badge :content="subject.wrongCount" />
+            </template>
+          </van-cell>
+        </van-cell-group>
+      </div>
     </div>
 
     <!-- 新建章节弹窗 -->

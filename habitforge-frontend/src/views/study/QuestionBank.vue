@@ -139,7 +139,10 @@ function goDetail(q: Question) {
         finished-text="没有更多了"
         @load="loadMore"
       >
-        <QuestionCard v-for="q in list" :key="q.id" :question="q" @click="goDetail(q)" />
+        <!-- 桌面端把题目铺成卡片流；移动端 .split 没有任何声明，仍是一条一条竖排 -->
+        <div class="split is-flow">
+          <QuestionCard v-for="q in list" :key="q.id" :question="q" @click="goDetail(q)" />
+        </div>
       </van-list>
       <div v-if="finished && !list.length" class="empty-tip">
         <p>题库还空着</p>

@@ -299,7 +299,9 @@ async function onAdd() {
   <div>
     <van-nav-bar title="今日安排" left-arrow @click-left="router.back()" />
 
-    <div class="page-body">
+    <!-- is-reading：时间线按时间从上往下读，桌面端不铺满 1180px 而是居中 900px。
+         移动端这个类没有任何声明，逐像素不变。 -->
+    <div class="page-body is-reading">
       <!-- 日期切换：右箭头往历史走，历史只读 -->
       <div class="date-bar card">
         <van-icon name="arrow-left" :class="{ dim: !isPast }" @click="shiftDate(1)" />
