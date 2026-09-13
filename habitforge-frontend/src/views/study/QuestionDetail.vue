@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showConfirmDialog, showToast, showSuccessToast } from 'vant'
 import type { Question, WrongQuestion } from '@/types/question'
 import {
@@ -16,6 +17,9 @@ defineOptions({ name: 'QuestionDetail' })
 
 const route = useRoute()
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 const id = String(route.params.id)
 
 const question = ref<Question | null>(null)
@@ -72,7 +76,7 @@ async function remove() {
   try {
     await apiDeleteQuestion(id)
     showSuccessToast('已删除')
-    router.back()
+    goBack()
   } catch {
     /* 拦截器已提示 */
   }
@@ -87,7 +91,7 @@ const statusText = computed(() => {
 
 <template>
   <div>
-    <van-nav-bar title="题目详情" left-arrow @click-left="router.back()" />
+    <van-nav-bar title="题目详情" left-arrow @click-left="goBack" />
 
     <div class="page-body">
       <template v-if="question">

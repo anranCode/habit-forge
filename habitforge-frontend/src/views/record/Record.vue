@@ -73,7 +73,7 @@ onMountedOrActivated(load)
 
     <div class="page-body">
       <!-- 今日记录入口 -->
-      <div class="card today-card" @click="todayJournal ? goDetail(todayJournal) : goCreate()">
+      <div class="card today-card is-clickable" @click="todayJournal ? goDetail(todayJournal) : goCreate()">
         <div class="flex-between">
           <span class="t">📔 今天的记录</span>
           <van-icon name="arrow" color="#8a94a6" />
@@ -103,7 +103,7 @@ onMountedOrActivated(load)
       <div class="split is-flow">
         <div v-if="loading" class="empty-tip span-all">加载中…</div>
         <template v-else-if="monthList.length">
-          <div v-for="j in monthList" :key="j.id" class="card journal-item" @click="goDetail(j)">
+          <div v-for="j in monthList" :key="j.id" class="card journal-item is-clickable" @click="goDetail(j)">
             <div class="flex-between">
               <div class="date-line">
                 <span v-if="j.mood" class="mood">{{ moodEmoji(j.mood) }}</span>

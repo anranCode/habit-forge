@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showSuccessToast } from 'vant'
 import HabitForm from '@/components/habit/HabitForm.vue'
 import { apiHabitDetail, apiUpdateHabit } from '@/api'
 import type { HabitCreatePayload } from '@/types/habit'
 
-const router = useRouter()
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 const route = useRoute()
 const habitId = route.params.id as string
 
@@ -36,7 +38,7 @@ async function onSubmit(value: HabitCreatePayload) {
   try {
     await apiUpdateHabit(habitId, value)
     showSuccessToast('已保存')
-    router.back()
+    goBack()
   } finally {
     loading.value = false
   }
@@ -45,14 +47,14 @@ async function onSubmit(value: HabitCreatePayload) {
 
 <template>
   <div>
-    <van-nav-bar title="编辑习惯" left-arrow @click-left="router.back()" />
+    <van-nav-bar title="编辑习惯" left-arrow @click-left="goBack" />
     <HabitForm
       v-if="ready"
       v-model="form"
       submit-text="保存修改"
       :loading="loading"
       @submit="onSubmit"
-      @cancel="router.back()"
+      @cancel="goBack"
     />
   </div>
 </template>

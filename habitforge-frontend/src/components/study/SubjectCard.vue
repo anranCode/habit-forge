@@ -24,7 +24,7 @@ const countdown = computed(() => {
 </script>
 
 <template>
-  <div class="card subject-card" @click="router.push(`/study/subjects/${subject.id}`)">
+  <div class="card subject-card is-clickable" @click="router.push(`/study/subjects/${subject.id}`)">
     <div class="flex-between">
       <span class="sname">{{ subject.name }}</span>
       <van-tag v-if="countdown" round :color="countdown === '已过考期' ? '#8a94a6' : '#ff7a00'">{{ countdown }}</van-tag>

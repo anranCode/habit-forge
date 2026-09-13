@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showConfirmDialog, showSuccessToast, showToast, showImagePreview } from 'vant'
 import dayjs from 'dayjs'
 import type { JournalDetail, Reflection } from '@/types/journal'
@@ -19,6 +20,9 @@ import { usePopupPosition } from '@/composables/useDesktop'
 
 const popupPosition = usePopupPosition()
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 const route = useRoute()
 const journalId = route.params.id as string
 
@@ -99,7 +103,7 @@ function reflectionTexts(r: Reflection): string[] {
 
 <template>
   <div v-if="journal">
-    <van-nav-bar :title="dayjs(journal.journalDate).format('M月D日') + ' 的记录'" left-arrow @click-left="router.back()">
+    <van-nav-bar :title="dayjs(journal.journalDate).format('M月D日') + ' 的记录'" left-arrow @click-left="goBack">
       <template #right>
         <span class="nav-actions">
           <van-icon name="edit" size="18" @click="router.push(`/record/edit/${journal.id}`)" />

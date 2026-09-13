@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showToast } from 'vant'
 import type { Subject } from '@/types/study'
 import type { Flashcard, ReviewRating } from '@/types/flashcard'
@@ -10,6 +11,9 @@ import ReviewProgress from '@/components/study/ReviewProgress.vue'
 
 const route = useRoute()
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 
 /** '' = 全部科目；或从 ?subjectId= 预选 */
 const activeSubject = ref((route.query.subjectId as string) || '')
@@ -97,7 +101,7 @@ function reload() {
 
 <template>
   <div>
-    <van-nav-bar title="闪卡复习" left-arrow @click-left="router.back()">
+    <van-nav-bar title="闪卡复习" left-arrow @click-left="goBack">
       <template #right>
         <span class="to-create" @click="router.push('/study/flashcards/create')">新建</span>
       </template>

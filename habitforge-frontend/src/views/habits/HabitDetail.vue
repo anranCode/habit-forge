@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showConfirmDialog, showSuccessToast, showToast } from 'vant'
 import dayjs from 'dayjs'
 import { apiHabitDetail, apiCheckinsByHabit, apiCancelCheckin, apiReflectionsByHabit } from '@/api'
 import type { Habit, CheckinRecord } from '@/types/habit'
 import type { Reflection } from '@/types/journal'
 import { categoryEmoji, frequencyLabel, feelingEmoji } from '@/utils/format'
+import { useIsDesktop } from '@/composables/useDesktop'
 
 const router = useRouter()
+const isDesktop = useIsDesktop()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 const route = useRoute()
 const habitId = route.params.id as string
 
@@ -46,7 +52,7 @@ async function cancelRecord(r: CheckinRecord) {
 
 <template>
   <div v-if="habit">
-    <van-nav-bar :title="habit.name" left-arrow @click-left="router.back()">
+    <van-nav-bar :title="habit.name" left-arrow @click-left="goBack">
       <template #right>
         <van-icon name="edit" size="18" @click="router.push(`/habits/edit/${habit.id}`)" />
       </template>
@@ -119,6 +125,10 @@ async function cancelRecord(r: CheckinRecord) {
             <div class="record-row">
               <div class="date">{{ r.checkDate }} <span class="text-light">{{ dayjs(r.checkDate).format('ddd') }}</span></div>
               <div v-if="r.note" class="note text-light">{{ r.note }}</div>
+              <!-- 桌面端把左滑才露出的「撤销」摆到行右侧；移动端这段不渲染，DOM 与像素都不变 -->
+              <div v-if="isDesktop" class="inline-actions">
+                <button type="button" class="inline-action is-danger" @click="cancelRecord(r)">撤销</button>
+              </div>
             </div>
             <template #right>
               <van-button square type="danger" text="撤销" style="height: 100%" @click="cancelRecord(r)" />
@@ -242,6 +252,29 @@ async function cancelRecord(r: CheckinRecord) {
   font-size: 13px;
   text-align: center;
   padding: 16px 0;
+}
+
+/* 桌面端行内并排：日期 | 备注 | 撤销。移动端没有 .inline-actions 这个子元素，
+   布局也就无从改变（下面这些声明全在断点内，移动端一条都不生效） */
+@media (min-width: #{$bp-desktop}) {
+  .record-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .date {
+      flex-shrink: 0;
+    }
+
+    .note {
+      flex: 1;
+      min-width: 0;
+      margin-top: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 }
 
 .record-row {

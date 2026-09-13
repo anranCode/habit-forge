@@ -7,8 +7,10 @@ import type { Habit } from '@/types/habit'
 import HabitCard from '@/components/habit/HabitCard.vue'
 import { useHabitStore } from '@/stores'
 import { apiUpdateHabit, apiDeleteHabit } from '@/api'
+import { useIsDesktop } from '@/composables/useDesktop'
 
 const router = useRouter()
+const isDesktop = useIsDesktop()
 const habitStore = useHabitStore()
 
 const activeTab = ref<'active' | 'archived'>('active')
@@ -69,6 +71,14 @@ async function removeHabit(h: Habit) {
         <template v-if="list.length">
           <van-swipe-cell v-for="h in list" :key="h.id">
             <HabitCard :habit="h" @click="goDetail" />
+            <!-- 桌面端（无触摸屏）把左滑才露出的两个操作摆到卡片下沿；
+                 移动端这段不渲染，DOM 与像素都不变 -->
+            <div v-if="isDesktop" class="card-actions">
+              <button type="button" class="inline-action" @click="toggleArchive(h)">
+                {{ h.isActive ? '归档' : '恢复' }}
+              </button>
+              <button type="button" class="inline-action is-danger" @click="removeHabit(h)">删除</button>
+            </div>
             <template #right>
               <div class="swipe-actions">
                 <van-button square :type="h.isActive ? 'warning' : 'success'" class="swipe-btn" @click="toggleArchive(h)">

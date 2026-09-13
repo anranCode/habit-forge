@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showSuccessToast, showToast } from 'vant'
 import dayjs from 'dayjs'
 import { apiSubjectDetail, apiCreateSubject, apiUpdateSubject } from '@/api'
@@ -8,7 +9,9 @@ import { usePopupPosition } from '@/composables/useDesktop'
 
 const popupPosition = usePopupPosition()
 const route = useRoute()
-const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 
 /** 编辑模式：/study/subjects/edit/:id；创建模式：/study/subjects/create */
 const id = route.params.id as string | undefined
@@ -31,7 +34,7 @@ async function load() {
     const s = await apiSubjectDetail(id)
     if (!s) {
       showToast('科目不存在或已删除')
-      router.back()
+      goBack()
       return
     }
     name.value = s.name
@@ -71,7 +74,7 @@ async function onSave() {
       await apiCreateSubject(payload)
       showSuccessToast('科目已创建')
     }
-    router.back()
+    goBack()
   } catch {
     /* 错误已由拦截器提示 */
   } finally {
@@ -82,7 +85,7 @@ async function onSave() {
 
 <template>
   <div>
-    <van-nav-bar :title="isEdit ? '编辑科目' : '新建科目'" left-arrow @click-left="router.back()" />
+    <van-nav-bar :title="isEdit ? '编辑科目' : '新建科目'" left-arrow @click-left="goBack" />
 
     <div class="page-body is-form">
       <van-form @submit="onSave">

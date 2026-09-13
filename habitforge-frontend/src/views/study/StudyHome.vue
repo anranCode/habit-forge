@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import type { StudyOverview } from '@/types/study'
 import { apiStudyOverview } from '@/api'
 import SubjectCard from '@/components/study/SubjectCard.vue'
 import { useIsDesktop } from '@/composables/useDesktop'
 
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 const isDesktop = useIsDesktop()
 const overview = ref<StudyOverview | null>(null)
 const loading = ref(false)
@@ -31,7 +35,7 @@ function goCreate() {
 
 <template>
   <div>
-    <van-nav-bar title="学习中心" left-arrow @click-left="router.back()">
+    <van-nav-bar title="学习中心" left-arrow @click-left="goBack">
       <!-- 桌面端没有右下角的浮动气泡（main.scss 把 .van-floating-bubble 隐藏了），
            新建入口挪到标题栏右侧；空状态的正文里本来就有按钮，这里补的是非空状态。
            移动端这个分支不渲染，DOM 与像素都不变。 -->
@@ -60,7 +64,7 @@ function goCreate() {
         </div>
 
         <!-- 今日待复习快捷入口 -->
-        <div class="card review-entry" @click="router.push('/study/review')">
+        <div class="card review-entry is-clickable" @click="router.push('/study/review')">
           <div class="left">
             <div class="t">🃏 今日待复习</div>
             <div class="d text-light">

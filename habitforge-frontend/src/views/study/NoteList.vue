@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onActivated } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import type { NoteSummary } from '@/types/note'
 import type { Subject } from '@/types/study'
 import { apiNotes, apiSubjects } from '@/api'
@@ -10,6 +11,9 @@ defineOptions({ name: 'NoteList' })
 
 const route = useRoute()
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 
 /** 从 ?subjectId= 过滤；'' = 全部科目 */
 const subjectId = computed(() => (route.query.subjectId as string) || '')
@@ -45,7 +49,7 @@ function goCreate() {
 
 <template>
   <div>
-    <van-nav-bar :title="subjectName ? `${subjectName} · 笔记` : '笔记'" left-arrow @click-left="router.back()">
+    <van-nav-bar :title="subjectName ? `${subjectName} · 笔记` : '笔记'" left-arrow @click-left="goBack">
       <template #right>
         <span class="nav-btn" @click="goCreate">新建</span>
       </template>
@@ -55,7 +59,7 @@ function goCreate() {
       <!-- 桌面端铺成卡片流；移动端 .split 没有任何声明，仍是一张一张竖排 -->
       <div class="split is-flow">
         <template v-if="list.length">
-          <div v-for="n in list" :key="n.id" class="card note-item" @click="router.push(`/study/notes/${n.id}`)">
+          <div v-for="n in list" :key="n.id" class="card note-item is-clickable" @click="router.push(`/study/notes/${n.id}`)">
             <div class="flex-between">
               <span class="title">{{ n.title }}</span>
               <span class="time text-light">{{ dayjs(n.updatedAt).format('MM-DD HH:mm') }}</span>

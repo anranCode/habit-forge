@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showToast, showSuccessToast } from 'vant'
 import type { Question, QuestionCreatePayload, QuestionType, QuestionUpdatePayload } from '@/types/question'
 import type { Subject } from '@/types/study'
@@ -11,7 +12,9 @@ const popupPosition = usePopupPosition()
 defineOptions({ name: 'QuestionEdit' })
 
 const route = useRoute()
-const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 
 const editId = computed(() => (route.name === 'QuestionEdit' ? String(route.params.id) : ''))
 const isEdit = computed(() => !!editId.value)
@@ -245,7 +248,7 @@ async function save() {
       await apiCreateQuestion(payload as QuestionCreatePayload)
     }
     showSuccessToast('已保存')
-    router.back()
+    goBack()
   } catch {
     /* 拦截器已提示 */
   } finally {
@@ -256,7 +259,7 @@ async function save() {
 
 <template>
   <div>
-    <van-nav-bar :title="isEdit ? '编辑题目' : '录题'" left-arrow @click-left="router.back()">
+    <van-nav-bar :title="isEdit ? '编辑题目' : '录题'" left-arrow @click-left="goBack">
       <template #right>
         <span class="save-btn" @click="save">保存</span>
       </template>

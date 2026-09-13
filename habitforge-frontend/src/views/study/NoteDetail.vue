@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showConfirmDialog, showSuccessToast } from 'vant'
 import dayjs from 'dayjs'
 import type { Note } from '@/types/note'
@@ -8,6 +9,9 @@ import { apiNote, apiDeleteNote } from '@/api'
 import MarkdownPreview from '@/components/study/MarkdownPreview.vue'
 
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 const route = useRoute()
 const noteId = route.params.id as string
 
@@ -35,13 +39,13 @@ async function onDelete() {
   }
   await apiDeleteNote(noteId)
   showSuccessToast('已删除')
-  router.back()
+  goBack()
 }
 </script>
 
 <template>
   <div>
-    <van-nav-bar title="笔记详情" left-arrow fixed placeholder @click-left="router.back()">
+    <van-nav-bar title="笔记详情" left-arrow fixed placeholder @click-left="goBack">
       <template #right>
         <span class="nav-btn" @click="router.push(`/study/notes/edit/${noteId}`)">编辑</span>
       </template>

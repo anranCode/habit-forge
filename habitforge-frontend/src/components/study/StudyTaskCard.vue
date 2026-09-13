@@ -15,7 +15,7 @@ const nearestExam = computed(() => {
 </script>
 
 <template>
-  <div class="card study-task-card" @click="$emit('click')">
+  <div class="card study-task-card is-clickable" @click="$emit('click')">
     <div class="flex-between">
       <span class="t">📚 学习中心</span>
       <span class="text-light go">进入 ›</span>

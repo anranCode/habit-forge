@@ -253,7 +253,7 @@ function goCreate() {
         <StudyTaskCard :overview="studyOverview" @click="router.push('/study')" />
 
         <!-- 今日记录 -->
-        <div class="card journal-card" @click="goTodayJournal">
+        <div class="card journal-card is-clickable" @click="goTodayJournal">
           <div class="flex-between">
             <span style="font-weight: 700">📔 今日记录</span>
             <span class="text-light">{{ todayJournal ? '查看 ›' : '去记录 ›' }}</span>

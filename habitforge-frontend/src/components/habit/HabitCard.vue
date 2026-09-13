@@ -17,7 +17,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="habit-card" :class="{ missed: habit.missedYesterday && !habit.checkedToday }" @click="emit('click', habit)">
+  <div class="habit-card is-clickable" :class="{ missed: habit.missedYesterday && !habit.checkedToday }" @click="emit('click', habit)">
     <div class="habit-card__left">
       <div class="habit-card__name">
         <span class="emoji">{{ categoryEmoji[habit.category] || '✨' }}</span>
@@ -57,6 +57,15 @@ const emit = defineEmits<{
 </template>
 
 <style scoped lang="scss">
+/* 悬停抬升要写在这里而不是 main.scss 的 .is-clickable:hover：
+   上面 .habit-card 自己带 box-shadow（同一个属性、同一档特异性），
+   谁生效取决于打包后两份 CSS 的先后顺序 —— 与其赌它，不如就地加一个类名压过去。 */
+@media (hover: hover) and (pointer: fine) {
+  .habit-card.is-clickable:hover {
+    box-shadow: 0 6px 20px rgba(44, 62, 80, 0.12);
+  }
+}
+
 .habit-card {
   display: flex;
   justify-content: space-between;

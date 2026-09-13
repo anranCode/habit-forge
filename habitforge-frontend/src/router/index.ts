@@ -34,19 +34,19 @@ const routes: RouteRecordRaw[] = [
     path: '/habits/create',
     name: 'HabitCreate',
     component: () => import('@/views/habits/HabitCreate.vue'),
-    meta: { title: '创建新习惯' }
+    meta: { title: '创建新习惯', backTo: '/habits' }
   },
   {
     path: '/habits/edit/:id',
     name: 'HabitEdit',
     component: () => import('@/views/habits/HabitEdit.vue'),
-    meta: { title: '编辑习惯' }
+    meta: { title: '编辑习惯', backTo: '/habits' }
   },
   {
     path: '/habits/:id',
     name: 'HabitDetail',
     component: () => import('@/views/habits/HabitDetail.vue'),
-    meta: { title: '习惯详情' }
+    meta: { title: '习惯详情', backTo: '/habits' }
   },
   {
     path: '/record',
@@ -58,121 +58,121 @@ const routes: RouteRecordRaw[] = [
     path: '/record/create',
     name: 'JournalCreate',
     component: () => import('@/views/record/JournalEdit.vue'),
-    meta: { title: '写记录' }
+    meta: { title: '写记录', backTo: '/record' }
   },
   {
     path: '/record/edit/:id',
     name: 'JournalEdit',
     component: () => import('@/views/record/JournalEdit.vue'),
-    meta: { title: '编辑记录' }
+    meta: { title: '编辑记录', backTo: '/record' }
   },
   {
     path: '/record/:id',
     name: 'JournalDetail',
     component: () => import('@/views/record/JournalDetail.vue'),
-    meta: { title: '记录详情' }
+    meta: { title: '记录详情', backTo: '/record' }
   },
   {
     path: '/study',
     name: 'StudyHome',
     component: () => import('@/views/study/StudyHome.vue'),
-    meta: { title: '学习中心' }
+    meta: { title: '学习中心', backTo: '/home' }
   },
   {
     path: '/study/subjects/create',
     name: 'SubjectCreate',
     component: () => import('@/views/study/SubjectEdit.vue'),
-    meta: { title: '新建科目' }
+    meta: { title: '新建科目', backTo: '/study' }
   },
   {
     path: '/study/subjects/edit/:id',
     name: 'SubjectEdit',
     component: () => import('@/views/study/SubjectEdit.vue'),
-    meta: { title: '编辑科目' }
+    meta: { title: '编辑科目', backTo: '/study' }
   },
   {
     path: '/study/subjects/:id',
     name: 'SubjectDetail',
     component: () => import('@/views/study/SubjectDetail.vue'),
-    meta: { title: '科目详情' }
+    meta: { title: '科目详情', backTo: '/study' }
   },
   {
     path: '/study/review',
     name: 'ReviewSession',
     component: () => import('@/views/study/ReviewSession.vue'),
-    meta: { title: '闪卡复习' }
+    meta: { title: '闪卡复习', backTo: '/study' }
   },
   {
     path: '/study/flashcards/create',
     name: 'FlashcardCreate',
     component: () => import('@/views/study/FlashcardEdit.vue'),
-    meta: { title: '新建闪卡' }
+    meta: { title: '新建闪卡', backTo: '/study' }
   },
   {
     path: '/study/notes',
     name: 'NoteList',
     component: () => import('@/views/study/NoteList.vue'),
-    meta: { title: '笔记' }
+    meta: { title: '笔记', backTo: '/study' }
   },
   {
     path: '/study/notes/create',
     name: 'NoteCreate',
     component: () => import('@/views/study/NoteEdit.vue'),
-    meta: { title: '新建笔记' }
+    meta: { title: '新建笔记', backTo: '/study/notes' }
   },
   {
     path: '/study/notes/edit/:id',
     name: 'NoteEdit',
     component: () => import('@/views/study/NoteEdit.vue'),
-    meta: { title: '编辑笔记' }
+    meta: { title: '编辑笔记', backTo: '/study/notes' }
   },
   {
     path: '/study/notes/:id',
     name: 'NoteDetail',
     component: () => import('@/views/study/NoteDetail.vue'),
-    meta: { title: '笔记详情' }
+    meta: { title: '笔记详情', backTo: '/study/notes' }
   },
   {
     path: '/study/questions',
     name: 'QuestionBank',
     component: () => import('@/views/study/QuestionBank.vue'),
-    meta: { title: '题库' }
+    meta: { title: '题库', backTo: '/study' }
   },
   {
     path: '/study/questions/create',
     name: 'QuestionCreate',
     component: () => import('@/views/study/QuestionEdit.vue'),
-    meta: { title: '新建题目' }
+    meta: { title: '新建题目', backTo: '/study/questions' }
   },
   {
     path: '/study/questions/edit/:id',
     name: 'QuestionEdit',
     component: () => import('@/views/study/QuestionEdit.vue'),
-    meta: { title: '编辑题目' }
+    meta: { title: '编辑题目', backTo: '/study/questions' }
   },
   {
     path: '/study/questions/:id',
     name: 'QuestionDetail',
     component: () => import('@/views/study/QuestionDetail.vue'),
-    meta: { title: '题目详情' }
+    meta: { title: '题目详情', backTo: '/study/questions' }
   },
   {
     path: '/study/wrongs',
     name: 'WrongBook',
     component: () => import('@/views/study/WrongBook.vue'),
-    meta: { title: '错题本' }
+    meta: { title: '错题本', backTo: '/study' }
   },
   {
     path: '/study/wrongs/practice',
     name: 'WrongPractice',
     component: () => import('@/views/study/WrongPractice.vue'),
-    meta: { title: '错题练习' }
+    meta: { title: '错题练习', backTo: '/study/wrongs' }
   },
   {
     path: '/plan',
     name: 'PlanToday',
     component: () => import('@/views/plan/PlanToday.vue'),
-    meta: { title: '今日安排' }
+    meta: { title: '今日安排', backTo: '/home' }
   },
   {
     path: '/track',

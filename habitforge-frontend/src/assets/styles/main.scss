@@ -198,13 +198,86 @@ body {
   .van-floating-bubble {
     display: none;
   }
+
+  /* 桌面端把 swipe-cell 藏着的操作摆到明面上（:hover 反馈在下面的粗指针断点里）。
+     左滑露出「归档/删除」是触屏习惯：鼠标用户看不出卡片能拖，
+     键盘用户更是完全够不着 —— @vant/touch-emulator 只让"按住鼠标拖"生效，
+     不提供任何可发现性。用 <button> 而不是 span/div，是为了让它进 tab 序、
+     并且回车/空格原生就能激活。这些元素由各页 v-if="isDesktop" 渲染，移动端 DOM 不变。 */
+  .inline-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .inline-action {
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.6;
+    color: $text-light;
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  /* 卡片底沿的操作条：卡片本身圆角+裁切，动作条贴着下沿才像同一张卡 */
+  .card-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 2px;
+    padding: 5px 10px;
+    border-top: 1px solid #f2f3f5;
+    background: $bg-card;
+  }
+
+  /* 但网格项默认 stretch：同一行的 swipe-cell 都被拉到最高那张卡的高度，
+     而动作条在正常流里只是紧跟着卡片内容 —— 内容少的卡片，动作条就浮在半空，
+     一行里的分隔线参差不齐。让卡片吃掉多出来的高度，动作条才落到该在的位置。
+     只作用在断点内的 .split.is-flow，移动端的盒模型和滑动行为一点没变。 */
+  .split.is-flow > .van-swipe-cell {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .split.is-flow > .van-swipe-cell > .van-swipe-cell__wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1; // 撑满被拉伸出来的那一格（纵向的 flex:1，不是 align-items 管的横轴）
+  }
+
+  /* __wrapper 的第一个子节点就是默认插槽内容：这两个列表都没有 #left 插槽，
+     左右两侧的操作区是绝对定位、不参与这条纵向流 */
+  .split.is-flow > .van-swipe-cell > .van-swipe-cell__wrapper > :first-child {
+    flex: 1;
+  }
 }
 
 /* 粗指针（鼠标/触控板/触控笔）才启用 hover 反馈 —— 触屏上 hover 会"粘住"。
    用输入能力而不是宽度来判定，见 variables.scss 的约定。 */
 @media (hover: hover) and (pointer: fine) {
-  .card.is-clickable:hover {
+  /* .is-clickable 标在"点了会跳转"的卡片上。移动端靠点按反馈（Vant 的 :active 态）就够，
+     桌面端没有任何按压反馈，必须靠光标形状和悬停抬升来回答"这张卡能不能点"。
+     这个类在断点之外一条声明都没有 —— 移动端多带一个类名，渲染不变。 */
+  .is-clickable {
+    cursor: pointer;
+  }
+
+  .is-clickable:hover {
     box-shadow: 0 6px 20px rgba(44, 62, 80, 0.12);
+  }
+
+  .inline-action:hover {
+    background: $bg-page;
+    color: $text-main;
+  }
+
+  .inline-action.is-danger:hover {
+    color: $danger;
   }
 }
 

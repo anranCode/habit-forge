@@ -1,15 +1,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onActivated } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showConfirmDialog, showSuccessToast } from 'vant'
 import type { WrongQuestion } from '@/types/question'
 import { apiWrongList, apiSetWrongMastered, apiDeleteQuestion } from '@/api'
 import WrongQuestionItem from '@/components/study/WrongQuestionItem.vue'
+import { useIsDesktop } from '@/composables/useDesktop'
 
 defineOptions({ name: 'WrongBook' })
 
 const route = useRoute()
 const router = useRouter()
+const isDesktop = useIsDesktop()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 
 /** 支持科目详情页深链 ?subjectId= 过滤；'' = 全部科目 */
 const subjectId = computed(() => (route.query.subjectId as string) || '')
@@ -66,7 +72,7 @@ async function remove(w: WrongQuestion) {
 
 <template>
   <div>
-    <van-nav-bar title="错题本" left-arrow @click-left="router.back()">
+    <van-nav-bar title="错题本" left-arrow @click-left="goBack">
       <template #right>
         <span v-if="list.length" class="stat">{{ list.length }} 道</span>
       </template>
@@ -88,7 +94,13 @@ async function remove(w: WrongQuestion) {
           </van-button>
 
           <van-swipe-cell v-for="w in list" :key="w.questionId">
-            <WrongQuestionItem :wrong="w" @click="goDetail(w)" />
+            <WrongQuestionItem :wrong="w" class="is-clickable" @click="goDetail(w)" />
+            <!-- 桌面端（无触摸屏）把左滑才露出的两个操作摆到卡片下沿；
+                 移动端这段不渲染，DOM 与像素都不变 -->
+            <div v-if="isDesktop" class="card-actions">
+              <button type="button" class="inline-action" @click="dismiss(w)">移出错题本</button>
+              <button type="button" class="inline-action is-danger" @click="remove(w)">删除</button>
+            </div>
             <template #right>
               <div class="swipe-actions">
                 <van-button square type="warning" class="swipe-btn" @click="dismiss(w)">移出</van-button>

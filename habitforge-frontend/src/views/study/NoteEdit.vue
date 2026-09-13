@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showToast } from 'vant'
 import type { PickerConfirmEventParams } from 'vant'
 import type { Subject, Chapter } from '@/types/study'
@@ -145,9 +146,8 @@ async function onSave() {
   }
 }
 
-function onBack() {
-  router.back()
-}
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进编辑页） */
+const goBack = useGoBack()
 </script>
 
 <template>
@@ -158,7 +158,7 @@ function onBack() {
     :draft-key="draftKey"
     :nav-title="isEdit ? '编辑笔记' : '新建笔记'"
     @save="onSave"
-    @back="onBack"
+    @back="goBack"
   >
     <template #meta>
       <div class="card meta-card">

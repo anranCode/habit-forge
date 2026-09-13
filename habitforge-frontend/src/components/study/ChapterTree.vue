@@ -2,9 +2,10 @@
 import { computed, ref } from 'vue'
 import { showToast } from 'vant'
 import type { Chapter, ChapterStatus } from '@/types/study'
-import { usePopupPosition } from '@/composables/useDesktop'
+import { usePopupPosition, useIsDesktop } from '@/composables/useDesktop'
 
 const popupPosition = usePopupPosition()
+const isDesktop = useIsDesktop()
 const props = defineProps<{ chapters: Chapter[] }>()
 const emit = defineEmits<{
   (e: 'status', chapter: Chapter, next: ChapterStatus): void
@@ -99,6 +100,15 @@ function saveEdit() {
           {{ row.chapter.name }}
         </span>
         <van-icon name="plus" class="add-btn" @click.stop="addChild(row.chapter, row.depth)" />
+        <!-- 桌面端把左滑才露出的「删除」摆到行尾；移动端这段不渲染，DOM 与像素都不变 -->
+        <button
+          v-if="isDesktop"
+          type="button"
+          class="inline-action is-danger"
+          @click.stop="$emit('remove', row.chapter)"
+        >
+          删除
+        </button>
       </div>
       <template #right>
         <van-button square type="danger" text="删除" class="del-btn" @click="$emit('remove', row.chapter)" />

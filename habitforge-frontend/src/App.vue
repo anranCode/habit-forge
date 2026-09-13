@@ -2,6 +2,7 @@
 import AppTabbar from '@/components/common/AppTabbar.vue'
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
+import { useEventListener } from '@vueuse/core'
 import { useIsDesktop } from '@/composables/useDesktop'
 
 const route = useRoute()
@@ -24,6 +25,49 @@ const navVisible = computed(() => (fullBleed.value ? false : isDesktop.value ? t
 
 // 底部 Tabbar 仍只由 meta.tab 决定（桌面端由 CSS 隐藏，不靠这里切换）
 const showBottomNav = computed(() => isTabPage.value)
+
+/**
+ * Esc 关掉最上层的浮层（仅桌面端；移动端没有键盘，不注册也不会有任何行为差异）。
+ *
+ * 为什么需要：Vant 的 Dialog 自己处理 Esc —— dialog/Dialog.mjs 里 withKeys 绑了 'esc'；
+ * 而 Popup 只把事件透传出来（popup/Popup.mjs：`const onKeydown = (event) => emit('keydown', event)`）。
+ * 于是抽屉、选择器、下拉菜单这些浮层在桌面端按 Esc 毫无反应，而 Esc 是桌面用户的肌肉记忆。
+ *
+ * 关法是「点它自己的遮罩」，而不是去改各页面的 v-model：
+ *   ① 遮罩点击本来就是用户关浮层的正规路径，走的是 Vant 的公开行为，不碰内部状态；
+ *   ② close-on-click-overlay=false 的浮层（必须二选一的）因此 Esc 也关不掉 —— 继承 Vant 的策略，不绕过它。
+ *
+ * 覆盖不到的：dropdown-menu 的下拉面板没有遮罩（overlay=false），它靠"点别处"收起。
+ * 这里不替它模拟那次点击 —— 往 body 上派发 click 会惊动所有监听 document 的代码，
+ * 为一个下拉面板不值得。桌面用户点一下旁边就关掉了，成本可接受。
+ *
+ * 「最上层」按 z-index 判断，而不是 DOM 顺序：Vant 把浮层 teleport 到 body，
+ * 节点顺序是挂载顺序、与视觉层级无关，而每次 open 都会取一个递增的全局 z-index（Popup.mjs:55）。
+ */
+function closeTopPopup() {
+  const visible = Array.from(document.querySelectorAll<HTMLElement>('.van-popup')).filter(
+    // 对话框留给 Vant 自己处理：抢过来会连它的 Esc 一起触发，等于关两次
+    (el) => !el.classList.contains('van-dialog') && getComputedStyle(el).display !== 'none'
+  )
+
+  let top: HTMLElement | undefined
+  let maxZ = -Infinity
+  for (const el of visible) {
+    const z = Number(getComputedStyle(el).zIndex)
+    if (!Number.isFinite(z) || z < maxZ) continue
+    maxZ = z
+    top = el
+  }
+
+  // 遮罩是同一个 Teleport 里紧挨浮层渲染的兄弟节点（Popup.mjs 的 default 返回 [overlay, transition]）
+  const overlay = top?.previousElementSibling
+  if (overlay instanceof HTMLElement && overlay.classList.contains('van-overlay')) overlay.click()
+}
+
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if (e.key !== 'Escape' || !isDesktop.value) return
+  closeTopPopup()
+})
 </script>
 
 <template>

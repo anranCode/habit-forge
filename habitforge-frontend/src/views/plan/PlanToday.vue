@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import {
   showConfirmDialog,
   showLoadingToast,
@@ -32,6 +33,9 @@ const popupPosition = usePopupPosition()
 defineOptions({ name: 'PlanToday' })
 
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 
 // ============ 日期与数据（页面级拉数，无新 store；isPast = 历史只读） ============
 const date = ref(todayStr())
@@ -297,7 +301,7 @@ async function onAdd() {
 
 <template>
   <div>
-    <van-nav-bar title="今日安排" left-arrow @click-left="router.back()" />
+    <van-nav-bar title="今日安排" left-arrow @click-left="goBack" />
 
     <!-- is-reading：时间线按时间从上往下读，桌面端不铺满 1180px 而是居中 900px。
          移动端这个类没有任何声明，逐像素不变。 -->

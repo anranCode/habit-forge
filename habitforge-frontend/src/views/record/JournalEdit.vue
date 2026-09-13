@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showSuccessToast, showToast, type UploaderFileListItem } from 'vant'
 import dayjs from 'dayjs'
 import type { Habit } from '@/types/habit'
@@ -21,6 +22,9 @@ import { usePopupPosition } from '@/composables/useDesktop'
 
 const popupPosition = usePopupPosition()
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 const route = useRoute()
 
 /** 编辑模式：路由 /record/edit/:id；创建模式：/record/create */
@@ -179,7 +183,7 @@ async function onSave() {
         content: content.value.trim() || undefined
       })
       showSuccessToast('已保存')
-      router.back()
+      goBack()
     } else {
       const created = await apiCreateJournal({
         journalDate: date.value,
@@ -216,7 +220,7 @@ onBeforeRouteLeave(() => {
 
 <template>
   <div>
-    <van-nav-bar :title="isEdit ? '编辑记录' : '写记录'" left-arrow @click-left="router.back()">
+    <van-nav-bar :title="isEdit ? '编辑记录' : '写记录'" left-arrow @click-left="goBack">
       <template #right>
         <span class="save-btn" @click="onSave">保存</span>
       </template>

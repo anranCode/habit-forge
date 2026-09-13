@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onActivated, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import type { Question, QuestionQuery } from '@/types/question'
 import type { Subject } from '@/types/study'
 import { apiQuestions, apiSubjects } from '@/api'
@@ -11,6 +12,9 @@ defineOptions({ name: 'QuestionBank' })
 
 const route = useRoute()
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 const isDesktop = useIsDesktop()
 
 const SIZE = 20
@@ -105,7 +109,7 @@ function goDetail(q: Question) {
 
 <template>
   <div>
-    <van-nav-bar title="题库" left-arrow @click-left="router.back()">
+    <van-nav-bar title="题库" left-arrow @click-left="goBack">
       <!-- 桌面端没有右下角的浮动气泡（main.scss 把 .van-floating-bubble 隐藏了），
            录题入口挪到标题栏右侧。移动端这个分支不渲染，DOM 与像素都不变。 -->
       <template #right>
@@ -141,7 +145,7 @@ function goDetail(q: Question) {
       >
         <!-- 桌面端把题目铺成卡片流；移动端 .split 没有任何声明，仍是一条一条竖排 -->
         <div class="split is-flow">
-          <QuestionCard v-for="q in list" :key="q.id" :question="q" @click="goDetail(q)" />
+          <QuestionCard v-for="q in list" :key="q.id" :question="q" class="is-clickable" @click="goDetail(q)" />
         </div>
       </van-list>
       <div v-if="finished && !list.length" class="empty-tip">

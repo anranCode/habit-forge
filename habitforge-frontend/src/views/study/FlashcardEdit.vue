@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showSuccessToast, showToast } from 'vant'
 import type { Subject, Chapter } from '@/types/study'
 import { apiSubjects, apiChaptersBySubject, apiCreateFlashcard } from '@/api'
@@ -8,7 +9,9 @@ import { usePopupPosition } from '@/composables/useDesktop'
 
 const popupPosition = usePopupPosition()
 const route = useRoute()
-const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 
 const subjects = ref<Subject[]>([])
 const chapters = ref<Chapter[]>([])
@@ -73,7 +76,7 @@ async function onSubmit() {
       back: back.value.trim()
     })
     showSuccessToast('闪卡已创建')
-    router.back()
+    goBack()
   } catch {
     /* 错误已由拦截器提示 */
   } finally {
@@ -84,7 +87,7 @@ async function onSubmit() {
 
 <template>
   <div>
-    <van-nav-bar title="新建闪卡" left-arrow @click-left="router.back()" />
+    <van-nav-bar title="新建闪卡" left-arrow @click-left="goBack" />
 
     <div class="page-body is-form">
       <van-form @submit="onSubmit">

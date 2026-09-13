@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showConfirmDialog, showSuccessToast, showToast } from 'vant'
 import dayjs from 'dayjs'
 import type { Chapter, ChapterStatus, Subject } from '@/types/study'
@@ -18,6 +19,9 @@ import { usePopupPosition } from '@/composables/useDesktop'
 const popupPosition = usePopupPosition()
 const route = useRoute()
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 const subjectId = route.params.id as string
 
 const subject = ref<Subject | null>(null)
@@ -124,7 +128,7 @@ async function onRemove(c: Chapter) {
 
 <template>
   <div>
-    <van-nav-bar :title="subject?.name || '科目详情'" left-arrow @click-left="router.back()">
+    <van-nav-bar :title="subject?.name || '科目详情'" left-arrow @click-left="goBack">
       <template #right>
         <span class="nav-btn" @click="router.push(`/study/subjects/edit/${subjectId}`)">编辑</span>
       </template>

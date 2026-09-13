@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useGoBack } from '@/composables/useGoBack'
 import { showToast, showSuccessToast } from 'vant'
 import type { WrongQuestion } from '@/types/question'
 import { apiWrongList, apiPracticeWrong } from '@/api'
@@ -10,6 +11,9 @@ defineOptions({ name: 'WrongPractice' })
 
 const route = useRoute()
 const router = useRouter()
+
+/** 无历史可退时按路由的 meta.backTo 兜底（桌面端可直接深链进详情页） */
+const goBack = useGoBack()
 
 /** 错题本深链 ?subjectId= 时只重练该科目 */
 const subjectId = (route.query.subjectId as string) || ''
@@ -80,7 +84,7 @@ async function practiceAgain() {
 
 <template>
   <div>
-    <van-nav-bar title="错题重练" left-arrow @click-left="router.back()">
+    <van-nav-bar title="错题重练" left-arrow @click-left="goBack">
       <template v-if="!loading && queue.length && !finished" #right>
         <span class="pos">{{ idx + 1 }} / {{ queue.length }}</span>
       </template>
