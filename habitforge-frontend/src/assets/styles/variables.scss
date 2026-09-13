@@ -10,3 +10,19 @@ $bg-card: #ffffff;
 $radius-card: 14px;
 $shadow-card: 0 2px 12px rgba(44, 62, 80, 0.06);
 $content-max-width: 540px;
+
+// ============ 桌面端（PC 网页窗口） ============
+// 断点与 src/composables/useDesktop.ts 的 DESKTOP_MIN_WIDTH 必须一致，
+// 构建护栏 scripts/check-desktop-css.mjs 会核对这一对常量。
+// 约定：**视口宽度**决定布局（本文件的 @media 断点），
+//        **输入能力**决定交互（(hover: hover) and (pointer: fine)），
+//        一律不做 UA 嗅探 —— 触屏笔记本、iPad + 鼠标都能落到正确的一套。
+$bp-desktop: 1024px;
+
+// 侧边导航宽度（桌面端 .page.has-nav 的 padding-left 与 .nav-side 的 width 共用）
+$sidenav-width: 220px;
+// 桌面内容区最大宽度：比移动端的 540px 宽，但仍收在可读范围内，
+// 避免 2K/4K 下卡片被拉成横跨全屏的长条
+$content-max-width-desktop: 1180px;
+// 桌面内容区左右留白
+$content-gutter-desktop: 32px;

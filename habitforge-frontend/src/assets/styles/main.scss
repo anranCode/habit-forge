@@ -16,7 +16,7 @@ body {
   min-height: 100vh;
 }
 
-// 桌面端限宽居中
+// 移动端：限宽居中（桌面端在文件末尾的 @media 里解锁，见「桌面外壳」一节）
 .page {
   max-width: $content-max-width;
   margin: 0 auto;
@@ -65,4 +65,67 @@ body {
   color: $text-light;
   font-size: 14px;
   padding: 48px 16px;
+}
+
+/* ==========================================================================
+   桌面外壳（≥ $bp-desktop）
+   --------------------------------------------------------------------------
+   所有桌面规则都必须待在本文件/各组件的 @media (min-width: #{$bp-desktop}) 里，
+   不许出现任何"未加断点就改了移动端属性"的写法 —— 移动端必须逐像素不变。
+   scripts/check-desktop-css.mjs 会强制这条约定。
+   ========================================================================== */
+@media (min-width: #{$bp-desktop}) {
+  // 解开移动端的 540px 竖列
+  .page {
+    max-width: none;
+    margin: 0;
+    padding-bottom: 0; // 桌面没有底部 Tabbar
+  }
+
+  // 左侧给固定侧边导航让位。只在导航**真的渲染了**时让 ——
+  // 否则登录/注册这类不挂导航的页面会被白推 220px 到右边。
+  .page.has-nav {
+    padding-left: $sidenav-width;
+  }
+
+  .page-main {
+    max-width: $content-max-width-desktop;
+    margin: 0 auto;
+    padding: 0 $content-gutter-desktop 48px;
+  }
+
+  // 整屏页面（登录/注册）：不受内容列限宽约束，自己铺满视口
+  .page.is-fullbleed .page-main {
+    max-width: none;
+    padding: 0;
+  }
+
+  .page-body {
+    padding: 16px 0;
+  }
+
+  // 桌面端卡片稍微松一点，宽屏下不至于挤
+  .card {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+}
+
+/* 粗指针（鼠标/触控板/触控笔）才启用 hover 反馈 —— 触屏上 hover 会"粘住"。
+   用输入能力而不是宽度来判定，见 variables.scss 的约定。 */
+@media (hover: hover) and (pointer: fine) {
+  .card.is-clickable:hover {
+    box-shadow: 0 6px 20px rgba(44, 62, 80, 0.12);
+  }
+}
+
+/* 键盘焦点：统一可见焦点环，只在键盘导航时出现（:focus-visible），鼠标点击不显示。
+   必须待在断点里 —— Chrome 在触屏上点输入框也会命中 :focus-visible，
+   不加断点就会让移动端多出一圈原本没有的橙色描边，破坏"移动端逐像素不变"。 */
+@media (min-width: #{$bp-desktop}) {
+  :focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }

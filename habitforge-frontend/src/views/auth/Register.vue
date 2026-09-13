@@ -134,4 +134,39 @@ async function onSubmit() {
     text-decoration: none;
   }
 }
+
+/* 桌面端：见 Login.vue 同名注释 —— 移动端那条 45%→45.2% 的硬斜切是给手机竖屏
+   比例画的，宽屏下会被抻成一条横贯全屏的分界线。桌面端整条覆盖成满屏深色底，
+   表单装进居中白卡片。移动端样式一行不动。 */
+@media (min-width: #{$bp-desktop}) {
+  .auth-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 48px 20px;
+    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%);
+  }
+
+  .auth-hero {
+    padding: 0 20px 24px;
+  }
+
+  .auth-body {
+    width: 100%;
+    padding: 28px 24px 32px;
+    background: $bg-card;
+    border-radius: 16px;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+
+    // 理由同 Login.vue
+    :deep(.van-cell-group--inset) {
+      margin: 0;
+      background: #f7f8fa;
+    }
+  }
+
+  .auth-submit {
+    margin: 24px 0 0;
+  }
+}
 </style>

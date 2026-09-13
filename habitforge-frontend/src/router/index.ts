@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { isDesktopNow } from '@/composables/useDesktop'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/home' },
@@ -7,13 +8,15 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     name: 'Login',
     component: () => import('@/views/auth/Login.vue'),
-    meta: { public: true, title: '登录' }
+    // fullBleed：整屏页面。App.vue 据此不挂导航，main.scss 据此解掉内容区限宽
+    // （登录页自带满屏渐变背景，被 540px 内容列裁一刀就成了斜切一半的怪图）
+    meta: { public: true, title: '登录', fullBleed: true }
   },
   {
     path: '/register',
     name: 'Register',
     component: () => import('@/views/auth/Register.vue'),
-    meta: { public: true, title: '注册' }
+    meta: { public: true, title: '注册', fullBleed: true }
   },
   {
     path: '/home',
@@ -188,7 +191,23 @@ const routes: RouteRecordRaw[] = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  /**
+   * 切页后的滚动位置。
+   *
+   * 不定义 scrollBehavior 时 vue-router 什么都不做（handleScroll 直接 return），
+   * 浏览器又不会因为 pushState 重置滚动条 —— 于是"在今日页翻到一半，点侧栏进习惯页"
+   * 会停在上一个页面的滚动偏移上；新页面比那个偏移短时直接被夹到底部，看起来像坏了。
+   * 移动端有同样的症状，但本轮承诺"移动端逐像素/逐行为不变"，所以只在桌面端生效。
+   *
+   * 返回 false = 不滚动，与"没定义 scrollBehavior"完全等价
+   * （vue-router 内部是 `position && scrollToPosition(position)`），
+   * 因此移动端这条分支不会引入任何差异。返回 savedPosition 则让浏览器后退能回到原位。
+   */
+  scrollBehavior(_to, _from, savedPosition) {
+    if (!isDesktopNow()) return false
+    return savedPosition || { top: 0 }
+  }
 })
 
 // 全局守卫：未登录跳转登录页
