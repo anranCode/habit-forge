@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { HabitCreatePayload, Category, FrequencyType } from '@/types/habit'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const props = defineProps<{
   modelValue: HabitCreatePayload
   submitText: string
@@ -188,7 +190,7 @@ function onTimeConfirm({ selectedValues }: { selectedValues: string[] }) {
     </div>
   </van-form>
 
-  <van-popup v-model:show="showTimePicker" position="bottom" round>
+  <van-popup class="hf-popup" v-model:show="showTimePicker" :position="popupPosition" round>
     <van-time-picker
       :model-value="execTimeValue.split(':')"
       title="选择执行时间"

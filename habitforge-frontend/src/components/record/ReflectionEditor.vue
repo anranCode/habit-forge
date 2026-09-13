@@ -4,7 +4,9 @@ import { showSuccessToast } from 'vant'
 import type { Habit } from '@/types/habit'
 import type { Reflection } from '@/types/journal'
 import { apiTodayJournal, apiCreateJournal, apiCreateReflection, apiUpdateReflection } from '@/api'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const props = defineProps<{
   show: boolean
   habit: Habit | null
@@ -97,7 +99,7 @@ async function onSave() {
 </script>
 
 <template>
-  <van-popup :show="props.show" position="bottom" round :style="{ maxHeight: '90%' }" @update:show="emit('update:show', $event)">
+  <van-popup class="hf-popup" :show="props.show" :position="popupPosition" round :style="{ maxHeight: '90%' }" @update:show="emit('update:show', $event)">
     <div class="editor">
       <div class="editor__title">{{ reflection ? '编辑心得' : '记录心得' }} · {{ habit?.name }}</div>
 

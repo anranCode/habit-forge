@@ -4,8 +4,10 @@ import { useRouter } from 'vue-router'
 import type { StudyOverview } from '@/types/study'
 import { apiStudyOverview } from '@/api'
 import SubjectCard from '@/components/study/SubjectCard.vue'
+import { useIsDesktop } from '@/composables/useDesktop'
 
 const router = useRouter()
+const isDesktop = useIsDesktop()
 const overview = ref<StudyOverview | null>(null)
 const loading = ref(false)
 
@@ -29,7 +31,14 @@ function goCreate() {
 
 <template>
   <div>
-    <van-nav-bar title="学习中心" left-arrow @click-left="router.back()" />
+    <van-nav-bar title="学习中心" left-arrow @click-left="router.back()">
+      <!-- 桌面端没有右下角的浮动气泡（main.scss 把 .van-floating-bubble 隐藏了），
+           新建入口挪到标题栏右侧；空状态的正文里本来就有按钮，这里补的是非空状态。
+           移动端这个分支不渲染，DOM 与像素都不变。 -->
+      <template #right>
+        <span v-if="isDesktop" class="nav-btn" @click="goCreate">新建科目</span>
+      </template>
+    </van-nav-bar>
 
     <div class="page-body">
       <!-- 顶部汇总条（apiStudyOverview 实时数据：到期卡/错题/今日复习） -->

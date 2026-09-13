@@ -4,7 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { showSuccessToast, showToast } from 'vant'
 import type { Subject, Chapter } from '@/types/study'
 import { apiSubjects, apiChaptersBySubject, apiCreateFlashcard } from '@/api'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const route = useRoute()
 const router = useRouter()
 
@@ -138,7 +140,7 @@ async function onSubmit() {
     </div>
 
     <!-- 科目选择 -->
-    <van-popup v-model:show="showSubjectPicker" position="bottom" round :style="{ maxHeight: '60%' }">
+    <van-popup class="hf-popup" v-model:show="showSubjectPicker" :position="popupPosition" round :style="{ maxHeight: '60%' }">
       <div class="picker">
         <div class="picker__title">选择科目</div>
         <div class="picker__list">
@@ -158,7 +160,7 @@ async function onSubmit() {
     </van-popup>
 
     <!-- 章节选择（级联于已选科目） -->
-    <van-popup v-model:show="showChapterPicker" position="bottom" round :style="{ maxHeight: '60%' }">
+    <van-popup class="hf-popup" v-model:show="showChapterPicker" :position="popupPosition" round :style="{ maxHeight: '60%' }">
       <div class="picker">
         <div class="picker__title">选择章节（可选）</div>
         <div class="picker__list">

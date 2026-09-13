@@ -17,7 +17,9 @@ import {
   apiDeleteImage
 } from '@/api'
 import { imageUrl } from '@/utils/image'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const router = useRouter()
 const route = useRoute()
 
@@ -297,7 +299,7 @@ onBeforeRouteLeave(() => {
     </div>
 
     <!-- 日期选择（仅创建模式） -->
-    <van-popup v-model:show="showDatePicker" position="bottom" round>
+    <van-popup class="hf-popup" v-model:show="showDatePicker" :position="popupPosition" round>
       <van-date-picker
         v-model="pickerValue"
         title="选择日期"

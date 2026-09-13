@@ -26,7 +26,9 @@ import {
 import { todayStr, weekdayCn } from '@/utils/date'
 import BlockList from '@/components/plan/BlockList.vue'
 import FreeSlotEditor from '@/components/plan/FreeSlotEditor.vue'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 defineOptions({ name: 'PlanToday' })
 
 const router = useRouter()
@@ -368,7 +370,7 @@ async function onAdd() {
     <FreeSlotEditor v-model:show="showFreeSlot" :slots="plan?.freeSlots || []" @saved="load" />
 
     <!-- 手动添加块弹层 -->
-    <van-popup v-model:show="showAdd" position="bottom" round :style="{ maxHeight: '85%' }">
+    <van-popup class="hf-popup" v-model:show="showAdd" :position="popupPosition" round :style="{ maxHeight: '85%' }">
       <div class="add-sheet">
         <div class="sheet-title">手动添加安排</div>
         <div class="chips">
@@ -400,7 +402,7 @@ async function onAdd() {
     </van-popup>
 
     <!-- 习惯选择弹层 -->
-    <van-popup v-model:show="showHabitPicker" position="bottom" round>
+    <van-popup class="hf-popup" v-model:show="showHabitPicker" :position="popupPosition" round>
       <div class="picker-head">
         <span class="cancel" @click="showHabitPicker = false">取消</span>
         <span class="ok" @click="confirmHabit">确定</span>
@@ -409,7 +411,7 @@ async function onAdd() {
     </van-popup>
 
     <!-- 起止时间选择弹层 -->
-    <van-popup v-model:show="showTimePicker" position="bottom" round>
+    <van-popup class="hf-popup" v-model:show="showTimePicker" :position="popupPosition" round>
       <div class="picker-head">
         <span class="cancel" @click="showTimePicker = false">取消</span>
         <span class="ok" @click="confirmTime">确定</span>

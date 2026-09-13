@@ -15,7 +15,9 @@ import {
 } from '@/api'
 import { moodEmoji, moodLabel, feelingEmoji, categoryEmoji } from '@/utils/format'
 import { imageUrl } from '@/utils/image'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const router = useRouter()
 const route = useRoute()
 const journalId = route.params.id as string
@@ -171,7 +173,7 @@ function reflectionTexts(r: Reflection): string[] {
     </div>
 
     <!-- 添加关联习惯 -->
-    <van-popup v-model:show="showHabitPicker" position="bottom" round>
+    <van-popup class="hf-popup" v-model:show="showHabitPicker" :position="popupPosition" round>
       <van-picker
         :columns="allHabits.map((h) => ({ text: h.name, value: h.id }))"
         title="选择要关联的习惯"

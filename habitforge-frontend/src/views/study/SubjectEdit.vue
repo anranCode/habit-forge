@@ -4,7 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { showSuccessToast, showToast } from 'vant'
 import dayjs from 'dayjs'
 import { apiSubjectDetail, apiCreateSubject, apiUpdateSubject } from '@/api'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const route = useRoute()
 const router = useRouter()
 
@@ -134,7 +136,7 @@ async function onSave() {
       </van-form>
     </div>
 
-    <van-popup v-model:show="showDatePicker" position="bottom" round>
+    <van-popup class="hf-popup" v-model:show="showDatePicker" :position="popupPosition" round>
       <van-date-picker
         v-model="pickerValue"
         title="选择考试日期"

@@ -67,6 +67,16 @@ body {
   padding: 48px 16px;
 }
 
+/* 标题栏右侧的文字按钮。移动端的新建入口是右下角的浮动按钮，桌面端没有那东西
+   （见下面 .van-floating-bubble 的处理），入口挪到标题栏右侧。
+   这里不加断点：用它的地方自己 v-if="isDesktop"，移动端根本不会渲染出来。 */
+.nav-btn {
+  color: $primary;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* ==========================================================================
    桌面外壳（≥ $bp-desktop）
    --------------------------------------------------------------------------
@@ -108,6 +118,28 @@ body {
   .card {
     padding: 20px;
     margin-bottom: 16px;
+  }
+
+  /* 从底部升起的抽屉 → 居中对话框。
+     position 是由 usePopupPosition() 在 JS 里切的（不能靠 CSS 覆盖 .van-popup--bottom：
+     进出场动画写在 van-popup-slide-bottom-* 的 transform 上，强改 transform 会和动画打架），
+     这里只补 Vant 居中态不够用的两件事：宽度和圆角。 */
+  .van-popup--center.hf-popup {
+    /* 必须显式定宽：.van-popup--center 是 width: fit-content，
+       而浮层里装的 van-picker 列是 flex:1、没有固有宽度，不定宽会缩成一条窄缝。 */
+    width: 520px;
+    max-width: calc(100vw - 64px);
+    /* round 在居中态本该四角都圆，但 .van-popup--center.van-popup--round 与
+       本规则同为两类选择器，靠 main.scss 在 vant/lib/index.css 之后加载取胜
+       （见 main.ts 的 import 顺序）。 */
+    border-radius: 16px;
+  }
+
+  /* 浮动按钮是移动端手势（可拖、贴边吸睛）的产物。桌面窗口很宽、内容列居中，
+     它会孤零零贴在视口右下角，离内容十万八千里。桌面端改为标题栏右侧的内联入口
+     （.nav-btn，各页自己 v-if="isDesktop" 渲染）。 */
+  .van-floating-bubble {
+    display: none;
   }
 }
 

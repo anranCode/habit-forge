@@ -12,7 +12,9 @@ import {
   apiChaptersBySubject
 } from '@/api'
 import MarkdownEditor from '@/components/study/MarkdownEditor.vue'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const router = useRouter()
 const route = useRoute()
 
@@ -186,7 +188,7 @@ function onBack() {
     </template>
   </MarkdownEditor>
 
-  <van-popup :show="showSubjectPicker" position="bottom" round @update:show="showSubjectPicker = $event">
+  <van-popup class="hf-popup" :show="showSubjectPicker" :position="popupPosition" round @update:show="showSubjectPicker = $event">
     <van-picker
       title="选择科目"
       :columns="subjectColumns"
@@ -195,7 +197,7 @@ function onBack() {
     />
   </van-popup>
 
-  <van-popup :show="showChapterPicker" position="bottom" round @update:show="showChapterPicker = $event">
+  <van-popup class="hf-popup" :show="showChapterPicker" :position="popupPosition" round @update:show="showChapterPicker = $event">
     <van-picker
       title="选择章节"
       :columns="chapterColumns"

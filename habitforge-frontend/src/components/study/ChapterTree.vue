@@ -2,7 +2,9 @@
 import { computed, ref } from 'vue'
 import { showToast } from 'vant'
 import type { Chapter, ChapterStatus } from '@/types/study'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const props = defineProps<{ chapters: Chapter[] }>()
 const emit = defineEmits<{
   (e: 'status', chapter: Chapter, next: ChapterStatus): void
@@ -103,7 +105,7 @@ function saveEdit() {
       </template>
     </van-swipe-cell>
 
-    <van-popup v-model:show="showEdit" position="bottom" round>
+    <van-popup class="hf-popup" v-model:show="showEdit" :position="popupPosition" round>
       <div class="edit-pop">
         <div class="pop-title">重命名章节</div>
         <van-field v-model="editName" placeholder="章节名称" maxlength="200" />

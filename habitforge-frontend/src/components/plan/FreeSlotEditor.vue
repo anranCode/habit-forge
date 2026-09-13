@@ -3,7 +3,9 @@ import { ref, watch } from 'vue'
 import { showToast, showSuccessToast } from 'vant'
 import type { FreeSlot } from '@/types/plan'
 import { apiSaveFreeSlots } from '@/api'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const props = defineProps<{
   show: boolean
   /** 当前已保存的时段（打开时作为初始草稿） */
@@ -114,8 +116,9 @@ async function onSave() {
 
 <template>
   <van-popup
+    class="hf-popup"
     :show="props.show"
-    position="bottom"
+    :position="popupPosition"
     round
     :style="{ maxHeight: '85%' }"
     @update:show="emit('update:show', $event)"
@@ -146,7 +149,7 @@ async function onSave() {
   </van-popup>
 
   <!-- 起止时间选择二级弹层 -->
-  <van-popup v-model:show="showPicker" position="bottom" round>
+  <van-popup class="hf-popup" v-model:show="showPicker" :position="popupPosition" round>
     <div class="picker-head">
       <span class="cancel" @click="showPicker = false">取消</span>
       <span class="ok" @click="confirmPick">确定</span>

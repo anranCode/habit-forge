@@ -5,11 +5,13 @@ import type { Question, QuestionQuery } from '@/types/question'
 import type { Subject } from '@/types/study'
 import { apiQuestions, apiSubjects } from '@/api'
 import QuestionCard from '@/components/study/QuestionCard.vue'
+import { useIsDesktop } from '@/composables/useDesktop'
 
 defineOptions({ name: 'QuestionBank' })
 
 const route = useRoute()
 const router = useRouter()
+const isDesktop = useIsDesktop()
 
 const SIZE = 20
 
@@ -103,7 +105,13 @@ function goDetail(q: Question) {
 
 <template>
   <div>
-    <van-nav-bar title="题库" left-arrow @click-left="router.back()" />
+    <van-nav-bar title="题库" left-arrow @click-left="router.back()">
+      <!-- 桌面端没有右下角的浮动气泡（main.scss 把 .van-floating-bubble 隐藏了），
+           录题入口挪到标题栏右侧。移动端这个分支不渲染，DOM 与像素都不变。 -->
+      <template #right>
+        <span v-if="isDesktop" class="nav-btn" @click="router.push('/study/questions/create')">录题</span>
+      </template>
+    </van-nav-bar>
 
     <div class="filter-bar">
       <div class="chips">
@@ -135,7 +143,9 @@ function goDetail(q: Question) {
       </van-list>
       <div v-if="finished && !list.length" class="empty-tip">
         <p>题库还空着</p>
-        <p class="sub">点右下角「录题」录入第一道题</p>
+        <!-- 桌面端没有右下角的浮动按钮，指引得跟着换，否则让人去找一个不存在的东西。
+             移动端保留原文案，逐像素不变。 -->
+        <p class="sub">{{ isDesktop ? '点右上角「录题」录入第一道题' : '点右下角「录题」录入第一道题' }}</p>
       </div>
     </div>
 

@@ -13,7 +13,9 @@ import {
   apiDeleteChapter
 } from '@/api'
 import ChapterTree from '@/components/study/ChapterTree.vue'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 const route = useRoute()
 const router = useRouter()
 const subjectId = route.params.id as string
@@ -220,7 +222,7 @@ async function onRemove(c: Chapter) {
     </div>
 
     <!-- 新建章节弹窗 -->
-    <van-popup v-model:show="showAdd" position="bottom" round>
+    <van-popup class="hf-popup" v-model:show="showAdd" :position="popupPosition" round>
       <div class="add-pop">
         <div class="pop-title">
           新章节<span v-if="addParentName" class="parent-hint"> · 添加到「{{ addParentName }}」下</span>

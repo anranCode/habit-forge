@@ -5,7 +5,9 @@ import { showToast, showSuccessToast } from 'vant'
 import type { Question, QuestionCreatePayload, QuestionType, QuestionUpdatePayload } from '@/types/question'
 import type { Subject } from '@/types/study'
 import { apiQuestion, apiCreateQuestion, apiUpdateQuestion, apiSubjects } from '@/api'
+import { usePopupPosition } from '@/composables/useDesktop'
 
+const popupPosition = usePopupPosition()
 defineOptions({ name: 'QuestionEdit' })
 
 const route = useRoute()
@@ -378,7 +380,7 @@ async function save() {
       </div>
     </div>
 
-    <van-popup v-model:show="showSubjectPicker" position="bottom" round>
+    <van-popup class="hf-popup" v-model:show="showSubjectPicker" :position="popupPosition" round>
       <van-picker
         :columns="subjectColumns"
         title="选择科目"
