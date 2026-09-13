@@ -14,6 +14,14 @@ spring:
       host: ${SPRING_DATA_REDIS_HOST:redis}
       port: ${SPRING_DATA_REDIS_PORT:6379}
       database: 0
+      # 命令超时必须压到秒级(dev 是 5s, 生产更短)。不配的话 Lettuce 默认 60s:
+      # 每个已登录请求进业务前都要过 JWT 过滤器的黑名单校验(RedisUtil.isBlacklisted),
+      # 打卡/日记/上传/AI 还各有一次限流 tryAcquire。Redis 进程挂掉会立即拒绝连接、
+      # fail-open 照常生效; 但 6379 被安全组 DROP/网络悬挂时 TCP 会**悬挂**,
+      # 于是每个请求都要先卡满 60s 才抛超时走进 catch 里的 fail-open。
+      # 前端 axios 默认只等 15s, 用户看到的是"网络异常"; 而后端 healthcheck 只探
+      # 8080 端口、容器仍 healthy, 表现成"站点能打开、点任何按钮都转圈失败"且不指向 Redis。
+      timeout: 2s
   ai:
     anthropic:
       # 生产 token 必须经环境变量注入。这里**必须**保留空默认值 `:`——

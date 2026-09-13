@@ -31,7 +31,8 @@
 - [ ] **宿主机 MinIO 运行于 9000，且存在 `habitforge-images` 桶、访问策略为 public-read**
       （日记/笔记图片用；前端图片走 `deploy/nginx.conf` 的 `location /images/` 反代到
       `host.docker.internal:9000`，该反代**不带鉴权**，桶必须匿名可读。
-      缺 MinIO 或桶非 public-read 的表现是「接口全正常、图片全裂」，见第六节）
+      缺 MinIO 或桶非 public-read 的表现是「接口全正常、图片全裂」，部署后务必按第三节末的
+      「确认图片链路」实测一次——这台服务器从未真正用过对象存储）
 - [ ] 已安装 Docker 与 compose 插件（`docker compose version` 验证）
 - [ ] 服务器 **8081** 端口空闲且防火墙放行（80 已被服务器上现有 nginx 占用，故对外用 8081；如 8081 也被占用，改 compose 里的端口映射即可）
 
@@ -127,14 +128,34 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8081/api/v1/plans/toda
 **真正能区分新旧版本的是产物指纹**，部署后请核对（这三条都能在旧包上失败、在新包上通过）：
 
 ```bash
-# ① 后端 jar 与刚上传的本机产物是否同一个（本机与服务器两侧各跑一次 md5sum 对比）
-md5sum habitforge-backend.jar
+# ① 核对**容器里真正在跑的那份 jar**（要比对镜像内容，不是 deploy/ 目录里躺着的文件——
+#    Dockerfile.backend 是精确 `COPY habitforge-backend.jar app.jar`，目录里的文件对不上不影响运行，
+#    镜像里的对不上才是发错了版本）
+docker compose exec backend md5sum /app/app.jar
+md5sum habitforge-backend.jar          # 本机 deploy/ 下这份；两个值必须一致
+
 # ② 前端 bundle 文件名与本机 dist/index.html 里引用的是否一致（本项目的既定做法，
 #    2026-08-12 的登录无限刷新修复就是靠它确认发版成功的）
 curl -s http://localhost:8081/ | grep -o 'index-[A-Za-z0-9_-]*\.js'
 grep -o 'index-[A-Za-z0-9_-]*\.js' dist/index.html
+
 # ③ 新模块的前端 chunk 确实在产物里（旧包没有 plan/study 相关 chunk）
 ls dist/assets | grep -Ei 'plan|review|flashcard|wrong|note' | head
+```
+
+### 部署后确认图片链路（本服务器上从未验证过）
+
+这台服务器此前跑的 jar 不含日记/学习模块，所以 MinIO 是否装好、凭据是否与 `.env` 一致，
+**从来没有被验证过**；而 MinIO 不通时后端**不会报错**——`StorageServiceImpl.initBucket()` 挂在
+启动事件上、整段 try/catch 只 log 不阻断，容器照样 healthy，直到用户上传图片才暴露。
+部署后请实际探一次：
+
+```bash
+# MinIO 本身是否活着（期望 200）
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:9000/minio/health/live
+# 容器能否经 host.docker.internal 到达它（期望 404/403 —— 那说明 nginx→MinIO 链路通；
+# 502/连接拒绝 = MinIO 没起或只监听了 127.0.0.1，此时即使其它步骤全绿也不算部署完成）
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8081/images/nonexistent.png
 ```
 
 ### 部署后确认 AI 是否真的接上了
