@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build && node scripts/check-vant-css.mjs",
+    "build": "vue-tsc --noEmit && vite build && node scripts/check-vant-css.mjs && node scripts/check-desktop-css.mjs",
     "check:css": "node scripts/check-vant-css.mjs",
+    "check:desktop": "node scripts/check-desktop-css.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
