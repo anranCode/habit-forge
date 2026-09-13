@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onActivated } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { onMountedOrActivated } from '@vant/use'
 import { showConfirmDialog, showSuccessToast } from 'vant'
 import type { Habit } from '@/types/habit'
 import HabitCard from '@/components/habit/HabitCard.vue'
@@ -21,8 +22,8 @@ async function load() {
   await habitStore.loadAll()
 }
 
-onMounted(load)
-onActivated(load)
+// keep-alive 下 onMounted 与 onActivated 首次都会触发：分别注册会让 load() 并发跑两遍
+onMountedOrActivated(load)
 
 function goDetail(h: Habit) {
   router.push(`/habits/${h.id}`)

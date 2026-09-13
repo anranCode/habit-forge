@@ -107,20 +107,32 @@ async function onGenerate() {
       return /* 取消 */
     }
   }
-  // 同步阻塞调 LLM（接口 timeout 120s），全屏 loading
-  const toast = showLoadingToast({ message: 'AI 正在规划…', duration: 0, forbidClick: true })
+  // 同步阻塞调 LLM（接口 timeout 120s），全屏 loading。
+  // 不加 forbidClick：Vant 的 toast 是全应用单例，forbidClick 会给 body 挂
+  // .van-toast--unclickable 并让整棵页面失去命中测试（实测 elementFromPoint 在按钮上返回
+  // BODY），生成期间最长 120s 内整个 App 点不动——而这里本来就有 generating 在防重复提交。
+  // 也不要在 finally 里关它：showSuccessToast 复用的是同一条单例，finally 的 close() 会把
+  // 刚弹出来的"今日安排已生成"一起关掉。改为在弹成功提示之前显式关掉 loading。
+  const toast = showLoadingToast({ message: 'AI 正在规划…', duration: 0 })
   generating.value = true
   genError.value = ''
   try {
     await apiGeneratePlan()
+    toast.close()
     showSuccessToast('今日安排已生成')
     await load()
   } catch (e) {
-    /* 6001-6006 等错误已由拦截器 toast；此处再留一行可点重试的失败提示 */
-    genError.value = errMsg(e)
+    // toast 是全应用单例：axios 拦截器在请求失败时刚用它弹过错误提示（request.ts 的 showToast），
+    // 此刻 close() 关掉的正是那一条——两步落在同一轮微任务里，浏览器不会在中间重绘，
+    // 于是用户根本看不到错误提示（实测 s1：close() 后 visible 直接变 false）。
+    // 所以先收掉 loading，再用同一条文案把错误提示重新弹一次，避免"点了没反应"。
+    toast.close()
+    const msg = errMsg(e)
+    showToast(msg)
+    /* 按钮下方再留一行可点重试的失败提示（toast 会消失，这行不会） */
+    genError.value = msg
   } finally {
     generating.value = false
-    toast.close()
   }
 }
 
@@ -191,7 +203,8 @@ const habits = ref<Habit[]>([])
 const habitsLoaded = ref(false)
 
 async function openAdd() {
-  showAdd.value = true
+  // 先取数据再开弹层：习惯列表是异步来的，先开弹层会让"关联习惯"下拉在数据到达前
+  // 渲染成空的 van-picker —— 用户看到的就是一个没有选项的空白弹窗。
   if (!habitsLoaded.value) {
     try {
       habits.value = await apiTodayHabits()
@@ -200,6 +213,7 @@ async function openAdd() {
       /* 拦截器已提示，下拉留空 */
     }
   }
+  showAdd.value = true
 }
 
 // 习惯下拉（单列 Picker）
@@ -207,6 +221,15 @@ const showHabitPicker = ref(false)
 const habitPickerVal = ref<(string | number)[]>([])
 const habitColumns = computed<PickerOption[]>(() => habits.value.map((h) => ({ text: h.name, value: h.id })))
 const habitName = computed(() => habits.value.find((h) => h.id === addForm.habitId)?.name || '')
+
+/** 无候选时不打开：van-picker 空 columns 会渲染成一个没有选项的空白弹窗 */
+function openHabitPicker() {
+  if (!habitColumns.value.length) {
+    showToast('今天还没有习惯，先在首页创建')
+    return
+  }
+  showHabitPicker.value = true
+}
 
 function confirmHabit() {
   const v = habitPickerVal.value[0]
@@ -368,9 +391,9 @@ async function onAdd() {
           :model-value="habitName"
           label="关联习惯"
           readonly
-          is-link
-          placeholder="选一个今日习惯（可选）"
-          @click="showHabitPicker = true"
+          :is-link="habitColumns.length > 0"
+          :placeholder="habitColumns.length ? '选一个今日习惯（可选）' : '今日没有可关联的习惯'"
+          @click="openHabitPicker"
         />
         <van-button block type="primary" color="#ff7a00" round :loading="adding" @click="onAdd">添加</van-button>
       </div>

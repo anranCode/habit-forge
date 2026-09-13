@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onActivated } from 'vue'
+import { ref } from 'vue'
+import { onMountedOrActivated } from '@vant/use'
 import { apiHabitStats, apiTopStreaks } from '@/api'
 import type { HabitStats, StreakTopItem } from '@/types/habit'
 import CalendarHeatmap from '@/components/calendar/CalendarHeatmap.vue'
@@ -15,8 +16,8 @@ async function load() {
   top.value = t.filter((x) => x.currentStreak > 0 || x.longestStreak > 0)
 }
 
-onMounted(load)
-onActivated(load)
+// keep-alive 下 onMounted 与 onActivated 首次都会触发：分别注册会让 load() 并发跑两遍
+onMountedOrActivated(load)
 
 const medals = ['🥇', '🥈', '🥉']
 </script>

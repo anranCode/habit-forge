@@ -49,3 +49,7 @@ babit-forge.md
 # 构建产物 / 部署包(不提交, 避免大文件)
 *.zip
 deploy/dist/
+
+# 前端排查用的临时实验台（Chrome headless 复现页 + harness），不入库
+habitforge-frontend/repro/
+habitforge-frontend/audit-sweep.txt

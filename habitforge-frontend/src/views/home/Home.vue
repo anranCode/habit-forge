@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onActivated, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { showSuccessToast } from 'vant'
+import { onMountedOrActivated } from '@vant/use'
 import type { Habit } from '@/types/habit'
 import type { JournalDetail, Reflection } from '@/types/journal'
 import { useHabitStore, useCheckinStore, useUserStore } from '@/stores'
@@ -124,8 +125,10 @@ function goTodayJournal() {
   }
 }
 
-onMounted(load)
-onActivated(load)
+// Home 在 keep-alive include 里，首次挂载时 onMounted 与 onActivated 都会触发：
+// 分别注册会让 load() 在冷启动时并发跑两遍（5 个接口各请求两次，失败时还会弹两条错误 toast）。
+// onMountedOrActivated 正是为此而生：首次只走 onMounted，之后每次重新激活才再跑一次。
+onMountedOrActivated(load)
 
 function askCheckin(habit: Habit) {
   // 防抖/防重入：已有弹窗、该习惯已打卡或正在打卡中时忽略，避免连点触发并发弹窗
@@ -147,10 +150,14 @@ async function doCheckin(habit: Habit) {
       habitId: habit.id,
       checkDate: todayStr()
     })
-    // 本地更新
-    habit.checkedToday = true
-    habit.currentStreak = res.streak.currentStreak
-    habit.missedYesterday = false
+    // 本地更新：必须写到 store 里"当前那份"，不能写闭包里的 habit。
+    // habitStore.loadToday() 是整份替换 todayList（apiTodayHabits() 每次都返回新对象），
+    // 打卡请求往返期间只要有过一次 load（切 tab 回来、下拉刷新），闭包里的 habit 就成了孤儿：
+    // 写它不会触发 list 重渲染 → 卡片仍是未打卡 → 用户再点一次 → 后端返回"今日已打卡"错误 toast。
+    const target = habitStore.todayList.find((h) => h.id === habit.id) || habit
+    target.checkedToday = true
+    target.currentStreak = res.streak.currentStreak
+    target.missedYesterday = false
     if (userStore.user) {
       userStore.user.points += res.pointsEarned
     }

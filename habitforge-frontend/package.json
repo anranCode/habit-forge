@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && node scripts/check-vant-css.mjs",
+    "check:css": "node scripts/check-vant-css.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
     "@vant/touch-emulator": "^1.4.0",
+    "@vant/use": "^1.6.0",
     "@vueuse/core": "^10.7.2",
     "axios": "^1.6.7",
     "dayjs": "^1.11.10",

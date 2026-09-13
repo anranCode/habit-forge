@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onActivated } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { onMountedOrActivated } from '@vant/use'
 import type { JournalDetail, JournalSummary } from '@/types/journal'
 import { apiTodayJournal, apiJournalsByRange } from '@/api'
 import { moodEmoji } from '@/utils/format'
@@ -62,8 +63,8 @@ function goDetail(j: JournalDetail | JournalSummary) {
   router.push(`/record/${j.id}`)
 }
 
-onMounted(load)
-onActivated(load)
+// keep-alive 下 onMounted 与 onActivated 首次都会触发：分别注册会让 load() 并发跑两遍
+onMountedOrActivated(load)
 </script>
 
 <template>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onActivated } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { showConfirmDialog, showSuccessToast } from 'vant'
+import { onMountedOrActivated } from '@vant/use'
 import { useUserStore } from '@/stores'
 import { apiUpdateProfile, apiHabitStats } from '@/api'
 import type { HabitStats } from '@/types/habit'
@@ -25,22 +26,31 @@ async function load() {
   stats.value = await apiHabitStats()
 }
 
-onMounted(load)
-onActivated(load)
+// 同 Home：keep-alive 下 onMounted 与 onActivated 首次都会触发，避免冷启动并发跑两遍
+onMountedOrActivated(load)
 
 function startEditGoal() {
   goalInput.value = userStore.user?.identityGoal || ''
   editingGoal.value = true
 }
 
+/**
+ * van-dialog 的 before-close：返回 false 阻止关闭，抛异常则既不关闭也会让确认按钮一直转。
+ * 保存失败时不能把异常抛出去（apiUpdateProfile 的 reject 会被 vue 的异步钩子吞掉），
+ * 否则弹窗卡在 loading 态、用户只能杀进程。这里一律不抛：失败就原地留着让用户重试。
+ */
 async function saveGoal(action: string): Promise<boolean> {
-  if (action === 'confirm') {
+  if (action !== 'confirm') return true
+  try {
     await apiUpdateProfile({ identityGoal: goalInput.value })
-    if (userStore.user) {
-      userStore.user.identityGoal = goalInput.value
-    }
-    showSuccessToast('已更新身份设定')
+  } catch {
+    /* 错误已由拦截器 toast；返回 false 让弹窗保持打开，按钮停止转圈 */
+    return false
   }
+  if (userStore.user) {
+    userStore.user.identityGoal = goalInput.value
+  }
+  showSuccessToast('已更新身份设定')
   return true
 }
 
