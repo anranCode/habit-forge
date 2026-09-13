@@ -11,17 +11,28 @@ spring:
       # 业务层限制单图 5MB, 这里留 1MB 余量; nginx 侧 client_max_body_size 20m
       max-file-size: 6MB
       max-request-size: 10MB
-  # Spring AI — Anthropic 兼容端点(阿里云百炼 TokenPlan)
+  # Spring AI — Anthropic 兼容端点(DeepSeek)
   # api-key 只经环境变量 AI_API_KEY 注入, 严禁写入任何提交
   ai:
     anthropic:
-      base-url: ${AI_BASE_URL:https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic}
+      base-url: ${AI_BASE_URL:https://api.deepseek.com/anthropic}
       api-key: ${AI_API_KEY:}
       chat:
         options:
-          model: ${AI_MODEL:qwen3.8-flash}
+          model: ${AI_MODEL:deepseek-v4-flash}
           temperature: 0.5
-          max-tokens: 2000
+          # 关思考后实测: 最重上下文(8 空闲段+6 习惯+5 章节)输出 ≈1.3k tokens, 4096 留 3 倍余量。
+          # 上限只是天花板、按实际 token 计费, 抬高不额外花钱, 但能杜绝 JSON 被截断(截断必然 6005)。
+          max-tokens: 4096
+          # 必须关闭思考, 两个独立原因(均为实测/字节码确认, 不可删除):
+          # ① 正确性: spring-ai 1.1.8 的 AnthropicChatModel 为响应里每个 content 块各生成一个 Generation,
+          #    而 getResult() 取第 0 个; DeepSeek 的 thinking 块排在 text 之前 —— 不关思考则取到的是思考文本,
+          #    BeanOutputConverter 反序列化必然失败, 每次生成都误报 6005。
+          # ② 成本与稳定性: 思考 token 计入 max_tokens。实测重上下文下思考可涨到 17k 字符、吃尽 8000 的
+          #    全部额度, 正文只吐出 908 字符即被截断(stop_reason=max_tokens); 耗时也从 4s 涨到 28s,
+          #    逼近 45s 读超时。关闭后同一上下文稳定 4s / 1.2k tokens。
+          thinking:
+            type: disabled
     retry:
       max-attempts: 2  # 上游失败重试 1 次
 

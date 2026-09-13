@@ -29,6 +29,7 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.model.anthropic.autoconfigure.AnthropicConnectionProperties;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.time.Duration;
@@ -96,7 +97,9 @@ class AiScheduleServiceTest {
         props.setEnabled(true);
         ObjectProvider<ChatModel> provider = mock(ObjectProvider.class);
         lenient().when(provider.getIfAvailable()).thenReturn(chatModel);
-        PlanAiClient aiClient = new PlanAiClient(provider);
+        // 凭证属性留空(null) => 凭证护栏放行, 判断权交给 ChatModel, 与本测试的关注点(限流/锁/翻译)无关
+        ObjectProvider<AnthropicConnectionProperties> connProvider = mock(ObjectProvider.class);
+        PlanAiClient aiClient = new PlanAiClient(provider, connProvider);
         service = new AiScheduleServiceImpl(props, redisUtil, aiClient, new PlanPromptTemplate(),
                 contextAssembler, dailyPlanService, freeSlotMapper, generationMapper);
     }
@@ -141,7 +144,7 @@ class AiScheduleServiceTest {
         lenient().when(usage.getPromptTokens()).thenReturn(100);
         lenient().when(usage.getCompletionTokens()).thenReturn(50);
         ChatResponseMetadata metadata = ChatResponseMetadata.builder()
-                .model("qwen3.8-flash")
+                .model("deepseek-v4-flash")
                 .usage(usage)
                 .build();
         ChatResponse response = new ChatResponse(
@@ -169,7 +172,7 @@ class AiScheduleServiceTest {
         assertEquals(expected, actual);
 
         ArgumentCaptor<List<PlanBlock>> blocksCaptor = ArgumentCaptor.forClass(List.class);
-        verify(dailyPlanService).replaceProposedWithGenerated(eq(plan), blocksCaptor.capture(), eq("qwen3.8-flash"));
+        verify(dailyPlanService).replaceProposedWithGenerated(eq(plan), blocksCaptor.capture(), eq("deepseek-v4-flash"));
         assertEquals(3, blocksCaptor.getValue().size());
 
         ArgumentCaptor<PlanGeneration> logCaptor = ArgumentCaptor.forClass(PlanGeneration.class);
@@ -308,7 +311,7 @@ class AiScheduleServiceTest {
         when(contextAssembler.assemble(eq(USER), eq(TODAY), anyList())).thenReturn(context());
         stubLlmResponse(VALID_JSON);
         doThrow(new RuntimeException("db down"))
-                .when(dailyPlanService).replaceProposedWithGenerated(eq(plan), anyList(), eq("qwen3.8-flash"));
+                .when(dailyPlanService).replaceProposedWithGenerated(eq(plan), anyList(), eq("deepseek-v4-flash"));
 
         assertEquals(6004, codeOf(() -> service.generate(USER, TODAY)));
 

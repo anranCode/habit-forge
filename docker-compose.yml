@@ -58,9 +58,14 @@ services:
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:?please set MINIO_ENDPOINT (e.g. http://localhost:9000)}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?please set MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?please set MINIO_SECRET_KEY}
-      # AI 今日安排（TokenPlan Anthropic 兼容端点）：token 必填经 .env 注入，严禁写入提交
-      AI_API_KEY: ${AI_API_KEY:?please set AI_API_KEY}
+      # AI 今日安排（DeepSeek Anthropic 兼容端点 https://api.deepseek.com/anthropic）：
+      # key 只经 .env 注入，严禁写入提交；留空默认值让 AI_ENABLED=false 能独立关掉 AI
+      # （缺失时后端返 6001「AI 服务未启用」，语义见 PlanAiClient#credentialsMissing）
+      AI_API_KEY: "${AI_API_KEY:-}"
       AI_ENABLED: ${AI_ENABLED:-true}
+      # 换供应商/换模型时覆盖（默认见 application.yml）；必须真的转发，否则设了也不生效
+      AI_BASE_URL: ${AI_BASE_URL:-https://api.deepseek.com/anthropic}
+      AI_MODEL: ${AI_MODEL:-deepseek-v4-flash}
 
   frontend:
     build:

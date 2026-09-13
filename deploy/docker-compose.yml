@@ -22,6 +22,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:?please set MYSQL_PASSWORD}
       SPRING_DATA_REDIS_HOST: host.docker.internal
       SPRING_DATA_REDIS_PORT: "6379"
+      # 给 Redis 设了 requirepass 时才需要填（默认空 = 不鉴权，即当前状态）。
+      # 必须在这里显式转发：光在 .env 里写是进不到容器的（Spring Boot 靠宽松绑定
+      # 把 SPRING_DATA_REDIS_PASSWORD 映射到 spring.data.redis.password，无需 yml 条目）。
+      SPRING_DATA_REDIS_PASSWORD: "${SPRING_DATA_REDIS_PASSWORD:-}"
       JWT_SECRET: ${JWT_SECRET:?请在 .env 中设置 JWT_SECRET}
       # CORS 允许来源(逗号分隔);换域名/端口访问时在此修改
       APP_CORS_ALLOWED_ORIGIN_PATTERNS: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:?please set APP_CORS_ALLOWED_ORIGIN_PATTERNS}
@@ -29,6 +33,21 @@ services:
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://host.docker.internal:9000}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?请在 .env 中设置 MINIO_SECRET_KEY}
+      # AI 今日安排（DeepSeek Anthropic 兼容端点）
+      # 为什么是 ${AI_API_KEY:-} 而不是 ${AI_API_KEY:?}：AI 是可选能力，
+      # .env 里 AI_ENABLED=false 应当能关掉它而不拖累整个栈启动；若用 :? 强制，
+      # 关 AI 也得先编一个 key 出来，Kill switch 就名存实亡了。
+      # 缺失/填错的后果已被收敛得很明确：key 为空 → 6001「AI 服务未启用」，
+      # key 无效 → 6004「AI 服务调用失败」，不会再出现无声的 401。
+      # 引号不能去掉：不加引号时插值成空值后 YAML 解析为 null，而 compose 把 null 当作
+      # "从宿主机环境取同名变量、取不到就不设"，行为不确定；加引号后是确定的空串，
+      # 容器里 AI_API_KEY="" → application-prod.yml 的 ${AI_API_KEY:} 得空串 → 6001。
+      AI_API_KEY: "${AI_API_KEY:-}"
+      AI_ENABLED: ${AI_ENABLED:-true}
+      # 换供应商/换模型时覆盖（默认见 application.yml）。
+      # 这里必须真的转发：写了却没转发的话，用户在 .env 里设了 AI_MODEL 会**静默无效**。
+      AI_BASE_URL: ${AI_BASE_URL:-https://api.deepseek.com/anthropic}
+      AI_MODEL: ${AI_MODEL:-deepseek-v4-flash}
     expose:
       - "8080"          # 只在容器网络内暴露，由 nginx 反代，不对公网开放
     healthcheck:

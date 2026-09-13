@@ -16,8 +16,12 @@ spring:
       database: 0
   ai:
     anthropic:
-      # 生产 token 必须经环境变量注入, 不留默认值
-      api-key: ${AI_API_KEY}
+      # 生产 token 必须经环境变量注入。这里**必须**保留空默认值 `:`——
+      # Boot 3.5 的 PropertySourcesPlaceholdersResolver 是 ignoreUnresolvablePlaceholders=true,
+      # 写成 ${AI_API_KEY}(无默认)时未设置该变量会原样绑成字符串 "${AI_API_KEY}" 这个**非空**值,
+      # 它通不过任何"有没有配"的判断, 只会发一个假的 x-api-key 出去撞 401(表现为 6004)。
+      # 留空默认值后未配置即空串, 由 PlanAiClient 的凭证护栏明确翻译成 6001(AI 服务未启用)。
+      api-key: ${AI_API_KEY:}
     # 出站 HTTP 超时(connect 5s / read 45s)与 retry.max-attempts 在 application.yml 中统一配置,
     # prod 继承该基配置(Spring Boot 合并 application.yml + application-prod.yml), 此处无需重复
 

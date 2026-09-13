@@ -24,10 +24,11 @@
 
 ## 技术栈
 
-- **前端**: Vue 3 + TypeScript + Vite 5 + Vant 4 + Pinia + Vue Router + Axios + Day.js
+- **前端**: Vue 3 + TypeScript + Vite 5 + Vant 4 + Pinia + Vue Router + Axios + Day.js + marked/DOMPurify
 - **后端**: Spring Boot 3.5 + Spring Security + JWT (jjwt 0.12) + MyBatis-Plus 3.5.5
-- **存储**: MySQL 8.0 + Redis 7（打卡限流 + 登出 token 黑名单）
-- **部署**: Docker Compose（mysql + redis + backend + frontend/nginx）
+- **AI**: Spring AI 1.1.x（`spring-ai-starter-model-anthropic`）→ Anthropic 兼容端点，默认 DeepSeek `deepseek-v4-flash`
+- **存储**: MySQL 8.0 + Redis 7（打卡限流 + 登出 token 黑名单 + AI 生成限流/锁）+ MinIO（图片）
+- **部署**: Docker Compose（开发：mysql + redis + backend + frontend/nginx；生产见 `deploy/`）
 
 ## 目录结构
 
@@ -37,18 +38,22 @@ habit-forge/
 │   └── src/main/
 │       ├── java/com/habitforge/
 │       │   ├── common/         # Result/异常/Jwt/Redis/频率工具/配置
-│       │   └── modules/        # auth/user/habit/checkin/streak/achievement
+│       │   └── modules/        # auth/user/habit/checkin/streak/achievement/journal/reflection/study/ai
 │       └── resources/
 │           ├── application*.yml
-│           └── db/schema.sql   # 建库脚本
+│           └── db/
+│               ├── schema.sql              # 全量建库脚本（新库）
+│               └── upgrade_*.sql           # 增量脚本（存量库手工执行，顺序见文件名）
 ├── habitforge-frontend/    # Vue 3 前端
 │   └── src/
 │       ├── api/            # axios 封装 + 各模块接口
-│       ├── components/     # HabitCard/HabitForm/CalendarHeatmap/...
-│       ├── views/          # auth/home/habits/track/profile
+│       ├── components/     # HabitCard/HabitForm/CalendarHeatmap/study/plan/...
+│       ├── views/          # auth/home/habits/track/profile/journal/study/plan
 │       ├── stores/         # Pinia（持久化登录态）
 │       └── router/         # 路由 + 守卫
-└── docker-compose.yml
+├── deploy/                 # 生产部署包（预构建产物 + 部署专用 compose + 部署说明）
+│   └── README-部署说明.md   # ← 部署前必读
+└── docker-compose.yml      # 本机开发编排
 ```
 
 ## 快速开始
@@ -102,6 +107,20 @@ npm run dev
 | DELETE | `/checkins/{id}` | 撤销打卡 |
 | GET | `/checkins/month?month=2026-08` | 月度打卡日期（热力图） |
 | GET | `/streaks/top` | 习惯链排行 |
+| GET/POST | `/journals` · `/journals/{id}` | 日记 CRUD（含图片上传） |
+| GET/POST | `/reflections` · `/reflections/{id}` | 心得 CRUD（`GET /journal/{id}`、`/habit/{id}` 按来源查） |
+| GET/POST | `/subjects` · `/subjects/{id}` | 科目 CRUD（含章节树、考试倒计时） |
+| POST | `/chapters` · `/chapters/{id}` | 章节 CRUD（`GET /subject/{id}` 取树，`PATCH /{id}/status` 置进度） |
+| GET | `/study/overview` | 学习总览（进度/到期卡/错题数，Home 卡片与 AI 上下文共用） |
+| GET/POST | `/flashcards` · `/flashcards/{id}` | 闪卡 CRUD；`GET /queue` 到期队列，`POST /{id}/review` 四档评分 |
+| GET/POST | `/notes` · `/notes/{id}` | Markdown 笔记 CRUD（`POST /{id}/images` 传图） |
+| GET/POST | `/questions` | 题库 CRUD |
+| GET/POST | `/wrong-questions` | 错题本（`POST /{questionId}/practice` 记对错，`PATCH /{questionId}/mastered` 摘除） |
+| POST | `/plans/generate` | AI 生成今日安排（同步阻塞，可能数十秒） |
+| GET | `/plans/today` · `/plans/{date}` | 今日/指定日安排（未生成时 `data=null`） |
+| PUT | `/plans/free-slots` | 覆盖式保存当日空闲时段 |
+| POST | `/plans/adopt` · `/plans/blocks/{id}/complete` | 一键采纳 / 完成（可联动打卡） |
+| GET | `/plans/usage` | 今日 AI 生成额度用量 |
 
 统一响应格式：`{ code, message, data, timestamp }`，code=200 成功，401 未登录，3001 今日已打卡等业务码见 `ErrorCode.java`。
 
@@ -115,14 +134,25 @@ npm run dev
 
 ## 环境变量
 
+两份 compose 用的变量名**不同**，别混：根 `docker-compose.yml`（本机开发，自带 mysql/redis 容器）用
+`MYSQL_ROOT_PASSWORD`；`deploy/docker-compose.yml`（生产，连宿主机 3306 上独立运行的 `mysql8` 容器）用 `MYSQL_USER`/`MYSQL_PASSWORD`。
+
 | 变量 | 说明 |
 |------|------|
-| `MYSQL_USER` / `MYSQL_PASSWORD` | MySQL 账号密码 |
+| `MYSQL_ROOT_PASSWORD` | 根 compose：自带 MySQL 容器的 root 密码（必填） |
+| `MYSQL_USER` / `MYSQL_PASSWORD` | deploy compose：宿主机 MySQL 账号（`MYSQL_USER` 默认 root）/ 密码（必填） |
 | `JWT_SECRET` | JWT 签名密钥（务必使用强随机值，如 `openssl rand -hex 32`） |
-| `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | MinIO 对象存储（日记图片） |
-| `APP_CORS_ALLOWED_ORIGIN_PATTERNS` | CORS 允许来源（生产环境必填） |
-| `AI_API_KEY` | AI 服务密钥（百炼 TokenPlan，生产必填；缺失则不启用 AI） |
+| `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | MinIO 对象存储（日记/笔记图片） |
+| `APP_CORS_ALLOWED_ORIGIN_PATTERNS` | CORS 允许来源（deploy compose 必填） |
+| `AI_API_KEY` | AI 服务密钥（DeepSeek）。只经环境变量注入，**绝不写入代码/配置/提交** |
 | `AI_ENABLED` | AI 今日安排总开关（prod 默认 true，设 false 时生成接口返 6001，不影响其他功能） |
+| `AI_BASE_URL` | 选填，Anthropic 兼容端点，默认 `https://api.deepseek.com/anthropic` |
+| `AI_MODEL` | 选填，默认 `deepseek-v4-flash`（换模型只改这一个环境变量） |
+
+关于 `AI_API_KEY` 缺失时的行为：**不会**导致启动失败，也**不会**静默 401。key 为空（或 yml 里写成
+`${AI_API_KEY}` 却未解析）时，生成接口明确返回 **6001「AI 服务未启用」**；key 有值但无效/欠费才返回
+**6004「AI 服务调用失败」**。两者语义不同，排障时先看是哪个码（判定逻辑在 `PlanAiClient#credentialsMissing`）。
+因此 `AI_ENABLED=false` 是一个真正可用的紧急开关：不需要先准备一个 key 就能关掉 AI。
 
 ## Roadmap（v1.1+）
 

@@ -450,7 +450,7 @@ class DailyPlanServiceImplTest {
         b2.setStatus("PROPOSED");
         when(blockMapper.delete(any())).thenReturn(3);
 
-        service.replaceProposedWithGenerated(p, List.of(b1, b2), "qwen3.8-flash");
+        service.replaceProposedWithGenerated(p, List.of(b1, b2), "deepseek-v4-flash");
 
         ArgumentCaptor<Wrapper<PlanBlock>> delCaptor = ArgumentCaptor.forClass(Wrapper.class);
         verify(blockMapper).delete(delCaptor.capture());
@@ -462,7 +462,7 @@ class DailyPlanServiceImplTest {
         ArgumentCaptor<DailyPlan> planCaptor = ArgumentCaptor.forClass(DailyPlan.class);
         verify(planMapper).updateById(planCaptor.capture());
         assertEquals(2, planCaptor.getValue().getGenCount());
-        assertEquals("qwen3.8-flash", planCaptor.getValue().getLastModel());
+        assertEquals("deepseek-v4-flash", planCaptor.getValue().getLastModel());
     }
 
     // ================= 查询富化 / 用量 =================
