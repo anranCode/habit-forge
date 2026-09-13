@@ -65,7 +65,7 @@ public class AiScheduleServiceImpl implements AiScheduleService {
         }
 
         // 2. 每日限流（Redis 故障 fail-open, 沿项目惯例）
-        String limitKey = "ai:plan:" + userId + ":" + date;
+        String limitKey = AiScheduleService.quotaKey(userId, date);
         boolean acquired = acquireQuota(limitKey);
         if (!acquired) {
             throw new BusinessException(ErrorCode.AI_GENERATE_LIMITED);

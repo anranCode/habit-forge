@@ -4,6 +4,8 @@ target/
 *.class
 *.jar
 !.mvn/wrapper/maven-wrapper.jar
+# 部署时的旧产物备份（*.jar 只匹配到 .jar 结尾，备份名带后缀会漏网）
+*.jar.bak-*
 *.log
 logs/
 

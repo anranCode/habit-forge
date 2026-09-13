@@ -28,6 +28,10 @@
 
 - [x] MySQL 8 运行于 3306（独立容器 `mysql8`，非本编排管理；数据库升级见第三节 3.1）
 - [x] Redis 运行于 6379
+- [ ] **宿主机 MinIO 运行于 9000，且存在 `habitforge-images` 桶、访问策略为 public-read**
+      （日记/笔记图片用；前端图片走 `deploy/nginx.conf` 的 `location /images/` 反代到
+      `host.docker.internal:9000`，该反代**不带鉴权**，桶必须匿名可读。
+      缺 MinIO 或桶非 public-read 的表现是「接口全正常、图片全裂」，见第六节）
 - [ ] 已安装 Docker 与 compose 插件（`docker compose version` 验证）
 - [ ] 服务器 **8081** 端口空闲且防火墙放行（80 已被服务器上现有 nginx 占用，故对外用 8081；如 8081 也被占用，改 compose 里的端口映射即可）
 
@@ -39,7 +43,7 @@ cd habitforge-backend && mvn -q clean package -DskipTests && cd ..
 # 产物：habitforge-backend/target/habitforge-backend.jar
 cd habitforge-frontend && npm run build && cd ..
 # 产物：habitforge-frontend/dist
-# 然后把两份产物拷进 deploy/（deploy_journal.py 会自动做这一步；手工部署则手动覆盖）：
+# 然后把两份产物拷进 deploy/（这一步没有捷径，必须手工做，见下）：
 cp habitforge-backend/target/habitforge-backend.jar deploy/habitforge-backend.jar
 rm -rf deploy/dist && cp -r habitforge-frontend/dist deploy/dist
 
@@ -54,12 +58,33 @@ ssh root@<SERVER_IP>
 cd /opt/habitforge/deploy
 ls docker-compose.yml .env.example        # 确认传上来了
 
-# 3) 配置环境变量
-cp .env.example .env
+# 3) 配置环境变量 —— ⚠️ 只在本机首次部署时才可以 cp，重部署绝不能覆盖！
+#    服务器上的 .env 里是真实的生产密钥（MYSQL_PASSWORD / MINIO_SECRET_KEY /
+#    JWT_SECRET / APP_CORS_ALLOWED_ORIGIN_PATTERNS），一旦被模板覆盖就变成
+#    REPLACE_WITH_... 占位符；而占位符是**非空字符串**，能通过 compose 的所有
+#    ${VAR:?} 必填检查，于是表现为「部署成功但全线故障」：MySQL 密码错 → backend
+#    反复重启；CORS 来源是假 IP → 浏览器登录 403；MinIO 密钥错 → 图片上传失败。
+#    重部署要做的只是把**新增项**追加进去（本次为 AI_API_KEY / AI_ENABLED /
+#    AI_BASE_URL / AI_MODEL），旧值保持不动。
+if [ -f .env ]; then
+  echo "⚠️  .env 已存在，跳过复制。请手工把 .env.example 里的新增项追加进 .env（切勿整份覆盖）："
+  grep -E '^(AI_|SPRING_DATA_REDIS_PASSWORD)' .env.example
+else
+  cp .env.example .env
+  echo "已从模板创建 .env —— 必须逐项填真实值后继续"
+fi
 # 生成强随机 JWT 密钥并填入 .env 的 JWT_SECRET：
 openssl rand -hex 32
-# 同时确认 .env 里的 MYSQL_PASSWORD 与服务器 MySQL 密码一致
-# 以及 APP_CORS_ALLOWED_ORIGIN_PATTERNS 指向真实访问地址、MINIO_SECRET_KEY 已填
+# 逐项核对（前四项不填 compose 会拒绝启动；AI_API_KEY 不填**不会**报错，但功能是死的）：
+#   [ ] JWT_SECRET                          已填强随机值
+#   [ ] MYSQL_PASSWORD                      与服务器 MySQL 密码一致
+#   [ ] APP_CORS_ALLOWED_ORIGIN_PATTERNS    指向真实访问地址 http://<IP>:8081
+#   [ ] MINIO_SECRET_KEY                    已填
+#   [ ] AI_API_KEY                          已填 —— ⚠️ 留空则生成接口恒返 6001「AI 服务未启用」，
+#                                           其余接口/页面全正常，所以从冒烟检查里看不出问题，
+#                                           本次上线的核心功能等于没上。不打算启用就显式写 AI_ENABLED=false
+#   自检：不该再有占位符残留（有输出就是还没填完，填完再往下走）
+grep -n 'REPLACE_WITH' .env && echo "^^^ 上面这些还没填，先填完" || echo "✅ .env 无占位符残留"
 
 # 3.1) 数据库升级 —— 存量库不会自动跑 initdb 脚本，必须手工执行。
 #      按文件名顺序把三个都跑一遍即可：每个脚本的 CREATE TABLE 都带 IF NOT EXISTS，
@@ -87,9 +112,29 @@ curl -s http://localhost:8081/api/v1/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"username":"nobody","password":"test123456"}'
 # 期望返回 {"code":1002,"message":"用户名或密码错误",...} 说明 前端nginx → 后端 → MySQL 全链路正常
-# 再验新模块路由已生效（未带 token 应为 401，而不是 404）：
+# 反代连通性（注意：这两个 401 **不能**证明新模块已生效，见下）：
 curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8081/api/v1/study/overview
 curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8081/api/v1/plans/today
+```
+
+> ⚠️ **别把上面那两个 401 当成「新版本已上线」的凭据。**
+> `SecurityConfig` 是 `anyRequest().authenticated()`，`JwtAuthenticationFilter` 对没有
+> `Authorization: Bearer` 头的请求一律不写入 SecurityContext，于是**任意路径——不管路由存不存在——
+> 都会被拦截器在 DispatcherServlet 之前判成 401**。也就是说这个 401 只证明「nginx 的 `/api/`
+> 反代到了 backend」（如果没有它，SPA fallback 会让这两个请求返回 200 的 index.html），
+> 用一个不含 study/plan 控制器的旧 jar 也照样是 401。
+
+**真正能区分新旧版本的是产物指纹**，部署后请核对（这三条都能在旧包上失败、在新包上通过）：
+
+```bash
+# ① 后端 jar 与刚上传的本机产物是否同一个（本机与服务器两侧各跑一次 md5sum 对比）
+md5sum habitforge-backend.jar
+# ② 前端 bundle 文件名与本机 dist/index.html 里引用的是否一致（本项目的既定做法，
+#    2026-08-12 的登录无限刷新修复就是靠它确认发版成功的）
+curl -s http://localhost:8081/ | grep -o 'index-[A-Za-z0-9_-]*\.js'
+grep -o 'index-[A-Za-z0-9_-]*\.js' dist/index.html
+# ③ 新模块的前端 chunk 确实在产物里（旧包没有 plan/study 相关 chunk）
+ls dist/assets | grep -Ei 'plan|review|flashcard|wrong|note' | head
 ```
 
 ### 部署后确认 AI 是否真的接上了
@@ -117,8 +162,11 @@ docker compose up -d --build     # 自动重建并重启容器
 若本次更新带了新的增量 SQL（`upgrade_*.sql`），务必**先执行 SQL 再重建容器**：旧 jar 遇到新表只是多出来的表，
 不影响运行；反过来新 jar 先上、表还没建，新接口会直接报错。顺序与第三节 3.1 一致。
 
-`deploy_journal.py` 已把「拷产物 → 传 SQL → 整目录同步 → 重建 → 冒烟」串成一条命令，
-但它把 SQL 文件名写死为 `upgrade_2026-08_journal.sql`，跑新版本前需要改 `SQL_NAME`（或另建脚本）。
+> **关于 `deploy_journal.py`**：仓库根目录确实有这个脚本，但它被 `.gitignore` 的 `deploy_*.py` 排除，
+> **不在版本库里**（`deploy/` 目录下也没有）——换台机器 clone 下来是没有的。它把「拷产物 → 传 SQL →
+> 整目录同步 → 重建 → 冒烟」串成一条命令，但 `SQL_NAME` 只写死了 `upgrade_2026-08_journal.sql`，
+> 跑本次三个脚本需要自己改。**本文件第三节的手工步骤才是权威路径**，脚本只在作者本机上作为加速用。
+> 若希望它随仓库发布，需先把它移进 `deploy/` 并调整 `.gitignore`。
 
 ## 五、⚠️ 安全事项（重要）
 
@@ -131,6 +179,55 @@ docker compose up -d --build     # 自动重建并重启容器
 4. 部署版已做收敛：后端 8080 不再映射到公网（仅容器网络内可达），所有流量统一走对外的 8081 端口（容器内 nginx 80）。
 
 ## 六、修复记录
+
+**2026-09-13 · 上线前部署就绪审计后的第二轮修复**
+
+审计范围：环境变量转发完整性 / 增量 SQL 迁移 / 部署流水线与产物 / 前端接线 / 生产运行时。
+以下为确认并已修的问题，每条都可复现：
+
+- **nginx 读超时会让「重试 1 次」变成死代码（最严重）**：`location /api/` 原先没有任何
+  `proxy_read_timeout`，nginx 用默认 **60s**；而后端 AI 生成最坏 **45s(read-timeout) × 2(max-attempts)
+  = 90s > 60s**，于是第二次尝试必然被 nginx 在第 60s 掐断成 **504**。后果不对称且难查：后端线程仍在跑、
+  生成锁(120s)仍持着、DeepSeek token 已计费、当日额度已消耗，而用户看到的是 nginx 的 HTML 错误页
+  （前端取 `error.response.data.message` 得到 undefined，只弹 "Request failed with status code 504"）；
+  他按提示点重试，60s 内必然撞 **6003「正在生成中」**。非慢路径（实测 4s 出块）不触发，所以本机自测发现不了。
+  **修复**：加 `proxy_read_timeout 180s; proxy_send_timeout 180s;`（> 后端 90s 与前端 axios 120s，
+  让超时裁决权留在前端手里，用户能看到 JSON 里的业务码）。`deploy/nginx.conf` 与
+  `habitforge-frontend/nginx.conf` 是同内容双副本，两份都已同步。
+- **第 3 步 `cp .env.example .env` 会无条件覆盖生产密钥**：服务器上已有的 `.env` 里是真实
+  `MYSQL_PASSWORD`/`MINIO_SECRET_KEY`/`JWT_SECRET`/`APP_CORS_ALLOWED_ORIGIN_PATTERNS`，被模板覆盖后
+  变成 `REPLACE_WITH_...` 占位符；而占位符是**非空字符串**，能通过 compose 所有 `${VAR:?}` 必填检查——
+  于是表现为「部署成功但全线故障」：MySQL 密码错 → backend 反复重启（正是第七节自认的常见问题 1）、
+  CORS 来源是假 IP → 浏览器登录 403（即 2026-08-05 记录过的那个 403）、MinIO 密钥错 → 图片上传失败。
+  更糟的是下一行就让你「确认 `.env` 里的 `MYSQL_PASSWORD` 与服务器密码一致」——刚把值清成占位符再让你核对。
+  **修复**：改为条件式（存在即跳过并打印需追加的新增项，不存在才复制）+ 新增 `grep REPLACE_WITH` 自检，
+  `.env.example` 顶部也加了「重部署请勿覆盖」警告。
+- **`AI_API_KEY` 被归到「选填」且不在第 3 步核对清单里**：模板原本把它放在「选填（通常不用写）」标题下，
+  README 第 3 步的核对清单只列了 JWT/MySQL/CORS/MinIO 四项，唯独没有它；而 compose 里
+  `AI_ENABLED` 默认 `true`。结果是照文档走完不会有人填 key → 生成接口恒返 **6001**，
+  而所有冒烟检查（`compose ps`、login 返 1002、`/plans/today` 返 401）**全部通过**，本次上线的核心功能
+  等于没上。**修复**：`.env.example` 重排为三节，新增「二、必须人工决策：不填不报错但对应功能静默不可用」
+  一节收容 `AI_API_KEY`/`AI_ENABLED`/`SPRING_DATA_REDIS_PASSWORD`；第 3 步核对清单补上 `AI_API_KEY`
+  并写明「不打算启用就显式写 `AI_ENABLED=false`」。
+- **`SPRING_DATA_REDIS_PASSWORD` 在 `.env.example` 里没有条目**：上一轮补了 compose 转发，却漏了模板行，
+  §五.1 只在正文里提了一句要填。运维设了 `requirepass` 后无处可填，只能手写；一旦漏写或起名成
+  `REDIS_PASSWORD`（compose 完全不转发该名字），应用**仍能正常启动**（Lettuce 懒连接，启动不探活 Redis），
+  `compose ps` 两个容器照样 Up，直到登出或 AI 生成才报 `NOAUTH`。**修复**：模板补注释态条目并说明
+  「写在 `.env` 不转发则静默无效」，根 `README.md` 环境变量表同步补行。
+- **`MINIO_ENDPOINT` 可配但前端 `location /images/` 上游写死**：后端上传读 `MINIO_ENDPOINT`，前端
+  图片展示却由 `deploy/nginx.conf` 反代到写死的 `host.docker.internal:9000`。一旦改地址就是
+  「上传返 200、图片全部裂图」且没有任何配置能解释这个不对称；另外反代不带鉴权，桶必须匿名可读，
+  但第二节「服务器前提」没要求宿主机有 MinIO。**修复**：`.env.example` 与根 README 标注两者必须一致，
+  第二节前提补「宿主机 MinIO :9000 + `habitforge-images` 桶 + public-read」。
+- **额度展示与限流裁决分叉**：`GET /plans/usage` 的 `used` 原读 `daily_plans.gen_count`（只在落块成功时 +1），
+  而真正的限流真源是 Redis 计数器（`ai:plan:{userId}:{date}`），且「LLM 返回了但 JSON 解析失败(6005)」
+  这条路径**故意不退额度**（token 已耗）也不落块。两者分叉后页面会显示一个兑不出来的剩余次数
+  （显示「剩余 5/5」而每次点生成都被 6002 拒绝），用户照提示反复重试永远打不开。
+  **修复**：`getUsage` 改读 Redis（与 `tryAcquire` 同源，键由 `AiScheduleService#quotaKey` 单点生成防漂移），
+  Redis 不可用时降级为 `gen_count`（已知下界）并记警告。新增 6 个单测覆盖分叉与降级路径。
+- **文档指向不存在的脚本**：README 两处把 `deploy_journal.py` 当作推荐部署路径，但它被 `.gitignore`
+  的 `deploy_*.py` 排除、不在版本库里（且 `SQL_NAME` 只写死了 journal 一个脚本）。**修复**：改为标注
+  「仅存在于作者本机」，明确第三节手工步骤才是权威路径。
 
 **2026-09-13 · 接入 AI 今日安排（DeepSeek）并修好部署链路**
 - **供应商切换**：AI 从阿里云百炼 TokenPlan（`qwen3.8-flash`）切到 **DeepSeek 的 Anthropic 兼容端点**

@@ -15,7 +15,7 @@ const CONV = `
 - 仓库根 ${ROOT}，分支 feature/study-ai-plan；计划文件 P2 节是规格：${PLAN}
 - P2 主体已实现（modules/ai、views/plan、components/plan），两轮验证已通过，本轮只做下述缺陷修复，不做重构、不加新功能
 - 只在被允许的文件内改动；不要 git commit/push；后端验证用 cd habitforge-backend && mvn -q test，前端用 cd habitforge-frontend && npm run build（本轮无并发构建冲突，可用 build）
-- 凭证红线：不得写入任何 token；真实 AI 调用一律禁止（TokenPlan 周配额已耗尽，调用只会 429），测试全 mock
+- 凭证红线：不得写入任何 token；真实 AI 调用一律禁止，测试全 mock（真实联调只由 AiProviderLiveTest 在 AI_LIVE_TEST=1 时单独跑；供应商现为 DeepSeek，原 TokenPlan 已于 2026-09-13 弃用）
 - 代码风格对齐既有 modules/study / P2 已落盘代码（中文注释、Result/ErrorCode、@Transactional(rollbackFor)、hutool、jakarta validation 中文消息）
 `
 

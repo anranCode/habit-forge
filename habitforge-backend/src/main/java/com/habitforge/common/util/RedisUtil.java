@@ -91,6 +91,22 @@ public class RedisUtil {
     }
 
     /**
+     * 读当前窗口已用计数（供展示用，必须与 tryAcquire 的裁决同源）。
+     * 键不存在/值异常返回 0；Redis 故障向上抛，由调用方决定降级策略。
+     */
+    public int currentCount(String key) {
+        String value = redis.opsForValue().get(RATE_LIMIT_PREFIX + key);
+        if (value == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /**
      * 限流退还：对 tryAcquire 计数 DECR 1（上游失败未耗费用时调用）。
      * 计数被减为负（窗口已翻转后误退）则直接删键。
      */

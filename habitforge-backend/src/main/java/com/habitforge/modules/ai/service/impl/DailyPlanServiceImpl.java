@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.habitforge.common.constant.AppConstant;
 import com.habitforge.common.exception.BusinessException;
 import com.habitforge.common.exception.ErrorCode;
+import com.habitforge.common.util.RedisUtil;
 import com.habitforge.modules.ai.config.AiProperties;
 import com.habitforge.modules.ai.dto.BlockCreateRequest;
 import com.habitforge.modules.ai.dto.BlockUpdateRequest;
@@ -21,6 +22,7 @@ import com.habitforge.modules.ai.mapper.DailyPlanMapper;
 import com.habitforge.modules.ai.mapper.PlanBlockMapper;
 import com.habitforge.modules.ai.mapper.PlanFreeSlotMapper;
 import com.habitforge.modules.ai.mapper.PlanGenerationMapper;
+import com.habitforge.modules.ai.service.AiScheduleService;
 import com.habitforge.modules.ai.service.DailyPlanService;
 import com.habitforge.modules.checkin.dto.CheckinRequest;
 import com.habitforge.modules.checkin.service.CheckinService;
@@ -68,6 +70,7 @@ public class DailyPlanServiceImpl implements DailyPlanService {
     private final CheckinService checkinService;
     private final StudyOverviewService studyOverviewService;
     private final AiProperties aiProperties;
+    private final RedisUtil redisUtil;
     private final PlatformTransactionManager transactionManager;
 
     // ================= 计划行（懒创建） =================
@@ -339,7 +342,19 @@ public class DailyPlanServiceImpl implements DailyPlanService {
     public PlanUsageResponse getUsage(String userId) {
         LocalDate today = LocalDate.now();
         DailyPlan plan = findPlan(userId, today);
-        int used = plan == null || plan.getGenCount() == null ? 0 : plan.getGenCount();
+        int successCount = plan == null || plan.getGenCount() == null ? 0 : plan.getGenCount();
+        // 额度真源是 Redis 计数器(AiScheduleServiceImpl 的 tryAcquire), 不是 gen_count:
+        // gen_count 只在落块成功时 +1, 而「LLM 返回了但 JSON 解析失败(6005)」这条路
+        // 故意不退额度(token 已耗)也不落块。两者一旦分叉, 页面就会显示一个兑不出来的
+        // 剩余次数(如显示 5/5, 每次点生成却被 6002 拒绝), 用户照提示反复重试永远打不开。
+        // 故这里读与裁决同源的 Redis; Redis 不可用时降级为 gen_count(至少是已知下界)。
+        int used;
+        try {
+            used = redisUtil.currentCount(AiScheduleService.quotaKey(userId, today));
+        } catch (Exception e) {
+            log.warn("AI 额度计数读取失败, 降级用 gen_count 展示: {}", e.getMessage());
+            used = successCount;
+        }
         int remaining = Math.max(0, aiProperties.getDailyGenerateLimit() - used);
         List<PlanGeneration> todayGens = generationMapper.selectList(new LambdaQueryWrapper<PlanGeneration>()
                 .eq(PlanGeneration::getUserId, userId)

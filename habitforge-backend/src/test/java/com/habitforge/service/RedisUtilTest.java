@@ -8,9 +8,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -30,6 +33,9 @@ class RedisUtilTest {
 
     @Mock
     private StringRedisTemplate redis;
+
+    @Mock
+    private ValueOperations<String, String> valueOps;
 
     @InjectMocks
     private RedisUtil redisUtil;
@@ -68,5 +74,42 @@ class RedisUtilTest {
         assertFalse(redisUtil.unlock(LOCK_KEY, null));
 
         verify(redis, never()).execute(any(DefaultRedisScript.class), anyList(), anyString());
+    }
+
+    // ============ currentCount：读额度已用数（供展示, 必须与 tryAcquire 同源） ============
+
+    /** 读的必须是 tryAcquire 写的同一个键（含 RATE_LIMIT_PREFIX）, 否则展示与裁决分叉 */
+    @Test
+    void currentCount_readsPrefixedKeyUsedByTryAcquire() {
+        when(redis.opsForValue()).thenReturn(valueOps);
+        when(valueOps.get("habitforge:rate:ai:plan:user-a:2026-09-13")).thenReturn("3");
+
+        assertEquals(3, redisUtil.currentCount("ai:plan:user-a:2026-09-13"));
+    }
+
+    /** 键不存在 = 今日一次未用（不是错误） */
+    @Test
+    void currentCount_absentKeyIsZero() {
+        when(redis.opsForValue()).thenReturn(valueOps);
+        when(valueOps.get(anyString())).thenReturn(null);
+
+        assertEquals(0, redisUtil.currentCount("ai:plan:user-a:2026-09-13"));
+    }
+
+    /** 值被写坏时不抛异常, 按 0 处理（展示层不该因脏数据 500） */
+    @Test
+    void currentCount_nonNumericValueIsZero() {
+        when(redis.opsForValue()).thenReturn(valueOps);
+        when(valueOps.get(anyString())).thenReturn("not-a-number");
+
+        assertEquals(0, redisUtil.currentCount("ai:plan:user-a:2026-09-13"));
+    }
+
+    /** Redis 故障要向上抛, 由调用方决定降级策略（不能在这里悄悄吞成 0） */
+    @Test
+    void currentCount_redisFailurePropagates() {
+        when(redis.opsForValue()).thenThrow(new RuntimeException("connection refused"));
+
+        assertThrows(RuntimeException.class, () -> redisUtil.currentCount("ai:plan:user-a:2026-09-13"));
     }
 }

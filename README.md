@@ -142,9 +142,10 @@ npm run dev
 | `MYSQL_ROOT_PASSWORD` | 根 compose：自带 MySQL 容器的 root 密码（必填） |
 | `MYSQL_USER` / `MYSQL_PASSWORD` | deploy compose：宿主机 MySQL 账号（`MYSQL_USER` 默认 root）/ 密码（必填） |
 | `JWT_SECRET` | JWT 签名密钥（务必使用强随机值，如 `openssl rand -hex 32`） |
-| `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | MinIO 对象存储（日记/笔记图片） |
+| `MINIO_ENDPOINT` / `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | MinIO 对象存储（日记/笔记图片）。⚠️ 改 `MINIO_ENDPOINT` 会同时影响后端上传与前端展示：展示路径由 nginx 的 `location /images/` 反代，**不读这个变量**，两边不一致就是「上传成功、图片裂图」 |
+| `SPRING_DATA_REDIS_PASSWORD` | 仅当 Redis 设了 `requirepass` 时填（默认空=不鉴权）。必须写进 compose 的 `environment` 才进得了容器，写在 `.env` 却不转发会静默无效 |
 | `APP_CORS_ALLOWED_ORIGIN_PATTERNS` | CORS 允许来源（deploy compose 必填） |
-| `AI_API_KEY` | AI 服务密钥（DeepSeek）。只经环境变量注入，**绝不写入代码/配置/提交** |
+| `AI_API_KEY` | AI 服务密钥（DeepSeek）。只经环境变量注入，**绝不写入代码/配置/提交**。留空 = 生成接口恒返 6001，**不会**影响其它功能也不会报启动错 |
 | `AI_ENABLED` | AI 今日安排总开关（prod 默认 true，设 false 时生成接口返 6001，不影响其他功能） |
 | `AI_BASE_URL` | 选填，Anthropic 兼容端点，默认 `https://api.deepseek.com/anthropic` |
 | `AI_MODEL` | 选填，默认 `deepseek-v4-flash`（换模型只改这一个环境变量） |

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.habitforge.common.exception.BusinessException;
+import com.habitforge.common.util.RedisUtil;
 import com.habitforge.modules.ai.config.AiProperties;
 import com.habitforge.modules.ai.dto.BlockCreateRequest;
 import com.habitforge.modules.ai.dto.BlockUpdateRequest;
@@ -82,6 +83,9 @@ class DailyPlanServiceImplTest {
     private CheckinService checkinService;
     @Mock
     private StudyOverviewService studyOverviewService;
+    /** getUsage 读额度真源(Redis 计数器); 缺省 Mockito 对 int 返回 0 = 今日未用 */
+    @Mock
+    private RedisUtil redisUtil;
     /** 联动打卡走 REQUIRES_NEW: mock 的 getTransaction 返回 null, TransactionTemplate 直接执行回调 */
     @Mock
     private PlatformTransactionManager transactionManager;
@@ -103,7 +107,7 @@ class DailyPlanServiceImplTest {
     void setUp() {
         props = new AiProperties();
         service = new DailyPlanServiceImpl(planMapper, blockMapper, freeSlotMapper, generationMapper,
-                habitService, checkinService, studyOverviewService, props, transactionManager);
+                habitService, checkinService, studyOverviewService, props, redisUtil, transactionManager);
         // 响应富化公共桩（各用例按需覆盖）
         lenient().when(habitService.listMine(eq(USER), anyBoolean())).thenReturn(
                 List.of(HabitResponseDTO.builder().id("h1").name("晨跑").build()));
@@ -489,6 +493,7 @@ class DailyPlanServiceImplTest {
     @Test
     void getUsage_sumsTodayTokensAndComputesRemaining() {
         when(planMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(plan()); // genCount=1
+        when(redisUtil.currentCount(anyString())).thenReturn(1);
         PlanGeneration g1 = new PlanGeneration();
         g1.setTotalTokens(100);
         PlanGeneration g2 = new PlanGeneration();
@@ -509,5 +514,35 @@ class DailyPlanServiceImplTest {
         assertEquals(0, usage.getUsed());
         assertEquals(props.getDailyGenerateLimit(), usage.getRemaining());
         assertEquals(0L, usage.getTodayTokens());
+    }
+
+    /**
+     * 回归：额度展示必须与裁决同源。
+     * 解析失败(6005)会消耗 Redis 额度但**不**加 gen_count，若读 gen_count 就会显示
+     * 「还剩 5 次」而每次生成都被 6002 拒——用户照提示反复重试永远打不开。
+     */
+    @Test
+    void getUsage_readsRedisQuotaNotSuccessCount_soParseFailuresStillCountAsUsed() {
+        DailyPlan p = plan();
+        p.setGenCount(0); // 5 次全部 6005，一次都没落块
+        when(planMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(p);
+        when(redisUtil.currentCount(anyString())).thenReturn(props.getDailyGenerateLimit());
+        when(generationMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+
+        var usage = service.getUsage(USER);
+        assertEquals(props.getDailyGenerateLimit(), usage.getUsed());
+        assertEquals(0, usage.getRemaining());
+    }
+
+    /** Redis 不可用时降级为 gen_count，而不是谎报「一次没用」 */
+    @Test
+    void getUsage_fallsBackToGenCountWhenRedisUnavailable() {
+        when(planMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(plan()); // genCount=1
+        when(redisUtil.currentCount(anyString())).thenThrow(new RuntimeException("redis down"));
+        when(generationMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
+
+        var usage = service.getUsage(USER);
+        assertEquals(1, usage.getUsed());
+        assertEquals(props.getDailyGenerateLimit() - 1, usage.getRemaining());
     }
 }
