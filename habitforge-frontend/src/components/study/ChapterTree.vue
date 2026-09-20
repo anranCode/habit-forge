@@ -154,13 +154,13 @@ function saveEdit() {
     }
 
     &.IN_PROGRESS {
-      border: 2px solid #f39c12;
+      border: 2px solid $warning; // 桌面端由 --hf-warning 换成降饱和 #c19144
       background: rgba(243, 156, 18, 0.35);
     }
 
     &.DONE {
-      border: 2px solid #27ae60;
-      background: #27ae60;
+      border: 2px solid $success; // 桌面端由 --hf-success 换成降饱和 #5a9e7f
+      background: $success;
     }
   }
 
@@ -202,7 +202,7 @@ function saveEdit() {
   }
 
   .van-field {
-    background: #f6f7fb;
+    background: $bg-inset;
     border-radius: 10px;
     margin-bottom: 14px;
     padding: 8px 12px;

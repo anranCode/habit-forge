@@ -76,7 +76,7 @@ onMountedOrActivated(load)
       <div class="card today-card is-clickable" @click="todayJournal ? goDetail(todayJournal) : goCreate()">
         <div class="flex-between">
           <span class="t"><span class="deco">📔 </span>今天的记录</span>
-          <van-icon name="arrow" color="#8a94a6" />
+          <van-icon name="arrow" color="var(--hf-text-light)" />
         </div>
         <div v-if="todayJournal" class="preview">
           <span v-if="todayJournal.mood" class="mood">{{ moodEmoji(todayJournal.mood) }}</span>
@@ -94,7 +94,7 @@ onMountedOrActivated(load)
         <van-icon
           name="arrow"
           size="18"
-          :color="monthCursor.isSame(dayjs().startOf('month'), 'month') ? '#d7dce4' : '#2c3e50'"
+          :color="monthCursor.isSame(dayjs().startOf('month'), 'month') ? '#d7dce4' : 'var(--hf-text-main)'"
           @click="nextMonth"
         />
       </div>
@@ -109,9 +109,9 @@ onMountedOrActivated(load)
                 <span v-if="j.mood" class="mood">{{ moodEmoji(j.mood) }}</span>
                 <span class="date">{{ dayjs(j.journalDate).format('M月D日 ddd') }}</span>
                 <van-tag v-if="j.habitCount" plain round size="medium" color="#ff7a00">{{ j.habitCount }} 个习惯</van-tag>
-                <van-tag v-if="j.imageCount" plain round size="medium" color="#3498db">🖼 {{ j.imageCount }}</van-tag>
+                <van-tag v-if="j.imageCount" plain round size="medium" color="var(--hf-info)">🖼 {{ j.imageCount }}</van-tag>
               </div>
-              <van-icon name="arrow" color="#8a94a6" />
+              <van-icon name="arrow" color="var(--hf-text-light)" />
             </div>
             <div v-if="j.title" class="title">{{ j.title }}</div>
           </div>

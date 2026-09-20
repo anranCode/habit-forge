@@ -320,7 +320,7 @@ defineExpose({ flushUploads, clearDraft })
   .tb {
     flex: none;
     border: none;
-    background: #f6f7fb;
+    background: $bg-inset;
     color: $text-main;
     font-size: 13px;
     padding: 6px 12px;

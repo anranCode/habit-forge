@@ -208,7 +208,7 @@ async function onSave() {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f6f7fb;
+  background: $bg-inset;
   border-radius: 10px;
   padding: 10px 12px;
   margin-bottom: 8px;

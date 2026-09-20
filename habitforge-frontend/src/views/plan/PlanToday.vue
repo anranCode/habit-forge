@@ -573,7 +573,7 @@ async function onAdd() {
       text-align: center;
       padding: 9px 0;
       border-radius: 10px;
-      background: #f6f7fb;
+      background: $bg-inset;
       font-size: 13px;
       color: $text-light;
       cursor: pointer;
@@ -588,7 +588,7 @@ async function onAdd() {
 
   :deep(.van-cell) {
     border-radius: 10px;
-    background: #f6f7fb;
+    background: $bg-inset;
     margin-bottom: 12px;
   }
 

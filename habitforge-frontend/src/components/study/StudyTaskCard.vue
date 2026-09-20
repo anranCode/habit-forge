@@ -57,7 +57,7 @@ const nearestExam = computed(() => {
 
     .st {
       flex: 1;
-      background: #f6f7fb;
+      background: $bg-inset;
       border-radius: 10px;
       padding: 10px 8px;
       text-align: center;

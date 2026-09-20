@@ -40,7 +40,7 @@ const cls = computed(() => (props.checked ? 'check-btn checked' : 'check-btn'))
   }
 
   &.checked {
-    background: #27ae60;
+    background: $success; // 桌面端由 --hf-success 换成降饱和 #5a9e7f，移动端仍是 #27ae60
     box-shadow: none;
     opacity: 0.92;
   }

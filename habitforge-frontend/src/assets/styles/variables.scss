@@ -2,9 +2,14 @@
 // 注意：本项目**没有**用 Vant ConfigProvider —— 组件库默认的主色是 --van-blue(#1989fa)，
 // 桌面端靠 main.scss 里 @media 内的 :root 覆盖修正（移动端不动，保持与改造前逐像素一致）。
 $primary: #ff7a00;
-$success: #27ae60;
-$warning: #f39c12;
-$danger: #e74c3c;
+// 三个语义色也走间接层：桌面端要降饱和（#5a9e7f / #c97a6e / #c19144），移动端保持原色。
+// 改的是这三个变量本身而不是逐处覆盖 —— 语义色散落在 10 个文件 20 处，
+// 逐处加 @media 既容易漏，也会漏出"有的绿降了饱和、有的还是原绿"的花斑。
+// 前提已核实：全仓库没有任何 rgba()/mix()/lighten() 作用在这三个变量上
+// （那类用法要求编译期常量，改成 var() 会直接编译失败），所有引用都是裸值。
+$success: var(--hf-success, #27ae60);
+$danger: var(--hf-danger, #e74c3c);
+$warning: var(--hf-warning, #f39c12);
 // 文字/页面底色走一层 CSS 自定义属性间接层。
 // 原因：这几个色在桌面端要换成中性灰（$text-main/#2c3e50、$text-light/#8a94a6 都带蓝调，
 // $bg-page/#f6f7fb 也是），但它们是构建期字面量，直接改值会连移动端一起改掉 ——
@@ -17,6 +22,11 @@ $text-main: var(--hf-text-main, #2c3e50);
 $text-light: var(--hf-text-light, #8a94a6);
 $text-sub: var(--hf-text-sub, #5d6d7e);
 $bg-page: var(--hf-bg-page, #f6f7fb);
+// 内嵌面板的底色：表单字段、统计小格、胶囊、markdown 表头这类"白底上的浅色块"。
+// 它和 $bg-page 在移动端是同一个值（#f6f7fb），但桌面端去向不同 ——
+// 页面底色走中性 #fafafa（越接近白越好），内嵌块得留在 #f2f3f5 才有轮廓，
+// 否则白卡上的浅色块会淡到看不见。同一个间接层，两个自定义属性。
+$bg-inset: var(--hf-bg-inset, #f6f7fb);
 $bg-card: #ffffff;
 $radius-card: 14px;
 $shadow-card: 0 2px 12px rgba(44, 62, 80, 0.06);
@@ -44,9 +54,17 @@ $content-gutter-desktop: 32px;
 // 任何一个都会同时改掉移动端，而那些是 repro/mobile_invariance.sh 逐字节比对过的基线。
 // 新增到这里则是安全的：没有断点外的引用，就没有跨断点的影响。
 
-// 语义色：桌面端降饱和（移动端继续用 $success/$danger 的原色）
+// 语义色：桌面端降饱和（移动端继续用 $success/$danger/$warning 的原色）
 $success-desktop: #5a9e7f;
 $danger-desktop: #c97a6e;
+// #f39c12 保持色相与明度、把饱和度砍半（90% → 45%）得到 #c19144。
+// 桌面端不再出现一根饱和的琥珀色 —— 它紧挨着主色橙 #ff7a00，两个暖色都拉满会互相打架。
+$warning-desktop: #c19144;
+// 信息蓝。桌面端这份 #6b8db5 不是新定的 —— 它就是 utils/format.ts 的
+// categoryColorDesktop.LEARNING 与 QuestionCard.vue 的 TYPE_COLOR_DESKTOP 已经在用的那个
+// 降饱和蓝，这里只是把它提成有个名字的令牌，好让 chip/tag 这类走 CSS 的地方
+// 不必再抄一遍字面量、也不必为此引入 isDesktop 分支。
+$info-desktop: #6b8db5;
 
 // 分隔线的统一灰度 —— 替代原本散落的 6 种灰（#f2f3f5/#f0f2f5/#eef1f6/#f4f5f8/#e6e9ef/#dfe3ea）
 $border-color: #e8eaed;

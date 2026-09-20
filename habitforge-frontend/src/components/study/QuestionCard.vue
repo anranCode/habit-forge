@@ -73,7 +73,8 @@ const answerText = computed(() => {
   <div class="card question-card">
     <div class="q-head">
       <van-tag round :color="typeColor">{{ TYPE_LABEL[question.questionType] }}</van-tag>
-      <van-tag v-if="question.difficulty" round plain color="#8a94a6">难度 {{ question.difficulty }}</van-tag>
+      <!-- 次要灰走间接层：移动端仍是 #8a94a6，桌面端由断点内的 :root 换成中性 #999 -->
+      <van-tag v-if="question.difficulty" round plain color="var(--hf-text-light)">难度 {{ question.difficulty }}</van-tag>
       <van-tag v-if="question.sourceType" round plain :color="sourceColor">
         {{ question.sourceDetail || SOURCE_LABEL[question.sourceType] || question.sourceType }}
       </van-tag>
@@ -146,7 +147,7 @@ const answerText = computed(() => {
 
         &.right {
           background: #e8f8ef;
-          color: #27ae60;
+          color: $success; // 桌面端由 --hf-success 换成降饱和 #5a9e7f
           font-weight: 700;
         }
       }
@@ -165,7 +166,7 @@ const answerText = computed(() => {
     }
 
     .answer {
-      color: #27ae60;
+      color: $success; // 桌面端由 --hf-success 换成降饱和 #5a9e7f
       font-weight: 700;
     }
 

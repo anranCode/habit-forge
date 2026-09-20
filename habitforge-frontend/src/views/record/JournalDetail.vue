@@ -261,7 +261,7 @@ function reflectionTexts(r: Reflection): string[] {
     gap: 6px;
     padding: 6px 12px;
     border-radius: 999px;
-    background: #f6f7fb;
+    background: $bg-inset;
     font-size: 13px;
     cursor: pointer;
 

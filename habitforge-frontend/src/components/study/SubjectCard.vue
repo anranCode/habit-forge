@@ -27,7 +27,7 @@ const countdown = computed(() => {
   <div class="card subject-card is-clickable" @click="router.push(`/study/subjects/${subject.id}`)">
     <div class="flex-between">
       <span class="sname">{{ subject.name }}</span>
-      <van-tag v-if="countdown" round :color="countdown === '已过考期' ? '#8a94a6' : '#ff7a00'">{{ countdown }}</van-tag>
+      <van-tag v-if="countdown" round :color="countdown === '已过考期' ? 'var(--hf-text-light)' : '#ff7a00'">{{ countdown }}</van-tag>
       <van-tag v-else-if="!subject.examDate" round plain color="#c8ced8">未设考期</van-tag>
     </div>
     <div class="meta text-light">
@@ -41,8 +41,8 @@ const countdown = computed(() => {
       <span class="pnum text-light">{{ subject.chapterDone }}/{{ subject.chapterTotal }}</span>
     </div>
     <div class="tags">
-      <van-tag plain round size="medium" color="#3498db">到期卡 {{ subject.dueCards }}</van-tag>
-      <van-tag plain round size="medium" color="#e74c3c">错题 {{ subject.wrongCount }}</van-tag>
+      <van-tag plain round size="medium" color="var(--hf-info)">到期卡 {{ subject.dueCards }}</van-tag>
+      <van-tag plain round size="medium" color="var(--hf-danger)">错题 {{ subject.wrongCount }}</van-tag>
     </div>
   </div>
 </template>

@@ -194,7 +194,7 @@ async function onSave() {
 
   :deep(.van-cell) {
     border-radius: 10px;
-    background: #f6f7fb;
+    background: $bg-inset;
     padding: 10px 12px;
   }
 }
@@ -208,7 +208,7 @@ async function onSave() {
     text-align: center;
     padding: 10px 0;
     border-radius: 10px;
-    background: #f6f7fb;
+    background: $bg-inset;
     font-size: 13px;
     color: $text-light;
     transition: all 0.15s ease;

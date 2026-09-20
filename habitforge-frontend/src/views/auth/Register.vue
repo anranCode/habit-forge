@@ -91,7 +91,7 @@ async function onSubmit() {
 <style scoped lang="scss">
 .auth-page {
   min-height: 100vh;
-  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 45%, #f6f7fb 45.2%);
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 45%, $bg-page 45.2%);
 }
 
 .auth-hero {

@@ -143,7 +143,7 @@ onMounted(load)
   background: #f2f3f5;
 
   &.checked {
-    background: #27ae60;
+    background: $success;
     color: #fff;
     font-weight: 700;
   }
@@ -179,7 +179,7 @@ onMounted(load)
     margin-right: 4px;
 
     &.checked {
-      background: #27ae60;
+      background: $success;
     }
 
     &.today {

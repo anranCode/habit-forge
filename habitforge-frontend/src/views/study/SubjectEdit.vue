@@ -167,7 +167,7 @@ async function onSave() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #f6f7fb;
+  background: $bg-inset;
   border-radius: 10px;
   padding: 12px;
   cursor: pointer;

@@ -358,7 +358,7 @@ onBeforeRouteLeave(() => {
     gap: 4px;
     padding: 10px 0;
     border-radius: 10px;
-    background: #f6f7fb;
+    background: $bg-inset;
     font-size: 12px;
     color: $text-light;
     cursor: pointer;
@@ -392,7 +392,7 @@ onBeforeRouteLeave(() => {
   .chip {
     padding: 6px 14px;
     border-radius: 999px;
-    background: #f6f7fb;
+    background: $bg-inset;
     font-size: 13px;
     color: $text-light;
     cursor: pointer;

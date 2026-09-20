@@ -76,7 +76,7 @@ function goCreate() {
             </div>
           </div>
           <van-badge v-if="(overview?.dueCardsTotal ?? 0) > 0" :content="overview!.dueCardsTotal" />
-          <van-icon name="arrow" color="#8a94a6" />
+          <van-icon name="arrow" color="var(--hf-text-light)" />
         </div>
       </div>
 

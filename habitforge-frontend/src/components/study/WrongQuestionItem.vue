@@ -27,11 +27,11 @@ function excerpt(stem: string): string {
   <div class="card wrong-item">
     <div class="flex-between">
       <div class="tags">
-        <van-tag round :color="wrong.wrongCount >= 3 ? '#e74c3c' : '#f39c12'">错 {{ wrong.wrongCount }} 次</van-tag>
+        <van-tag round :color="wrong.wrongCount >= 3 ? 'var(--hf-danger)' : 'var(--hf-warning)'">错 {{ wrong.wrongCount }} 次</van-tag>
         <van-tag round color="#ff7a00">{{ TYPE_LABEL[wrong.question.questionType] }}</van-tag>
-        <van-tag v-if="wrong.correctStreak > 0" round plain color="#27ae60">连对 {{ wrong.correctStreak }}</van-tag>
+        <van-tag v-if="wrong.correctStreak > 0" round plain color="var(--hf-success)">连对 {{ wrong.correctStreak }}</van-tag>
       </div>
-      <van-icon name="arrow" color="#8a94a6" />
+      <van-icon name="arrow" color="var(--hf-text-light)" />
     </div>
     <div class="stem">{{ excerpt(wrong.question.stem) }}</div>
     <div class="time text-light">最近错误 {{ dayjs(wrong.lastWrongAt).format('YYYY/M/D HH:mm') }}</div>

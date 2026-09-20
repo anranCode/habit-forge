@@ -2,15 +2,29 @@
   box-sizing: border-box;
 }
 
-/* 自定义属性间接层的「断点外」一半 —— 值就是 variables.scss 里那三个变量的原字面值。
+/* 自定义属性间接层的「断点外」一半 —— 每个值都是改造前该处用的**原字面值**。
    这一块是移动端的基线：它保证 var(--hf-*) 在 <1024px 下解析出的颜色与改造前逐字节相同。
-   桌面端那一半在文件末尾的 @media (min-width: $bp-desktop) 里的 :root（覆盖成中性灰）。
-   两者是同一批自定义属性，谁是生效值只取决于视口是否命中断点 —— 不涉及任何 UA 嗅探。 */
+   桌面端那一半在文件末尾的 @media (min-width: $bp-desktop) 里的 :root（覆盖成中性灰/降饱和）。
+   两者是同一批自定义属性，谁是生效值只取决于视口是否命中断点 —— 不涉及任何 UA 嗅探。
+
+   一个自定义属性对应一个**原字面量**，不是对应一个语义角色：比如 --hf-info 装的是 #3498db，
+   而 BlockItem 的「学习」胶囊用的是另一个蓝 #3478f6 —— 两者移动端取值不同，
+   不能共用一个属性（共用就必然改掉其中一边的移动端像素）。
+
+   模板里也会直接出现这些属性名（如 <van-icon color="var(--hf-text-light)">）：van-icon/van-tag 的
+   color 属性是**直接写进元素内联样式的**（见 vant/lib/tag/Tag.js：color: props.color），
+   CSS 规则够不着，所以这些位置没法靠加一条 @media 覆盖 —— 但内联样式里的 var() 照样按断点解析，
+   于是同一个间接层把「走 CSS 的」和「走内联样式的」两类引用一起管住了。 */
 :root {
   --hf-text-main: #2c3e50;
   --hf-text-light: #8a94a6;
   --hf-text-sub: #5d6d7e;
   --hf-bg-page: #f6f7fb;
+  --hf-bg-inset: #f6f7fb;
+  --hf-info: #3498db;
+  --hf-success: #27ae60;
+  --hf-danger: #e74c3c;
+  --hf-warning: #f39c12;
 }
 
 html,
@@ -241,7 +255,7 @@ body {
     background: none;
     border: none;
     font: inherit;
-    font-size: 13px;
+    font-size: $font-caption; // 原是 13px —— 字号只留三级，它属于辅助说明那一档
     line-height: 1.6;
     color: $text-light;
     padding: 2px 8px;
@@ -386,6 +400,16 @@ body {
     --hf-text-light: #999; // 原 #8a94a6（次要/时间戳）
     --hf-text-sub: #666; // 原 #5d6d7e（卡片描述等次一级正文）
     --hf-bg-page: #fafafa; // 原 #f6f7fb（页面底色）
+    --hf-info: #{$info-desktop}; // 原 #3498db（「到期卡」「🖼 3」这类信息标签）
+    /* 语义色降饱和。$success/$danger/$warning 三个 SCSS 变量已改指这三个属性
+       （见 variables.scss），于是 10 个文件里 20 处引用一次性跟着降饱和，
+       不必逐处抄 @media。 */
+    --hf-success: #{$success-desktop}; // 原 #27ae60
+    --hf-danger: #{$danger-desktop}; // 原 #e74c3c
+    --hf-warning: #{$warning-desktop}; // 原 #f39c12
+    /* 内嵌块只去掉蓝调、不追白：白卡上的浅色块压到 #fafafa 就看不见轮廓了。
+       #f2f3f5 不是新颜色 —— 它就是 $border-lightest，也是芯片在移动端的底色。 */
+    --hf-bg-inset: #f2f3f5;
   }
 
   // 按钮圆角并入两档体系

@@ -142,7 +142,8 @@ async function onRemove(c: Chapter) {
         <div v-if="subject" class="card head-card">
           <div class="flex-between">
             <span class="sname">{{ subject.name }}</span>
-            <van-tag v-if="countdownText" round :color="countdownText === '已过考期' ? '#8a94a6' : '#ff7a00'">
+            <!-- 「已过考期」用次要灰（走间接层，桌面端转中性）；未过考期保持主色橙 -->
+            <van-tag v-if="countdownText" round :color="countdownText === '已过考期' ? 'var(--hf-text-light)' : '#ff7a00'">
               {{ countdownText }}
             </van-tag>
           </div>
@@ -322,7 +323,7 @@ async function onRemove(c: Chapter) {
   }
 
   .van-field {
-    background: #f6f7fb;
+    background: $bg-inset;
     border-radius: 10px;
     margin-bottom: 14px;
     padding: 8px 12px;

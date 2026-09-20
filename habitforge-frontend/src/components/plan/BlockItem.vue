@@ -237,4 +237,16 @@ function onRowClick() {
     color: $text-light;
   }
 }
+
+/* 桌面端只改「学习」胶囊的**文字**色。
+   同类里另外三个胶囊的文字色走 $success/$text-light，已随间接层自动降饱和，不用在这重复。
+   而各自的淡底（rgba(...) 十几的透明度）渲染出来是很浅的色块、色相几乎不可辨 ——
+   按"只处理有面积或有厚度的饱和色"这条线留着不动，移动端更是原样。
+   这个蓝 #3478f6 与 --hf-info 里的 #3498db 不是同一个值，共用一个自定义属性
+   会改掉其中一边的移动端像素，所以这里直接取桌面端令牌。 */
+@media (min-width: #{$bp-desktop}) {
+  .block-body .block-tags .tag.study {
+    color: $info-desktop;
+  }
+}
 </style>
