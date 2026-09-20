@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import AppTabbar from '@/components/common/AppTabbar.vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import { useIsDesktop } from '@/composables/useDesktop'
 
 const route = useRoute()
+const router = useRouter()
 const isDesktop = useIsDesktop()
 
 // 带 tab 的主页面（今日/习惯/记录/追踪/我的）——移动端只有这些显示底部导航
@@ -68,6 +69,44 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   if (e.key !== 'Escape' || !isDesktop.value) return
   closeTopPopup()
 })
+
+/**
+ * 面包屑：顺着路由已有的 meta.backTo 往上走，直到某个页面的 backTo 指向不存在的路由。
+ *
+ * 为什么用 backTo 而不是解析路径分段：每个详情/编辑页都已经声明了"我该退回哪里"
+ * （移动端 nav-bar 的返回箭头用的就是它），那正是它在这棵树里的父节点。
+ * 拿它当唯一的父子关系来源，面包屑与返回按钮永远不会各说各话；
+ * 按 `/study/notes/edit/123` 切分段则要另建一套路径→标题的映射，两处容易走偏。
+ *
+ * 只在桌面端产出（移动端没有这条栏，返回 [] 会让模板里的 v-if 直接不渲染节点）。
+ */
+interface Crumb {
+  title: string
+  path: string
+}
+
+const breadcrumbs = computed<Crumb[]>(() => {
+  if (!isDesktop.value || !navVisible.value) return []
+
+  // 静态路由（不含 :param）才有确定的路径，也就才可能当父节点被链上去
+  const byPath = new Map<string, { title?: string; backTo?: string }>()
+  for (const r of router.getRoutes()) {
+    if (!r.path.includes(':')) byPath.set(r.path, r.meta as { title?: string; backTo?: string })
+  }
+
+  const ancestors: Crumb[] = []
+  const seen = new Set<string>()
+  let cur = route.meta.backTo as string | undefined
+  // seen 兜住环：真出现互相 backTo 的两个路由时，这里不能变成死循环
+  while (cur && byPath.has(cur) && !seen.has(cur)) {
+    seen.add(cur)
+    const meta = byPath.get(cur)!
+    ancestors.unshift({ title: meta.title || cur, path: cur })
+    cur = meta.backTo
+  }
+
+  return [...ancestors, { title: (route.meta.title as string) || '', path: route.path }].filter((c) => c.title)
+})
 </script>
 
 <template>
@@ -84,6 +123,19 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       两套外壳靠 CSS 媒体查询切换，不是靠两个组件。
     -->
     <div class="page-main">
+      <!--
+        全局顶部栏（桌面端）。面包屑为空时（移动端、或登录这类不挂导航的整屏页）
+        v-if 直接不渲染节点 —— 移动端的 DOM 与改造前逐字相同。
+        样式只在 main.scss 的桌面断点里，所以即便渲染了也不影响移动端。
+      -->
+      <nav v-if="breadcrumbs.length" class="top-bar" aria-label="面包屑">
+        <template v-for="(c, i) in breadcrumbs" :key="c.path">
+          <span v-if="i > 0" class="sep" aria-hidden="true">/</span>
+          <router-link v-if="i < breadcrumbs.length - 1" :to="c.path" class="crumb">{{ c.title }}</router-link>
+          <span v-else class="crumb is-current" aria-current="page">{{ c.title }}</span>
+        </template>
+      </nav>
+
       <router-view v-slot="{ Component }">
         <keep-alive :include="['Home', 'HabitList', 'Record', 'Track', 'Profile']">
           <component :is="Component" />

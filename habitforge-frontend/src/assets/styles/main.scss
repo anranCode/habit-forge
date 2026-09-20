@@ -301,6 +301,40 @@ body {
     border-top-color: $border-color;
   }
 
+  /* 全局顶部栏：一条极轻的横条，不吸顶。
+     做成吸顶的话它得压在首页 hero 的渐变之上，z-index 与背景透明度的组合会引入
+     一堆只在滚动中途才看得见的边界情况；而面包屑的用处是"进到页面时知道自己在哪"，
+     那一下就在视野里，滚动后消失并不可惜。 */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    height: $topbar-height;
+    margin-bottom: $space-md;
+    border-bottom: 1px solid $border-color;
+    font-size: $font-caption;
+  }
+
+  .top-bar .sep {
+    color: #d9d9d9;
+    user-select: none;
+  }
+
+  .top-bar .crumb {
+    color: #999;
+    text-decoration: none;
+
+    &:hover {
+      color: $primary;
+    }
+
+    // 当前页：不可点（它已经在这了），加粗提示"终点"
+    &.is-current {
+      color: #333;
+      font-weight: 600;
+    }
+  }
+
   /* 装饰性 emoji 在桌面端隐藏。
      为什么用 CSS 类而不是 v-if="isDesktop"：v-if 会在断点切换时增删 DOM 节点，
      而移动端必须与改造前逐像素一致 —— 多一个"移动端渲染时不存在的分支"就多一处风险。

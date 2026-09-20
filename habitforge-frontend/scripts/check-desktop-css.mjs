@@ -136,7 +136,10 @@ const DESKTOP_VOCAB = [
   'page-main',
   // 装饰性 emoji 的容器：模板里始终渲染（不靠 v-if 增删 DOM），只在断点内 display:none。
   // 断点外一旦给它写声明，移动端的 emoji 就会跟着消失 —— 正是本表要拦的事。
-  'deco'
+  'deco',
+  // 顶部栏（面包屑）。它靠 breadcrumbs 为空时不渲染来保证移动端 DOM 不变，
+  // 但样式必须是断点专属的 —— 登记在这里，断点外的声明会被拦下。
+  'top-bar'
 ]
 
 const assetsDir = join(root, 'dist/assets')
