@@ -65,24 +65,24 @@ async function cancelRecord(r: CheckinRecord) {
         <!-- 链数据 -->
         <div class="streak-panel">
           <div class="streak-item">
-            <div class="num">🔥 {{ habit.currentStreak || 0 }}</div>
+            <div class="num">{{ (isDesktop ? '' : '🔥 ') + (habit.currentStreak || 0) }}</div>
             <div class="label">当前连续</div>
           </div>
           <div class="divider" />
           <div class="streak-item">
-            <div class="num">🏆 {{ habit.longestStreak || 0 }}</div>
+            <div class="num">{{ (isDesktop ? '' : '🏆 ') + (habit.longestStreak || 0) }}</div>
             <div class="label">最长连续</div>
           </div>
           <div class="divider" />
           <div class="streak-item">
-            <div class="num">📅 {{ totalDays }}</div>
+            <div class="num">{{ (isDesktop ? '' : '📅 ') + totalDays }}</div>
             <div class="label">累计打卡</div>
           </div>
         </div>
 
         <!-- 习惯信息 -->
         <div class="card">
-          <div class="info-title">{{ categoryEmoji[habit.category] }} {{ habit.name }}</div>
+          <div class="info-title">{{ isDesktop ? habit.name : categoryEmoji[habit.category] + ' ' + habit.name }}</div>
           <div class="info-grid">
             <div v-if="habit.identityTag" class="info-item"><span class="k">身份标签</span>{{ habit.identityTag }}</div>
             <div class="info-item"><span class="k">频率</span>{{ frequencyLabel(habit.frequencyType, habit.frequencyDays, habit.frequencyTarget) }}</div>

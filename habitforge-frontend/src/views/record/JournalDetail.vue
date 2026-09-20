@@ -16,8 +16,9 @@ import {
 } from '@/api'
 import { moodEmoji, moodLabel, feelingEmoji, categoryEmoji } from '@/utils/format'
 import { imageUrl } from '@/utils/image'
-import { usePopupPosition } from '@/composables/useDesktop'
+import { useIsDesktop, usePopupPosition } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 const popupPosition = usePopupPosition()
 const router = useRouter()
 
@@ -155,7 +156,7 @@ function reflectionTexts(r: Reflection): string[] {
         </div>
         <div v-if="journal.habits.length" class="chips">
           <div v-for="h in journal.habits" :key="h.id" class="chip" @click="router.push(`/habits/${h.id}`)">
-            <span>{{ categoryEmoji[(h.category as keyof typeof categoryEmoji)] || '✨' }} {{ h.name }}</span>
+            <span>{{ isDesktop ? h.name : (categoryEmoji[(h.category as keyof typeof categoryEmoji)] || '✨') + ' ' + h.name }}</span>
             <van-icon name="cross" class="x" @click.stop="unlink(h.id)" />
           </div>
         </div>

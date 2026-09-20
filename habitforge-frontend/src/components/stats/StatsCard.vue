@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useIsDesktop } from '@/composables/useDesktop'
+
+const isDesktop = useIsDesktop()
+
 defineProps<{
   value: string | number
   label: string
@@ -8,7 +12,7 @@ defineProps<{
 
 <template>
   <div class="stats-card">
-    <div class="value">{{ emoji }} {{ value }}</div>
+    <div class="value">{{ isDesktop ? value : (emoji || '') + ' ' + value }}</div>
     <div class="label">{{ label }}</div>
   </div>
 </template>

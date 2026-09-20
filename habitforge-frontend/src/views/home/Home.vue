@@ -16,7 +16,9 @@ import PlanCard from '@/components/plan/PlanCard.vue'
 import { greeting, todayStr, weekdayCn } from '@/utils/date'
 import { moodEmoji } from '@/utils/format'
 import dayjs from 'dayjs'
+import { useIsDesktop } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 const router = useRouter()
 const habitStore = useHabitStore()
 const checkinStore = useCheckinStore()
@@ -219,7 +221,7 @@ function goCreate() {
           </div>
           <van-progress :percentage="progress" color="#ff7a00" :show-pivot="false" style="margin-top: 12px" />
           <div v-if="totalCount > 0 && doneCount === totalCount" class="all-done">
-            🎉 今天全部完成！你正在为想成为的人投票。
+            {{ isDesktop ? '今天全部完成！你正在为想成为的人投票。' : '🎉 今天全部完成！你正在为想成为的人投票。' }}
           </div>
         </div>
 
@@ -236,9 +238,9 @@ function goCreate() {
             />
             <!-- 心得入口：完成 -> 记录心得；未完成 -> 记录原因；已记录 -> 查看/编辑 -->
             <div class="reflection-entry" @click="openReflection(h)">
-              <template v-if="reflectionOf(h.id)">✍️ 已记录心得 · 查看/编辑</template>
-              <template v-else-if="h.checkedToday">✍️ 记录心得 · 为什么今天能做到？</template>
-              <template v-else>🤔 为什么没完成？记一笔</template>
+              <template v-if="reflectionOf(h.id)">{{ isDesktop ? '已记录心得 · 查看/编辑' : '✍️ 已记录心得 · 查看/编辑' }}</template>
+              <template v-else-if="h.checkedToday">{{ isDesktop ? '记录心得 · 为什么今天能做到？' : '✍️ 记录心得 · 为什么今天能做到？' }}</template>
+              <template v-else>{{ isDesktop ? '为什么没完成？记一笔' : '🤔 为什么没完成？记一笔' }}</template>
             </div>
           </div>
         </template>

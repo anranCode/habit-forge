@@ -18,8 +18,9 @@ import {
   apiDeleteImage
 } from '@/api'
 import { imageUrl } from '@/utils/image'
-import { usePopupPosition } from '@/composables/useDesktop'
+import { useIsDesktop, usePopupPosition } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 const popupPosition = usePopupPosition()
 const router = useRouter()
 
@@ -230,7 +231,7 @@ onBeforeRouteLeave(() => {
       <!-- 日期 -->
       <div class="card">
         <div class="date-row" @click="!isEdit && (showDatePicker = true)">
-          <span class="d">📅 {{ dayjs(date).format('YYYY年M月D日 ddd') }}</span>
+          <span class="d">{{ (isDesktop ? '' : '📅 ') + dayjs(date).format('YYYY年M月D日 ddd') }}</span>
           <span v-if="!isEdit" class="text-light change">修改 ›</span>
         </div>
 

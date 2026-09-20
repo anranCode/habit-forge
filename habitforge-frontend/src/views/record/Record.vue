@@ -6,7 +6,9 @@ import type { JournalDetail, JournalSummary } from '@/types/journal'
 import { apiTodayJournal, apiJournalsByRange } from '@/api'
 import { moodEmoji } from '@/utils/format'
 import dayjs from 'dayjs'
+import { useIsDesktop } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 defineOptions({ name: 'Record' })
 
 const router = useRouter()
@@ -84,7 +86,7 @@ onMountedOrActivated(load)
           <span v-else-if="todayJournal.content" class="text-light">{{ todayJournal.content.slice(0, 40) }}</span>
           <span v-else class="text-light">已创建，点击补充内容</span>
         </div>
-        <div v-else class="preview text-light">还没有写今天的记录，点我写下第一篇 ✍️</div>
+        <div v-else class="preview text-light">{{ isDesktop ? '还没有写今天的记录，点我写下第一篇' : '还没有写今天的记录，点我写下第一篇 ✍️' }}</div>
       </div>
 
       <!-- 历史月份 -->

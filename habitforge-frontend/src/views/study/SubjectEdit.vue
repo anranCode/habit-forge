@@ -5,8 +5,9 @@ import { useGoBack } from '@/composables/useGoBack'
 import { showSuccessToast, showToast } from 'vant'
 import dayjs from 'dayjs'
 import { apiSubjectDetail, apiCreateSubject, apiUpdateSubject } from '@/api'
-import { usePopupPosition } from '@/composables/useDesktop'
+import { useIsDesktop, usePopupPosition } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 const popupPosition = usePopupPosition()
 const route = useRoute()
 
@@ -105,7 +106,7 @@ async function onSave() {
           <div class="field-label">考试日期</div>
           <div class="date-row" @click="openDate">
             <span class="d">
-              📅 {{ examDate ? dayjs(examDate).format('YYYY年M月D日 ddd') : '未设置（可选）' }}
+              {{ (isDesktop ? '' : '📅 ') + (examDate ? dayjs(examDate).format('YYYY年M月D日 ddd') : '未设置（可选）') }}
             </span>
             <span class="text-light change">修改 ›</span>
           </div>

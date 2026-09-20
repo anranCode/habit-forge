@@ -27,8 +27,9 @@ import {
 import { todayStr, weekdayCn } from '@/utils/date'
 import BlockList from '@/components/plan/BlockList.vue'
 import FreeSlotEditor from '@/components/plan/FreeSlotEditor.vue'
-import { usePopupPosition } from '@/composables/useDesktop'
+import { useIsDesktop, usePopupPosition } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 const popupPosition = usePopupPosition()
 defineOptions({ name: 'PlanToday' })
 
@@ -84,6 +85,13 @@ onMounted(load)
 // ============ 空闲时段 ============
 const showFreeSlot = ref(false)
 const slotCount = computed(() => plan.value?.freeSlots.length || 0)
+
+/** 生成按钮文案：桌面端不带 🤖。放在 computed 里而不是在模板里套两层三元 —— 模板里
+    多切一次文字节点，移动端同一行会整体挪 1px（见 main.scss 的 .deco 注释）。 */
+const genText = computed(() => {
+  const verb = plan.value ? '重新生成' : 'AI 生成今日安排'
+  return isDesktop.value ? verb : `🤖 ${verb}`
+})
 
 // ============ 生成 ============
 const generating = ref(false)
@@ -188,11 +196,13 @@ async function onReopen(id: string) {
 }
 
 // ============ 手动添加块（仅今天可操作） ============
-const TYPE_CHIPS: { v: BlockType; label: string }[] = [
-  { v: 'HABIT', label: '⏰ 习惯' },
-  { v: 'STUDY', label: '📖 学习' },
-  { v: 'REST', label: '☕ 休息' },
-  { v: 'OTHER', label: '📌 其他' }
+// icon 与 name 分开，桌面端才能只留 name（见 main.scss 的 .deco 注释）。移动端
+// 模板里拼回去还是"⏰ 习惯"，同一个文字节点，一字不差。
+const TYPE_CHIPS: { v: BlockType; icon: string; name: string }[] = [
+  { v: 'HABIT', icon: '⏰', name: '习惯' },
+  { v: 'STUDY', icon: '📖', name: '学习' },
+  { v: 'REST', icon: '☕', name: '休息' },
+  { v: 'OTHER', icon: '📌', name: '其他' }
 ]
 
 const showAdd = ref(false)
@@ -325,7 +335,7 @@ async function onAdd() {
 
         <!-- 空闲时段摘要行 -->
         <div class="slot-bar card" :class="{ readonly: isPast }" @click="!isPast && (showFreeSlot = true)">
-          <span>🕒 空闲时段 <b>{{ slotCount }}</b> 个</span>
+          <span>{{ isDesktop ? '空闲时段 ' : '🕒 空闲时段 ' }}<b>{{ slotCount }}</b> 个</span>
           <span v-if="!isPast" class="text-light edit">设置 ›</span>
         </div>
 
@@ -341,7 +351,7 @@ async function onAdd() {
           loading-text="AI 正在规划…"
           @click="onGenerate"
         >
-          {{ plan ? '🤖 重新生成' : '🤖 AI 生成今日安排' }}
+          {{ genText }}
         </van-button>
         <div v-if="!isPast && !plan" class="gen-hint text-light">先录空闲时段，AI 综合日记/习惯/学习进度安排今天</div>
         <!-- 生成失败：按钮下方一行带「重试」的提示（手动加块入口仍在下方兜底） -->
@@ -386,7 +396,7 @@ async function onAdd() {
             class="chip"
             :class="{ active: addForm.blockType === c.v }"
             @click="pickType(c.v)"
-          >{{ c.label }}</div>
+          >{{ isDesktop ? c.name : c.icon + ' ' + c.name }}</div>
         </div>
         <van-field v-model="addForm.title" label="标题" maxlength="100" placeholder="做什么（建议 30 字内）" show-word-limit />
         <div class="time-row">

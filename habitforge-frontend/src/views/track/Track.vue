@@ -6,7 +6,9 @@ import type { HabitStats, StreakTopItem } from '@/types/habit'
 import CalendarHeatmap from '@/components/calendar/CalendarHeatmap.vue'
 import StatsCard from '@/components/stats/StatsCard.vue'
 import { categoryEmoji } from '@/utils/format'
+import { useIsDesktop } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 const stats = ref<HabitStats | null>(null)
 const top = ref<StreakTopItem[]>([])
 
@@ -43,17 +45,17 @@ const medals = ['🥇', '🥈', '🥉']
 
         <div class="col-side">
           <!-- 习惯排行 -->
-          <div class="section-title">🏆 习惯排行（按当前连续）</div>
+          <div class="section-title">{{ isDesktop ? '习惯排行（按当前连续）' : '🏆 习惯排行（按当前连续）' }}</div>
           <div v-if="top.length" class="card">
             <div v-for="(item, i) in top" :key="item.habitId" class="rank-row">
               <div class="medal">{{ medals[i] || `${i + 1}.` }}</div>
               <div class="rank-name">
-                {{ categoryEmoji[item.category] || '✨' }} {{ item.name }}
+                {{ isDesktop ? item.name : (categoryEmoji[item.category] || '✨') + ' ' + item.name }}
                 <span class="text-light freq">
                   {{ item.frequencyType === 'WEEKLY_COUNT' ? '周链' : '天链' }}
                 </span>
               </div>
-              <div class="rank-streak">🔥 {{ item.currentStreak }}</div>
+              <div class="rank-streak">{{ (isDesktop ? '' : '🔥 ') + item.currentStreak }}</div>
             </div>
           </div>
           <div v-else class="empty-tip">暂无排行数据，先去打卡吧！</div>
@@ -70,7 +72,7 @@ const medals = ['🥇', '🥈', '🥉']
             </div>
             <div class="flex-between">
               <span>当前最高连续</span>
-              <b>🔥 {{ stats.currentStreakMax }}</b>
+              <b>{{ (isDesktop ? '' : '🔥 ') + stats.currentStreakMax }}</b>
             </div>
           </div>
         </div>

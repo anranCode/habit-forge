@@ -37,15 +37,15 @@ const tagColor = computed(() =>
         </van-tag>
       </div>
       <div class="habit-card__meta">
-        <span v-if="habit.execTime">⏰ {{ habit.execTime }}</span>
-        <span v-if="habit.execPlace">📍 {{ habit.execPlace }}</span>
+        <span v-if="habit.execTime">{{ isDesktop ? habit.execTime : '⏰ ' + habit.execTime }}</span>
+        <span v-if="habit.execPlace">{{ isDesktop ? habit.execPlace : '📍 ' + habit.execPlace }}</span>
         <span>{{ frequencyLabel(habit.frequencyType, habit.frequencyDays, habit.frequencyTarget) }}</span>
       </div>
       <div v-if="habit.missedYesterday && !habit.checkedToday" class="habit-card__alert">
-        🔔 昨天漏卡了，今天别再错过 —— 绝不错过两次！
+        {{ isDesktop ? '昨天漏卡了，今天别再错过 —— 绝不错过两次！' : '🔔 昨天漏卡了，今天别再错过 —— 绝不错过两次！' }}
       </div>
       <div v-else-if="habit.twoMinuteVersion" class="habit-card__tip text-light">
-        🌱 微习惯：{{ habit.twoMinuteVersion }}
+        {{ (isDesktop ? '' : '🌱 微习惯：') + habit.twoMinuteVersion }}
       </div>
     </div>
 

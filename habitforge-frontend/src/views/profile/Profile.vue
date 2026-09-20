@@ -6,7 +6,9 @@ import { onMountedOrActivated } from '@vant/use'
 import { useUserStore } from '@/stores'
 import { apiUpdateProfile, apiHabitStats } from '@/api'
 import type { HabitStats } from '@/types/habit'
+import { useIsDesktop } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 const router = useRouter()
 const userStore = useUserStore()
 
@@ -72,7 +74,7 @@ async function logout() {
       <div class="name">{{ userStore.user?.username }}</div>
       <div class="email text-light">{{ userStore.user?.email }}</div>
       <div class="points-row">
-        <span class="badge">⭐ {{ userStore.user?.points || 0 }} 积分</span>
+        <span class="badge">{{ (isDesktop ? '' : '⭐ ') + (userStore.user?.points || 0) + ' 积分' }}</span>
         <span class="badge">Lv.{{ userStore.user?.level || 1 }}</span>
       </div>
       <van-progress
@@ -104,13 +106,13 @@ async function logout() {
         <div v-if="stats" class="card">
           <div class="flex-between"><span>累计打卡</span><b>{{ stats.totalCheckins }} 次</b></div>
           <div class="flex-between"><span>习惯总数</span><b>{{ stats.totalHabits }} 个</b></div>
-          <div class="flex-between"><span>最长连续纪录</span><b>🏆 {{ stats.longestStreakOverall }} 天</b></div>
+          <div class="flex-between"><span>最长连续纪录</span><b>{{ (isDesktop ? '' : '🏆 ') + stats.longestStreakOverall + ' 天' }}</b></div>
         </div>
       </div>
 
       <div class="col-side">
         <van-cell-group inset style="margin-top: 12px">
-          <van-cell title="📚 学习中心" is-link label="科目章节进度 · 考试倒计时" @click="router.push('/study')" />
+          <van-cell :title="isDesktop ? '学习中心' : '📚 学习中心'" is-link label="科目章节进度 · 考试倒计时" @click="router.push('/study')" />
           <van-cell title="关于 HabitForge" value="v1.0 · 基于《掌控习惯》四大定律" />
         </van-cell-group>
 

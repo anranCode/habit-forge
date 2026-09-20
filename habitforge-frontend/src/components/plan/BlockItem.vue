@@ -59,7 +59,7 @@ function onRowClick() {
       <div class="block-time">{{ block.startTime }}<br />–{{ block.endTime }}</div>
       <div class="block-body">
         <div class="block-title">
-          <span class="icon">{{ meta.icon }}</span>
+          <span class="icon deco">{{ meta.icon }}</span>
           <span class="t">{{ block.title }}</span>
           <span v-if="linkable" class="go">›</span>
         </div>

@@ -6,7 +6,9 @@ import { showToast, showSuccessToast } from 'vant'
 import type { WrongQuestion } from '@/types/question'
 import { apiWrongList, apiPracticeWrong } from '@/api'
 import QuestionCard from '@/components/study/QuestionCard.vue'
+import { useIsDesktop } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 defineOptions({ name: 'WrongPractice' })
 
 const route = useRoute()
@@ -101,7 +103,7 @@ async function practiceAgain() {
     <div class="page-body">
       <!-- 队列完成：战报 -->
       <div v-if="finished && practiced" class="card report">
-        <div class="r-title">🎉 本组练完啦</div>
+        <div class="r-title">{{ isDesktop ? '本组练完啦' : '🎉 本组练完啦' }}</div>
         <div class="r-nums">
           <div class="r-sum">
             <div class="num">{{ practiced }}</div>

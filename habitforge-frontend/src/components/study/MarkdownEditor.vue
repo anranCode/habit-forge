@@ -4,7 +4,9 @@ import { showConfirmDialog, showToast, showSuccessToast, type UploaderFileListIt
 import { apiUploadNoteImage } from '@/api'
 import { imageUrl } from '@/utils/image'
 import MarkdownPreview from './MarkdownPreview.vue'
+import { useIsDesktop } from '@/composables/useDesktop'
 
+const isDesktop = useIsDesktop()
 const props = defineProps<{
   /** Markdown 原文 */
   modelValue: string
@@ -254,7 +256,7 @@ defineExpose({ flushUploads, clearDraft })
       <button class="tb" @click="toolList">• 列表</button>
       <button class="tb" @click="toolQuote">❝ 引用</button>
       <button class="tb mono" @click="toolCode">&lt;/&gt;</button>
-      <button class="tb" @click="pickImage">🖼 图片</button>
+      <button class="tb" @click="pickImage">{{ isDesktop ? '图片' : '🖼 图片' }}</button>
     </div>
 
     <!-- 始终挂载（仅 v-show 切换），保证切到预览态时补传/插入仍能操作光标 -->
