@@ -195,11 +195,11 @@ function goCreate() {
       <div class="hero-stats">
         <div class="stat">
           <div class="num">{{ totalStreak }}</div>
-          <div class="label">今日习惯链总和 🔥</div>
+          <div class="label">今日习惯链总和<span class="deco"> 🔥</span></div>
         </div>
         <div class="stat">
           <div class="num">{{ userStore.user?.points || 0 }}</div>
-          <div class="label">累计积分 ⭐</div>
+          <div class="label">累计积分<span class="deco"> ⭐</span></div>
         </div>
       </div>
     </div>
@@ -224,7 +224,7 @@ function goCreate() {
         </div>
 
         <!-- 今日待打卡 -->
-        <div class="section-title">📋 今日待打卡（{{ totalCount }}）</div>
+        <div class="section-title"><span class="deco">📋 </span>今日待打卡（{{ totalCount }}）</div>
         <template v-if="list.length">
           <div v-for="h in list" :key="h.id">
             <HabitCard
@@ -255,7 +255,7 @@ function goCreate() {
         <!-- 今日记录 -->
         <div class="card journal-card is-clickable" @click="goTodayJournal">
           <div class="flex-between">
-            <span style="font-weight: 700">📔 今日记录</span>
+            <span style="font-weight: 700"><span class="deco">📔 </span>今日记录</span>
             <span class="text-light">{{ todayJournal ? '查看 ›' : '去记录 ›' }}</span>
           </div>
           <div v-if="todayJournal" class="journal-line">
@@ -271,7 +271,7 @@ function goCreate() {
 
         <!-- 今日建议 -->
         <div class="card tip-card">
-          <div class="tip-title">💡 今日建议</div>
+          <div class="tip-title"><span class="deco">💡 </span>今日建议</div>
           <div class="tip-text">{{ tips[tipIndex] }}</div>
           <div class="tip-next text-light" @click="tipIndex = (tipIndex + 1) % tips.length">换一条 ›</div>
         </div>

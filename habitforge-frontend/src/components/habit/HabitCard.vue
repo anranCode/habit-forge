@@ -30,7 +30,7 @@ const tagColor = computed(() =>
   <div class="habit-card is-clickable" :class="{ missed: habit.missedYesterday && !habit.checkedToday }" @click="emit('click', habit)">
     <div class="habit-card__left">
       <div class="habit-card__name">
-        <span class="emoji">{{ categoryEmoji[habit.category] || '✨' }}</span>
+        <span class="emoji deco">{{ categoryEmoji[habit.category] || '✨' }}</span>
         <span class="name">{{ habit.name }}</span>
         <van-tag v-if="habit.identityTag" plain round size="medium" :color="tagColor">
           {{ habit.identityTag }}

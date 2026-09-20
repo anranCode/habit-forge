@@ -35,7 +35,7 @@ async function onSubmit() {
 <template>
   <div class="auth-page">
     <div class="auth-hero">
-      <div class="logo">🔥 HabitForge</div>
+      <div class="logo"><span class="deco">🔥 </span>HabitForge</div>
       <div class="slogan">决定你想成为谁，然后用小赢证明自己</div>
     </div>
 

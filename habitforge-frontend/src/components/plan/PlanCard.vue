@@ -24,7 +24,7 @@ const nextBlock = computed<PlanBlock | null>(() => {
 <template>
   <div class="card plan-card is-clickable" @click="$emit('click')">
     <div class="flex-between">
-      <span class="t">🤖 AI 今日安排</span>
+      <span class="t"><span class="deco">🤖 </span>AI 今日安排</span>
       <span class="text-light go">{{ plan ? '查看 ›' : '去设置 ›' }}</span>
     </div>
 

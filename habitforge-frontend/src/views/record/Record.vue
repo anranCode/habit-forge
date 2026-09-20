@@ -75,7 +75,7 @@ onMountedOrActivated(load)
       <!-- 今日记录入口 -->
       <div class="card today-card is-clickable" @click="todayJournal ? goDetail(todayJournal) : goCreate()">
         <div class="flex-between">
-          <span class="t">📔 今天的记录</span>
+          <span class="t"><span class="deco">📔 </span>今天的记录</span>
           <van-icon name="arrow" color="#8a94a6" />
         </div>
         <div v-if="todayJournal" class="preview">

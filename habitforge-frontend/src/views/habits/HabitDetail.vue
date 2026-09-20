@@ -95,7 +95,7 @@ async function cancelRecord(r: CheckinRecord) {
         </div>
 
         <!-- 我的心得 -->
-        <div class="section-title">✍️ 我的心得</div>
+        <div class="section-title"><span class="deco">✍️ </span>我的心得</div>
         <div v-if="reflections.length">
           <div v-for="r in reflections" :key="r.id" class="reflection-card" @click="router.push(`/record/${r.journalId}`)">
             <div class="flex-between">

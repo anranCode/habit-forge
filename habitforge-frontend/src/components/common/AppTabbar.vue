@@ -53,7 +53,7 @@ function onChange(index: number) {
 
     <nav class="nav-side" aria-label="主导航">
       <div class="brand">
-        <span class="logo" aria-hidden="true">🔥</span>
+        <span class="logo deco" aria-hidden="true">🔥</span>
         <span class="name">HabitForge</span>
       </div>
       <ul class="list">

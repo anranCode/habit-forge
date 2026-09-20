@@ -133,7 +133,10 @@ const DESKTOP_VOCAB = [
   'inline-actions',
   'inline-action',
   'card-actions',
-  'page-main'
+  'page-main',
+  // 装饰性 emoji 的容器：模板里始终渲染（不靠 v-if 增删 DOM），只在断点内 display:none。
+  // 断点外一旦给它写声明，移动端的 emoji 就会跟着消失 —— 正是本表要拦的事。
+  'deco'
 ]
 
 const assetsDir = join(root, 'dist/assets')

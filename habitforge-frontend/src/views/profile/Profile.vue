@@ -92,7 +92,7 @@ async function logout() {
         <!-- 身份设定 -->
         <div class="card">
           <div class="flex-between">
-            <span style="font-weight: 700">🎯 身份设定</span>
+            <span style="font-weight: 700"><span class="deco">🎯 </span>身份设定</span>
             <span class="edit-btn" @click="startEditGoal">编辑</span>
           </div>
           <div class="identity text-light" style="margin-top: 10px">

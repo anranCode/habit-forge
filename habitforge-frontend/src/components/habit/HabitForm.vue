@@ -139,7 +139,7 @@ function onTimeConfirm({ selectedValues }: { selectedValues: string[] }) {
         placeholder="如：读一页书"
         @blur="sync()"
       />
-      <div class="tip-inline">💡 从微习惯开始，让新习惯简便易行！</div>
+      <div class="tip-inline"><span class="deco">💡 </span>从微习惯开始，让新习惯简便易行！</div>
     </van-cell-group>
 
     <van-cell-group inset title="打卡频率">

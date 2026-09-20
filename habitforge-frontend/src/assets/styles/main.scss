@@ -301,6 +301,16 @@ body {
     border-top-color: $border-color;
   }
 
+  /* 装饰性 emoji 在桌面端隐藏。
+     为什么用 CSS 类而不是 v-if="isDesktop"：v-if 会在断点切换时增删 DOM 节点，
+     而移动端必须与改造前逐像素一致 —— 多一个"移动端渲染时不存在的分支"就多一处风险。
+     .deco 这个类**只在断点内**有声明，所以移动端带着这个类名也只是个无样式的 span，
+     渲染结果与不加它时完全相同（与 .split/.is-clickable 同一套做法）。
+     功能性标记（分类、连续天数、心情）不在此列 —— 它们承载数据，不是装饰。 */
+  .deco {
+    display: none;
+  }
+
   /* Vant 主色修正 —— 只修桌面端。
      组件库默认 `--van-primary-color: var(--van-blue)`(#1989fa)，本项目从未用 ConfigProvider
      改过它（variables.scss 里那句注释是失效的），于是 radio/checkbox/tabs/picker 一直是蓝的。
