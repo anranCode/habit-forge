@@ -366,11 +366,77 @@ body {
       color: $primary;
     }
 
-    // 当前页：不可点（它已经在这了），加粗提示"终点"
+    /* 当前页：不可点（它已经在这了），加粗提示"终点"。
+       字号从 12px 提到 14px —— nav-bar 的标题在桌面端被摘掉之后（见下面「页头分工」那段），
+       这一段就是页面上**唯一**的页名，再按"辅助说明"的字号排就撑不起标题了。
+       前面的父级段仍留在 12px：层级靠字号差本身就已经说清楚了。 */
     &.is-current {
       color: #333;
+      font-size: $font-body;
       font-weight: 600;
     }
+  }
+
+  /* ---- 页头分工：nav-bar 从「移动端页头」退成内容列右上角的一行操作 ----
+     移动端每个页面顶端那条白条是个页头：返回箭头 + 居中加粗的标题 + 右侧操作。
+     桌面端它整条都在和顶部栏抢同一个角色：
+       · 页名 —— 「习惯管理」这类静态标题与面包屑末位逐字相同，同一句话在两条叠起来的
+         横条里各说一遍；实体页（习惯/科目/记录/笔记的详情）nav-bar 里是实体名、面包屑里
+         是「习惯详情」这类通名，于是页面上同时出现两个"标题"。而实体名在正文里本来就有
+         （HabitDetail:85 / SubjectDetail:144 / JournalDetail:122 / NoteDetail:58 都核对过），
+         摘掉 nav-bar 那份不丢信息。
+       · 返回箭头 —— 桌面端有常驻侧栏，面包屑的父级段也可点，箭头是第三份出口。
+       · 剩下的只有右侧那点操作。于是摘掉标题与左槽、抹平底色，让它收成内容列右上角的
+         一行（与 .card-actions、.inline-action 同一套语言），不再占一条 46px 白带。
+     不是整条 display:none —— 那会把右侧操作一起干掉。摘掉标题与左槽之后，没有右侧插槽的
+     页面（/habits/create、/habits/edit/:id、/record、/plan、/track 等 9 条新建/编辑/看板类
+     路由）里 __content 没有任何在流内的子元素，height:auto 自然塌成 0 高：
+     不必用 :has() 去逐条判断有没有操作，条自己会说。 */
+  .van-nav-bar {
+    background: transparent;
+
+    // 自带的 1px 下边线（van-hairline--bottom 的 ::after）：白带没了，这条线悬在正文顶上没有依托
+    &::after {
+      display: none;
+    }
+
+    .van-nav-bar__title,
+    .van-nav-bar__left {
+      display: none;
+    }
+
+    .van-nav-bar__content {
+      height: auto;
+      justify-content: flex-end;
+    }
+
+    /* 原本是 absolute + top:0/bottom:0（高度跟着 46px 的 __content 走）；条塌矮之后
+       它量不到高度，而保存/编辑这类操作正是靠它落在行内的 —— 改成 static 交给 flex 摆。
+       下面那 8px 是行与正文之间的那口气：margin 挂在右槽上而不是整条上，
+       没有操作的页面就不会平白多出 8px。padding 归零让操作与卡片一样贴齐内容列右缘。 */
+    .van-nav-bar__right {
+      position: static;
+      margin-bottom: $space-sm;
+      padding: 0;
+    }
+
+    /* 笔记三页（详情/新建/编辑）的 nav-bar 是 fixed + placeholder：移动端要它钉在顶上，
+       桌面端 position:fixed;width:100% 会横跨**整个视口** —— 白条盖住侧栏，也把顶部栏
+       整条压在下面（面包屑一个字都看不见），操作按钮落在视口右缘而不是内容列的右缘。
+       回到文档流即可；它原本的等高占位块（__placeholder）也随之多余，见下面那段。 */
+    &.van-nav-bar--fixed {
+      position: static;
+      width: auto;
+    }
+  }
+
+  /* fixed 时 Vant 会把条**套进**一个等高占位壳里（use-placeholder：条是壳的子节点，
+     壳的高度由脚本量出来写进行内 style）—— 所以这里不能 display:none，那会把条一起藏掉，
+     保存/编辑按钮就没了（笔记三页实测：整条 0 高、右侧操作量不到）。条已经回到文档流，
+     壳只需自己不参与布局：display:contents 让壳从盒模型里消失（行内 height 随之失效），
+     里面的条照旧按普通流排。 */
+  .van-nav-bar__placeholder {
+    display: contents;
   }
 
   /* 装饰性 emoji 在桌面端隐藏。
