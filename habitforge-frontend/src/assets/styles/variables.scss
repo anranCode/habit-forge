@@ -1,4 +1,6 @@
-// 主题色（Vant ConfigProvider 会覆盖主色）
+// 主题色。
+// 注意：本项目**没有**用 Vant ConfigProvider —— 组件库默认的主色是 --van-blue(#1989fa)，
+// 桌面端靠 main.scss 里 @media 内的 :root 覆盖修正（移动端不动，保持与改造前逐像素一致）。
 $primary: #ff7a00;
 $success: #27ae60;
 $warning: #f39c12;
@@ -26,3 +28,36 @@ $sidenav-width: 220px;
 $content-max-width-desktop: 1180px;
 // 桌面内容区左右留白
 $content-gutter-desktop: 32px;
+
+// ============ 极简主义桌面端令牌 ============
+// 这些变量**只在 @media (min-width: $bp-desktop) 内引用**。
+// 断点外的样式一律不用它们 —— 移动端的每一像素都由上面那批老变量决定，改动上面
+// 任何一个都会同时改掉移动端，而那些是 repro/mobile_invariance.sh 逐字节比对过的基线。
+// 新增到这里则是安全的：没有断点外的引用，就没有跨断点的影响。
+
+// 语义色：桌面端降饱和（移动端继续用 $success/$danger 的原色）
+$success-desktop: #5a9e7f;
+$danger-desktop: #c97a6e;
+
+// 分隔线的统一灰度 —— 替代原本散落的 6 种灰（#f2f3f5/#f0f2f5/#eef1f6/#f4f5f8/#e6e9ef/#dfe3ea）
+$border-color: #e8eaed;
+$border-lightest: #f2f3f5;
+
+// 圆角只留两档 —— 替代 14/12/10/8/6/4 的混用
+$radius-sm: 4px; // 按钮、标签、小部件
+$radius-md: 8px; // 卡片、面板、对话框
+
+// 字号只留三级 —— 替代 15 种不同的 font-size
+$font-heading: 18px;
+$font-body: 14px;
+$font-caption: 12px;
+
+// 间距走 8px 网格
+$space-xs: 4px;
+$space-sm: 8px;
+$space-md: 16px;
+$space-lg: 24px;
+
+// 外壳尺寸
+$sidenav-collapsed-width: 56px; // 侧栏折叠成图标轨道时的宽度
+$topbar-height: 48px; // 全局顶部栏高度
