@@ -128,7 +128,7 @@ const medals = ['🥇', '🥈', '🥉']
 
 .overview {
   font-size: 14px;
-  color: #5d6d7e;
+  color: $text-sub; // 桌面端由 --hf-text-sub 换成中性 #666，移动端仍是 #5d6d7e
 
   > div {
     padding: 8px 0;

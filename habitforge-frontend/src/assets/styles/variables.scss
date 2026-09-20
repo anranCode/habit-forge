@@ -5,9 +5,18 @@ $primary: #ff7a00;
 $success: #27ae60;
 $warning: #f39c12;
 $danger: #e74c3c;
-$text-main: #2c3e50;
-$text-light: #8a94a6;
-$bg-page: #f6f7fb;
+// 文字/页面底色走一层 CSS 自定义属性间接层。
+// 原因：这几个色在桌面端要换成中性灰（$text-main/#2c3e50、$text-light/#8a94a6 都带蓝调，
+// $bg-page/#f6f7fb 也是），但它们是构建期字面量，直接改值会连移动端一起改掉 ——
+// 而移动端是 repro/mobile_invariance.sh 逐字节比对过的基线。
+// 指向 var() 之后：断点外由 main.scss 顶层的 :root 给回**原字面值**（移动端计算值不变），
+// 断点内覆盖同一批自定义属性，于是 31 个组件里 60 处 scoped 引用一次性收敛，
+// 不必逐个组件抄一遍 @media 覆盖。
+// 回退值写成原色：万一某个自定义属性没定义，也只是退回改造前的颜色，不会变成空值。
+$text-main: var(--hf-text-main, #2c3e50);
+$text-light: var(--hf-text-light, #8a94a6);
+$text-sub: var(--hf-text-sub, #5d6d7e);
+$bg-page: var(--hf-bg-page, #f6f7fb);
 $bg-card: #ffffff;
 $radius-card: 14px;
 $shadow-card: 0 2px 12px rgba(44, 62, 80, 0.06);

@@ -229,7 +229,7 @@ function onTimeConfirm({ selectedValues }: { selectedValues: string[] }) {
   border-radius: 999px;
   background: #f2f3f5;
   font-size: 13px;
-  color: #5d6d7e;
+  color: $text-sub; // 桌面端由 --hf-text-sub 换成中性 #666，移动端仍是 #5d6d7e
   transition: all 0.15s ease;
   user-select: none;
 

@@ -2,6 +2,17 @@
   box-sizing: border-box;
 }
 
+/* 自定义属性间接层的「断点外」一半 —— 值就是 variables.scss 里那三个变量的原字面值。
+   这一块是移动端的基线：它保证 var(--hf-*) 在 <1024px 下解析出的颜色与改造前逐字节相同。
+   桌面端那一半在文件末尾的 @media (min-width: $bp-desktop) 里的 :root（覆盖成中性灰）。
+   两者是同一批自定义属性，谁是生效值只取决于视口是否命中断点 —— 不涉及任何 UA 嗅探。 */
+:root {
+  --hf-text-main: #2c3e50;
+  --hf-text-light: #8a94a6;
+  --hf-text-sub: #5d6d7e;
+  --hf-bg-page: #f6f7fb;
+}
+
 html,
 body {
   margin: 0;
@@ -86,11 +97,14 @@ body {
    ========================================================================== */
 @media (min-width: #{$bp-desktop}) {
   // 解开移动端的 540px 竖列
+  // 页面底色不再单独写死：顶层 `.page { background: $bg-page }` 现在解析的是
+  // --hf-bg-page，桌面端那份取值已由本断点内的 :root 换成中性 #fafafa。
+  // （顺带把 html/body 也一并带成了 #fafafa —— 之前它还是移动端的 #f6f7fb，
+  //   只是因为 .page 铺满 100vh 才看不出来。）
   .page {
     max-width: none;
     margin: 0;
     padding-bottom: 0; // 桌面没有底部 Tabbar
-    background: #fafafa; // 去掉移动端 $bg-page 的蓝调，桌面走中性灰
   }
 
   // 左侧给固定侧边导航让位。只在导航**真的渲染了**时让 ——
@@ -231,7 +245,7 @@ body {
     line-height: 1.6;
     color: $text-light;
     padding: 2px 8px;
-    border-radius: 6px;
+    border-radius: $radius-sm; // 原是 6px —— 圆角只留 4/8 两档，它属于小部件那一档
     cursor: pointer;
     white-space: nowrap;
     user-select: none;
@@ -272,13 +286,13 @@ body {
   /* ==========================================================================
      极简主义基线（仅桌面端）
      --------------------------------------------------------------------------
-     移动端的 $text-main/#2c3e50 与 $text-light/#8a94a6 都带蓝调，$bg-page/#f6f7fb 也是。
-     这里在断点内换成中性灰 —— 不碰那三个变量本身，否则移动端会跟着一起变。
+     文字与底色的「去蓝调」不在这一节里做 —— 它由本断点内 :root 那四个
+     --hf-* 自定义属性统一承担，一次覆盖到 31 个组件的 60 处 scoped 引用。
+     这里只放剩下的、必须逐元素指定的几项。
+     （历史上这一节曾用 `body { color: #333 }` + `.text-light { color: #999 }` 来做，
+       但那只覆盖了 1 个工具类：靠继承的颜色压不过任何一条显式 color，
+       而各组件用的是 $text-light/$text-main 这些变量，编译成字面值后根本不经过 body。）
      ========================================================================== */
-
-  body {
-    color: #333;
-  }
 
   h1,
   h2,
@@ -292,10 +306,6 @@ body {
 
   .page-body {
     line-height: 1.6; // 正文行高放松，长段落更易读
-  }
-
-  .text-light {
-    color: #999;
   }
 
   /* hero 的深蓝渐变按决策保留（它是首页的身份锚点），只把底部圆角收到与卡片同档 */
@@ -367,6 +377,15 @@ body {
     --van-picker-confirm-action-color: #{$primary};
     --van-success-color: #{$success-desktop};
     --van-danger-color: #{$danger-desktop};
+
+    /* 间接层的「断点内」一半：把带蓝调的三个色换成中性灰。
+       这三个自定义属性被 31 个组件的 60 处 scoped 样式引用 —— 改这一处就全收敛了，
+       不用去每个组件抄一段 @media（那种写法下次新增组件还会漏）。
+       移动端命不中本断点，拿的是文件顶部那份原字面值。 */
+    --hf-text-main: #333; // 原 #2c3e50（正文）
+    --hf-text-light: #999; // 原 #8a94a6（次要/时间戳）
+    --hf-text-sub: #666; // 原 #5d6d7e（卡片描述等次一级正文）
+    --hf-bg-page: #fafafa; // 原 #f6f7fb（页面底色）
   }
 
   // 按钮圆角并入两档体系

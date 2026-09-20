@@ -396,7 +396,7 @@ function goCreate() {
     margin-top: 8px;
     font-size: 13px;
     line-height: 1.7;
-    color: #5d6d7e;
+    color: $text-sub; // 桌面端由 --hf-text-sub 换成中性 #666，移动端仍是 #5d6d7e
   }
 
   .tip-next {

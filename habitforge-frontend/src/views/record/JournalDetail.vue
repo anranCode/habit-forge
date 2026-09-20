@@ -294,7 +294,7 @@ function reflectionTexts(r: Reflection): string[] {
   .r-text {
     margin-top: 6px;
     font-size: 13px;
-    color: #5d6d7e;
+    color: $text-sub; // 桌面端由 --hf-text-sub 换成中性 #666，移动端仍是 #5d6d7e
     line-height: 1.6;
   }
 }
