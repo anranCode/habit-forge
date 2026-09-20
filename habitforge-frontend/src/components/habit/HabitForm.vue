@@ -270,4 +270,14 @@ function onTimeConfirm({ selectedValues }: { selectedValues: string[] }) {
     flex: 2;
   }
 }
+
+/* 桌面端把 .chip 的 transition: all 收窄成具体属性。
+   all 会把每一次布局属性变化都纳入过场（chip 选中时 padding 从 6/14 变 5/13），
+   浏览器得为这些不可动画的属性做无谓的样式重算。只声明真正会渐变的三项。
+   写在断点里：移动端的手感是既有基线，不改。 */
+@media (min-width: #{$bp-desktop}) {
+  .chip {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+}
 </style>

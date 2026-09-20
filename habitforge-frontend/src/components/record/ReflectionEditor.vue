@@ -237,4 +237,15 @@ async function onSave() {
     }
   }
 }
+
+/* 桌面端把 .seg-item 的 transition: all 收窄成具体属性。
+   all 会把选中时同时变化的 font-weight 也纳入过场，而底色的渐变时长本该由自己说了算。
+   选择器必须写成 .seg .seg-item：上面那条规则由 SCSS 嵌套展开成两个类，
+   顶层单写 .seg-item 只有一个类 —— 特异性差一档，写得再靠后也压不过它。
+   写在断点里 —— 移动端的手感是既有基线，不改。 */
+@media (min-width: #{$bp-desktop}) {
+  .seg .seg-item {
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+}
 </style>

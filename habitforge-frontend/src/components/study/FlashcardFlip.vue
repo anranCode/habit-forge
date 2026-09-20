@@ -182,4 +182,14 @@ const ratings: { v: ReviewRating; label: string; cls: string }[] = [
     }
   }
 }
+
+/* 桌面端：翻卡压到 200ms 以内（用户 brief 的动效预算）。
+   必须写在上面那条 .flip 之后 —— 两者特异性相同（一个类），谁在后面谁说了算；
+   挪到前面去就会被 0.5s 反压回来，规则看着在、实际不生效。
+   只写在断点里 —— 移动端的 0.5s 是既有手感，承诺过不改。 */
+@media (min-width: #{$bp-desktop}) {
+  .flip {
+    transition: transform 0.2s cubic-bezier(0.4, 0.2, 0.2, 1);
+  }
+}
 </style>

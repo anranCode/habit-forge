@@ -415,4 +415,23 @@ body {
     outline-offset: 2px;
     border-radius: 4px;
   }
+
+  /* 悬停反馈在桌面端换一种语言：不再"抬起来"，而是极轻地变一下底色。
+     这一段必须待在这里（而不是上面那个大断点块里）：它与 (hover:hover) 块中的
+     .is-clickable:hover 特异性相同，只能靠"文件里更靠后"取胜 —— 而那个块正好
+     排在中间，写进上面那个块会被它盖掉。 */
+  .is-clickable:hover {
+    box-shadow: none;
+    background: $border-lightest;
+  }
+
+  // 行内操作的悬停也用同一套底色，别再引入第三种灰
+  .inline-action:hover {
+    background: $border-lightest;
+    color: #333;
+  }
+
+  .inline-action.is-danger:hover {
+    color: $danger-desktop;
+  }
 }
