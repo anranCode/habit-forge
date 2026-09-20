@@ -154,7 +154,7 @@ function reload() {
 .subj-tabs {
   background: $bg-card;
   margin-bottom: 12px;
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 var(--hf-radius-panel, 12px) var(--hf-radius-panel, 12px);
   overflow: hidden;
 }
 

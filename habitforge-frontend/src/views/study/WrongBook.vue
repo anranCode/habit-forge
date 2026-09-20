@@ -142,7 +142,7 @@ async function remove(w: WrongQuestion) {
 
 :deep(.van-swipe-cell) {
   margin-bottom: 12px;
-  border-radius: $radius-card;
+  border-radius: var(--hf-radius-panel, #{$radius-card});
   overflow: hidden;
 
   .wrong-item {

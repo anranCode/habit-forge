@@ -90,7 +90,7 @@ const html = computed(() => renderMarkdown(props.content))
   margin: 12px 0;
   padding: 12px 14px;
   background: #282c34;
-  border-radius: 10px;
+  border-radius: var(--hf-radius-panel, 10px);
   overflow-x: auto;
 }
 
@@ -104,7 +104,7 @@ const html = computed(() => renderMarkdown(props.content))
 
 .md-body :deep(img) {
   max-width: 100%;
-  border-radius: 10px;
+  border-radius: var(--hf-radius-panel, 10px);
   display: block;
   margin: 12px auto;
 }

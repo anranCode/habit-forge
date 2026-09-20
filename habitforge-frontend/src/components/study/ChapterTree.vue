@@ -203,7 +203,7 @@ function saveEdit() {
 
   .van-field {
     background: $bg-inset;
-    border-radius: 10px;
+    border-radius: var(--hf-radius-panel, 10px);
     margin-bottom: 14px;
     padding: 8px 12px;
   }

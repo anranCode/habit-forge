@@ -328,7 +328,7 @@ function goCreate() {
   .stat {
     flex: 1;
     background: rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+    border-radius: var(--hf-radius-panel, 12px);
     padding: 12px;
     text-align: center;
 
@@ -363,7 +363,7 @@ function goCreate() {
   font-size: 12px;
   color: $primary;
   background: rgba(255, 122, 0, 0.06);
-  border-radius: 10px;
+  border-radius: var(--hf-radius-panel, 10px);
   text-align: center;
   cursor: pointer;
 

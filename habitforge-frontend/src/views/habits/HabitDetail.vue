@@ -145,7 +145,7 @@ async function cancelRecord(r: CheckinRecord) {
 .streak-panel {
   display: flex;
   background: linear-gradient(135deg, #1a1a2e, #16213e);
-  border-radius: $radius-card;
+  border-radius: var(--hf-radius-panel, #{$radius-card});
   padding: 20px 10px;
   margin-bottom: 12px;
   color: #fff;
@@ -204,7 +204,7 @@ async function cancelRecord(r: CheckinRecord) {
 
 .reflection-card {
   background: $bg-card;
-  border-radius: 10px;
+  border-radius: var(--hf-radius-panel, 10px);
   padding: 12px 14px;
   margin-bottom: 10px;
   cursor: pointer;
@@ -279,7 +279,7 @@ async function cancelRecord(r: CheckinRecord) {
 
 .record-row {
   background: $bg-card;
-  border-radius: 10px;
+  border-radius: var(--hf-radius-panel, 10px);
   padding: 12px 14px;
   margin-bottom: 8px;
 
@@ -295,7 +295,7 @@ async function cancelRecord(r: CheckinRecord) {
 }
 
 :deep(.van-swipe-cell) {
-  border-radius: 10px;
+  border-radius: var(--hf-radius-panel, 10px);
   overflow: hidden;
 }
 </style>

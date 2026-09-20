@@ -49,4 +49,14 @@ const cls = computed(() => (props.checked ? 'check-btn checked' : 'check-btn'))
     cursor: default;
   }
 }
+
+/* 桌面端：橙色按钮底下那圈橙色辉光（0 3px 8px rgba(255,122,0,.35)）去掉。
+   它在移动端是"按得下去"的厚度感来源，铺到宽屏上却只是糊在橙块边缘的一圈暖色脏边，
+   而且是全站唯一一处**有色**投影 —— 与桌面端"去阴影"的语言最不搭。
+   不给它补 1px 描边：这是个实心药丸按钮，描边会让它看着像未选中的次级按钮。 */
+@media (min-width: #{$bp-desktop}) {
+  .check-btn {
+    box-shadow: none;
+  }
+}
 </style>

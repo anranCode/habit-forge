@@ -92,8 +92,10 @@ const ratings: { v: ReviewRating; label: string; cls: string }[] = [
   display: flex;
   flex-direction: column;
   background: $bg-card;
-  border-radius: $radius-card;
-  box-shadow: $shadow-card;
+  border-radius: var(--hf-radius-panel, #{$radius-card});
+  box-shadow: var(--hf-shadow-card, #{$shadow-card});
+  // 桌面端由 --hf-hairline 换成 1px 描边；移动端解析成 border: 0，渲染与原来一致
+  border: var(--hf-hairline, 0);
   padding: 20px 18px;
   overflow: hidden;
 
@@ -152,12 +154,14 @@ const ratings: { v: ReviewRating; label: string; cls: string }[] = [
     flex: 1;
     text-align: center;
     padding: 12px 0;
-    border-radius: 12px;
+    border-radius: var(--hf-radius-panel, 12px);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     background: $bg-card;
-    box-shadow: $shadow-card;
+    box-shadow: var(--hf-shadow-card, #{$shadow-card});
+    // 同上：桌面端换描边，移动端是 border: 0
+    border: var(--hf-hairline, 0);
     transition: transform 0.12s ease;
 
     &:active {
@@ -190,6 +194,12 @@ const ratings: { v: ReviewRating; label: string; cls: string }[] = [
 @media (min-width: #{$bp-desktop}) {
   .flip {
     transition: transform 0.2s cubic-bezier(0.4, 0.2, 0.2, 1);
+  }
+
+  /* 「简单」那颗是实心橙填充，描边要与填充同色 ——
+     否则橙块外会多出一圈灰环（另外三颗是淡底，需要那条灰边才有轮廓）。 */
+  .rating-row .rating-btn.r-easy {
+    border-color: $primary;
   }
 }
 </style>

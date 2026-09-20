@@ -81,7 +81,7 @@ const tagColor = computed(() =>
   justify-content: space-between;
   align-items: center;
   background: $bg-card;
-  border-radius: $radius-card;
+  border-radius: var(--hf-radius-panel, #{$radius-card});
   box-shadow: $shadow-card;
   padding: 14px 16px;
   margin-bottom: 12px;
@@ -171,21 +171,24 @@ const tagColor = computed(() =>
    必须写在本文件最后：下面这条 hover 覆盖与上面 (hover:hover) 块里的
    `.habit-card.is-clickable:hover` 同特异性，谁生效只看文件内先后顺序。
 
-   border 只补上/右/下三边，left 留给那条 4px 状态色 —— 它是"昨天漏卡"的信号，
-   属于功能性指示而非装饰，桌面端继续保留（换成 1px 会弱到看不见）。
+   "昨天漏卡"那条 4px 状态色继续保留（功能性指示，不是装饰），但换一种画法：
+   移动端它是 border-left，桌面端四条边统一成 1px 描边之后，4px 的左边框会让
+   上边框够不到左端、矩形缺一个角 —— 改用 4px 内向投影，描边闭合、信号不变。
    ========================================================================== */
 @media (min-width: #{$bp-desktop}) {
   .habit-card {
     box-shadow: none;
     border-radius: $radius-md;
-    border-top: 1px solid $border-color;
-    border-right: 1px solid $border-color;
-    border-bottom: 1px solid $border-color;
+    border: 1px solid $border-color;
     padding: $space-md;
     margin-bottom: $space-md;
 
+    /* border-left-color 必须显式写回：基线里的 `.habit-card.missed`（特异性同为两个类）
+       把左边框设成了 $danger，不压回去就会在白卡片边上漏出一条红边。
+       （$danger 在桌面端解析为降饱和的 #c97a6e —— 与 --hf-danger 同一个值。） */
     &.missed {
-      border-left-color: $danger-desktop;
+      border-left-color: $border-color;
+      box-shadow: inset 4px 0 0 0 $danger-desktop;
     }
 
     &__name {
@@ -218,6 +221,14 @@ const tagColor = computed(() =>
   .habit-card.is-clickable:not(.missed):hover {
     box-shadow: none;
     background: $border-lightest;
+  }
+
+  /* 漏卡卡片的悬停单独补一条：上面 (hover:hover) 块里的 `.habit-card.is-clickable:hover`
+     （三个类）特异性高于 `.habit-card.missed`（两个类），而两者写的是同一个 box-shadow ——
+     鼠标一放上去，那条 4px 内向信号就被外阴影顶掉了。这里用同样的三个类 +
+     :hover 压回去，只保留信号条。 */
+  .habit-card.is-clickable.missed:hover {
+    box-shadow: inset 4px 0 0 0 $danger-desktop;
   }
 }
 </style>

@@ -174,7 +174,7 @@ onMounted(load)
     display: inline-block;
     width: 10px;
     height: 10px;
-    border-radius: 3px;
+    border-radius: var(--hf-radius-widget, 3px);
     background: #f2f3f5;
     margin-right: 4px;
 

@@ -357,7 +357,7 @@ onBeforeRouteLeave(() => {
     align-items: center;
     gap: 4px;
     padding: 10px 0;
-    border-radius: 10px;
+    border-radius: var(--hf-radius-panel, 10px);
     background: $bg-inset;
     font-size: 12px;
     color: $text-light;

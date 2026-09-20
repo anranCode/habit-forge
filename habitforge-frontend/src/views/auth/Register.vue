@@ -155,7 +155,8 @@ async function onSubmit() {
     width: 100%;
     padding: 28px 24px 32px;
     background: $bg-card;
-    border-radius: 16px;
+    border-radius: $radius-md; // 原是 16px —— 对话框属于「面板」那一档
+    // 投影保留，理由同 Login.vue（深色渐变上唯一能表达"浮起"的手段）
     box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
 
     // 理由同 Login.vue

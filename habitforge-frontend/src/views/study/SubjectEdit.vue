@@ -168,7 +168,7 @@ async function onSave() {
   align-items: center;
   justify-content: space-between;
   background: $bg-inset;
-  border-radius: 10px;
+  border-radius: var(--hf-radius-panel, 10px);
   padding: 12px;
   cursor: pointer;
 

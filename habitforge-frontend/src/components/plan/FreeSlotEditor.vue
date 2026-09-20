@@ -209,7 +209,7 @@ async function onSave() {
   align-items: center;
   gap: 8px;
   background: $bg-inset;
-  border-radius: 10px;
+  border-radius: var(--hf-radius-panel, 10px);
   padding: 10px 12px;
   margin-bottom: 8px;
 

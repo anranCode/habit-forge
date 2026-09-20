@@ -230,7 +230,7 @@ body {
     /* round 在居中态本该四角都圆，但 .van-popup--center.van-popup--round 与
        本规则同为两类选择器，靠 main.scss 在 vant/lib/index.css 之后加载取胜
        （见 main.ts 的 import 顺序）。 */
-    border-radius: 16px;
+    border-radius: $radius-md; // 原是 16px —— 对话框属于「面板」那一档
   }
 
   /* 浮动按钮是移动端手势（可拖、贴边吸睛）的产物。桌面窗口很宽、内容列居中，
@@ -332,6 +332,13 @@ body {
     border-top-color: $border-color;
   }
 
+  /* 下拉筛选条（题目列表页）改成与卡片同一套语言：投影换成 1px 底边。
+     变量在 :root 里设的（--van-dropdown-menu-shadow），这里补上它的替代物 ——
+     只去掉阴影不补边的话，白条压在 #fafafa 页底上会是一条没有边界感的横带。 */
+  .van-dropdown-menu__bar {
+    border-bottom: 1px solid $border-color;
+  }
+
   /* 全局顶部栏：一条极轻的横条，不吸顶。
      做成吸顶的话它得压在首页 hero 的渐变之上，z-index 与背景透明度的组合会引入
      一堆只在滚动中途才看得见的边界情况；而面包屑的用处是"进到页面时知道自己在哪"，
@@ -410,6 +417,25 @@ body {
     /* 内嵌块只去掉蓝调、不追白：白卡上的浅色块压到 #fafafa 就看不见轮廓了。
        #f2f3f5 不是新颜色 —— 它就是 $border-lightest，也是芯片在移动端的底色。 */
     --hf-bg-inset: #f2f3f5;
+
+    /* 圆角/阴影/描边也走同一层间接层 —— 但这四个只有「断点内」这一半，
+       文件顶部那份 :root 里没有它们（颜色那一批是两半，这一批是一半）。
+       引用点的写法是 `border-radius: var(--hf-radius-panel, 12px)`：
+       **回退值就是那个位置改造前的移动端值**，桌面端一律置换为 8px/4px 两档。
+       所以同一个属性在不同文件里的回退值不一样（10/12/14px…），那不是笔误 ——
+       原代码里同一个语义角色本就用了四五个不同的值，而移动端必须逐像素不变，
+       定义一个全局默认值必然改掉其中几处的移动端像素。回退值写的是什么，
+       改之前那里就写的什么，逐处对得上。
+       阴影与描边同理：桌面端不再靠投影抬升，改用一条 1px 描边（--hf-hairline）。 */
+    --hf-radius-panel: #{$radius-md}; // 卡片/面板/对话框 → 8px
+    --hf-radius-widget: #{$radius-sm}; // 按钮/标签/小部件 → 4px
+    --hf-shadow-card: none; // 原 $shadow-card，桌面端换描边
+    --hf-hairline: 1px solid #{$border-color}; // 替代阴影的那条描边
+
+    /* 下拉筛选条的投影去掉。它用的 --van-dropdown-menu-shadow 默认是
+       0 2px 12px rgba(100,101,102,.12)，只作用在 .van-dropdown-menu__bar 上；
+       而那条 bar 所在的白底容器自己已经能把它和 #fafafa 的页底分开了（见上面补的那条底边）。 */
+    --van-dropdown-menu-shadow: none;
   }
 
   // 按钮圆角并入两档体系

@@ -118,8 +118,10 @@ function onRowClick() {
   align-items: center;
   gap: 10px;
   background: $bg-card;
-  border-radius: 12px;
-  box-shadow: $shadow-card;
+  border-radius: var(--hf-radius-panel, 12px);
+  box-shadow: var(--hf-shadow-card, #{$shadow-card});
+  // 桌面端由 --hf-hairline 换成 1px 描边；移动端解析成 border: 0，渲染与原来一致
+  border: var(--hf-hairline, 0);
   padding: 12px;
   margin-bottom: 10px;
 

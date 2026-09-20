@@ -303,7 +303,7 @@ async function onRemove(c: Chapter) {
 .tools-group {
   padding: 0;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: var(--hf-radius-panel, 14px);
 }
 
 .add-pop {
@@ -324,7 +324,7 @@ async function onRemove(c: Chapter) {
 
   .van-field {
     background: $bg-inset;
-    border-radius: 10px;
+    border-radius: var(--hf-radius-panel, 10px);
     margin-bottom: 14px;
     padding: 8px 12px;
   }

@@ -114,7 +114,7 @@ async function removeHabit(h: Habit) {
 
 :deep(.van-swipe-cell) {
   margin-bottom: 12px;
-  border-radius: 14px;
+  border-radius: var(--hf-radius-panel, 14px);
   overflow: hidden;
 
   .habit-card {

@@ -275,7 +275,7 @@ function reflectionTexts(r: Reflection): string[] {
 .reflection {
   padding: 12px;
   background: #f9fafc;
-  border-radius: 10px;
+  border-radius: var(--hf-radius-panel, 10px);
   margin-top: 10px;
 
   .r-name {

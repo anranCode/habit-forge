@@ -544,7 +544,7 @@ async function onAdd() {
   font-weight: 600;
   color: $primary;
   border: 1px dashed rgba(255, 122, 0, 0.5);
-  border-radius: 12px;
+  border-radius: var(--hf-radius-panel, 12px);
   cursor: pointer;
 
   &:active {
@@ -572,7 +572,7 @@ async function onAdd() {
       flex: 1;
       text-align: center;
       padding: 9px 0;
-      border-radius: 10px;
+      border-radius: var(--hf-radius-panel, 10px);
       background: $bg-inset;
       font-size: 13px;
       color: $text-light;
@@ -587,7 +587,7 @@ async function onAdd() {
   }
 
   :deep(.van-cell) {
-    border-radius: 10px;
+    border-radius: var(--hf-radius-panel, 10px);
     background: $bg-inset;
     margin-bottom: 12px;
   }
@@ -604,7 +604,7 @@ async function onAdd() {
       font-weight: 700;
       color: $primary;
       padding: 6px 16px;
-      border-radius: 10px;
+      border-radius: var(--hf-radius-panel, 10px);
       background: rgba(255, 122, 0, 0.08);
       cursor: pointer;
     }
