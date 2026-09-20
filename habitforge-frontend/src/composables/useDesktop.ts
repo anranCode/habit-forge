@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 
 /**
@@ -41,4 +41,32 @@ export function isDesktopNow() {
  */
 export function usePopupPosition() {
   return computed(() => (isDesktop.value ? ('center' as const) : ('bottom' as const)))
+}
+
+/**
+ * 侧边栏折叠状态（仅桌面端有意义；移动端侧栏本来就不参与布局）。
+ *
+ * 模块级单例而不是各自 useStorage：App.vue 要拿它给 .page 加类名（好把内容区
+ * 左边距从 220px 收到 56px），AppTabbar.vue 要拿它切自己的宽度与文案 ——
+ * 两处必须是同一个 ref，否则会出现"侧栏收窄了、内容区还在让 220px"的错位。
+ * 自己去写 localStorage 而不是引 useStorage，是为了不依赖库内部的同 key 共享实现。
+ */
+const SIDEBAR_COLLAPSED_KEY = 'hf-sidebar-collapsed'
+
+const sidebarCollapsed = ref(
+  typeof localStorage !== 'undefined' && localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'
+)
+
+/** 侧栏是否折叠（响应式，读写同一个单例） */
+export function useSidebarCollapsed() {
+  return sidebarCollapsed
+}
+
+export function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+  try {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed.value ? '1' : '0')
+  } catch {
+    // 无痕模式 / 存储被禁用：折叠态退化成"仅本次会话有效"，不该因此报错
+  }
 }

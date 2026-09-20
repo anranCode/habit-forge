@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
+import { toggleSidebar, useSidebarCollapsed } from '@/composables/useDesktop'
 
 defineProps<{
   /** 是否渲染移动端底部 Tabbar（详情/编辑页为 false，与改造前一致） */
@@ -9,6 +10,9 @@ defineProps<{
 
 const route = useRoute()
 const router = useRouter()
+
+// 与 App.vue 共享同一个单例（见 useDesktop.ts）—— 它给 .page 让位、这里切自己的宽度
+const collapsed = useSidebarCollapsed()
 
 // 唯一的一份导航定义：移动端底部 Tabbar 与桌面端侧边栏都由它渲染，
 // 增删入口只改这里。两套外壳靠 CSS 媒体查询切换（不是 UA 嗅探，也不是两个组件）。
@@ -51,10 +55,11 @@ function onChange(index: number) {
       <van-tabbar-item v-for="t in tabs" :key="t.path" :icon="t.icon">{{ t.label }}</van-tabbar-item>
     </van-tabbar>
 
-    <nav class="nav-side" aria-label="主导航">
+    <nav class="nav-side" :class="{ 'is-collapsed': collapsed }" aria-label="主导航">
       <div class="brand">
         <span class="logo deco" aria-hidden="true">🔥</span>
         <span class="name">HabitForge</span>
+        <span class="mark" aria-hidden="true">H</span>
       </div>
       <ul class="list">
         <li v-for="(t, i) in tabs" :key="t.path">
@@ -63,6 +68,7 @@ function onChange(index: number) {
             class="item"
             :class="{ active: i === active }"
             :aria-current="i === active ? 'page' : undefined"
+            :title="collapsed ? t.label : undefined"
             @click="onChange(i)"
           >
             <van-icon :name="t.icon" />
@@ -70,6 +76,15 @@ function onChange(index: number) {
           </button>
         </li>
       </ul>
+      <button
+        type="button"
+        class="collapse-toggle"
+        :aria-label="collapsed ? '展开侧栏' : '折叠侧栏'"
+        :aria-expanded="!collapsed"
+        @click="toggleSidebar"
+      >
+        <van-icon :name="collapsed ? 'arrow' : 'arrow-left'" />
+      </button>
     </nav>
   </div>
 </template>
@@ -98,9 +113,12 @@ function onChange(index: number) {
     padding: 20px 12px;
     box-sizing: border-box;
     background: #fff;
-    border-right: 1px solid #eef1f6;
+    border-right: 1px solid $border-color;
     overflow-y: auto;
+    overflow-x: hidden; // 折叠动画中途不让文字溢出到内容区
     z-index: 100;
+    // 只有桌面端会改宽度，所以这条过场也只在这里有意义（移动端整块 display:none）
+    transition: width 200ms ease;
 
     .brand {
       display: flex;
@@ -109,10 +127,16 @@ function onChange(index: number) {
       padding: 4px 10px 20px;
       font-weight: 800;
       font-size: 17px;
-      color: $text-main;
+      color: #1a1a1a;
 
       .logo {
         font-size: 20px;
+      }
+
+      // 折叠态的品牌缩写。只在断点内定义，而父级 .nav-side 在移动端是 display:none，
+      // 所以移动端即便渲染了这个 span 也不会显示（与 .deco 同一套"断点外零声明"的思路）。
+      .mark {
+        display: none;
       }
     }
 
@@ -132,28 +156,81 @@ function onChange(index: number) {
       width: 100%;
       padding: 11px 12px;
       border: none;
-      border-radius: 10px;
+      border-radius: $radius-md;
       background: transparent;
       font: inherit;
-      font-size: 14px;
-      color: $text-light;
+      font-size: $font-body;
+      color: #999;
       text-align: left;
       cursor: pointer;
 
       .van-icon {
         font-size: 18px;
+        flex-shrink: 0;
       }
 
       &:hover {
-        background: #f6f7fb;
-        color: $text-main;
+        background: $border-lightest;
+        color: #333;
       }
 
       &.active {
-        background: rgba(255, 122, 0, 0.1);
+        background: rgba(255, 122, 0, 0.08);
         color: $primary;
         font-weight: 700;
       }
+    }
+
+    /* 折叠成图标轨道：只留图标，文字让位给内容区。
+       品牌处补一个 "H" 缩写 —— 桌面端 .deco 已经把 🔥 隐掉了，不留点东西
+       侧栏顶部会是一块空白。 */
+    &.is-collapsed {
+      width: $sidenav-collapsed-width;
+      padding: 20px 6px;
+
+      .brand {
+        justify-content: center;
+        padding: 4px 0 20px;
+
+        .name {
+          display: none;
+        }
+
+        .mark {
+          display: inline;
+          font-size: $font-heading;
+        }
+      }
+
+      .item {
+        justify-content: center;
+        gap: 0;
+        padding: 11px 0;
+
+        span {
+          display: none;
+        }
+      }
+    }
+  }
+
+  .collapse-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: auto; // 侧栏是 flex 列 + 固定上下沿，auto 把它推到最底
+    padding: $space-sm 0;
+    border: none;
+    border-radius: $radius-md;
+    background: transparent;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+
+    &:hover {
+      background: $border-lightest;
+      color: #333;
     }
   }
 }

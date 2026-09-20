@@ -3,11 +3,14 @@ import AppTabbar from '@/components/common/AppTabbar.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useEventListener } from '@vueuse/core'
-import { useIsDesktop } from '@/composables/useDesktop'
+import { useIsDesktop, useSidebarCollapsed } from '@/composables/useDesktop'
 
 const route = useRoute()
 const router = useRouter()
 const isDesktop = useIsDesktop()
+
+// 与 AppTabbar 共享同一个单例：侧栏收窄时内容区左边距也要跟着从 220px 收到 56px
+const sidebarCollapsed = useSidebarCollapsed()
 
 // 带 tab 的主页面（今日/习惯/记录/追踪/我的）——移动端只有这些显示底部导航
 const isTabPage = computed(() => route.meta.tab !== undefined)
@@ -110,7 +113,7 @@ const breadcrumbs = computed<Crumb[]>(() => {
 </script>
 
 <template>
-  <div class="page" :class="{ 'has-nav': navVisible, 'is-fullbleed': fullBleed }">
+  <div class="page" :class="{ 'has-nav': navVisible, 'is-fullbleed': fullBleed, 'is-rail-collapsed': sidebarCollapsed }">
     <AppTabbar v-if="navVisible" :show-bottom="showBottomNav" />
     <!--
       .page-main 是内容区的定位锚点：

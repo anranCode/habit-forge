@@ -139,7 +139,10 @@ const DESKTOP_VOCAB = [
   'deco',
   // 顶部栏（面包屑）。它靠 breadcrumbs 为空时不渲染来保证移动端 DOM 不变，
   // 但样式必须是断点专属的 —— 登记在这里，断点外的声明会被拦下。
-  'top-bar'
+  'top-bar',
+  // 侧栏折叠态。类名常驻 DOM（移动端也带着），所以断点外的任何声明都会
+  // 直接破坏移动端 —— 正是本表存在的意义。
+  'is-rail-collapsed'
 ]
 
 const assetsDir = join(root, 'dist/assets')

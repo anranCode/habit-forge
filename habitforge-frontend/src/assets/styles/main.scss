@@ -99,6 +99,13 @@ body {
     padding-left: $sidenav-width;
   }
 
+  // 侧栏折叠成图标轨道后，让位宽度必须同步收窄 ——
+  // 这两处（这里的 padding 与 .nav-side 的 width）读的是同一个单例，
+  // 若各自为政就会出现"侧栏收窄了、内容区还在让 220px"的空隙。
+  .page.has-nav.is-rail-collapsed {
+    padding-left: $sidenav-collapsed-width;
+  }
+
   .page-main {
     max-width: $content-max-width-desktop;
     margin: 0 auto;
