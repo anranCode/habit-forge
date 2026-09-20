@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Habit } from '@/types/habit'
-import { categoryColor, categoryEmoji, categoryLabel, frequencyLabel } from '@/utils/format'
+import { categoryColor, categoryColorDesktop, categoryEmoji, categoryLabel, frequencyLabel } from '@/utils/format'
+import { useIsDesktop } from '@/composables/useDesktop'
 import HabitCheckButton from './HabitCheckButton.vue'
 
 const props = defineProps<{
@@ -14,6 +16,14 @@ const emit = defineEmits<{
   (e: 'check', habit: Habit): void
   (e: 'click', habit: Habit): void
 }>()
+
+const isDesktop = useIsDesktop()
+
+/* 标签色走 JS 而不是 CSS（Vant 的 color 是内联 style），所以断点切换只能在这里做。
+   移动端取原色，保证与改造前渲染一致；桌面端取降饱和版本，见 format.ts 的说明。 */
+const tagColor = computed(() =>
+  isDesktop.value ? categoryColorDesktop[props.habit.category] : categoryColor[props.habit.category]
+)
 </script>
 
 <template>
@@ -22,7 +32,7 @@ const emit = defineEmits<{
       <div class="habit-card__name">
         <span class="emoji">{{ categoryEmoji[habit.category] || '✨' }}</span>
         <span class="name">{{ habit.name }}</span>
-        <van-tag v-if="habit.identityTag" plain round size="medium" :color="categoryColor[habit.category]">
+        <van-tag v-if="habit.identityTag" plain round size="medium" :color="tagColor">
           {{ habit.identityTag }}
         </van-tag>
       </div>
@@ -152,6 +162,62 @@ const emit = defineEmits<{
 
   &__week {
     font-size: 12px;
+  }
+}
+
+/* ==========================================================================
+   桌面端（≥ $bp-desktop）
+   --------------------------------------------------------------------------
+   必须写在本文件最后：下面这条 hover 覆盖与上面 (hover:hover) 块里的
+   `.habit-card.is-clickable:hover` 同特异性，谁生效只看文件内先后顺序。
+
+   border 只补上/右/下三边，left 留给那条 4px 状态色 —— 它是"昨天漏卡"的信号，
+   属于功能性指示而非装饰，桌面端继续保留（换成 1px 会弱到看不见）。
+   ========================================================================== */
+@media (min-width: #{$bp-desktop}) {
+  .habit-card {
+    box-shadow: none;
+    border-radius: $radius-md;
+    border-top: 1px solid $border-color;
+    border-right: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+    padding: $space-md;
+    margin-bottom: $space-md;
+
+    &.missed {
+      border-left-color: $danger-desktop;
+    }
+
+    &__name {
+      font-size: $font-body;
+    }
+
+    &__alert {
+      color: $danger-desktop;
+    }
+
+    &__right {
+      margin-left: $space-sm;
+    }
+
+    &__meta {
+      gap: $space-sm;
+      margin-top: $space-xs;
+    }
+
+    &__streak.hot {
+      color: #c98a5e; // 原 #ff5722 的降饱和版
+    }
+  }
+
+  /* 悬停不再靠阴影抬升 —— 宽屏上阴影投影面积太大、发灰。
+     改为极轻的背景变化（用户 brief 里的"轻量化悬停反馈"），鼠标扫过一排卡片时
+     不会有一串阴影此起彼伏。 */
+  /* :not(.missed) —— 漏卡卡的粉底(#fff8f7)是状态信号，不能被悬停盖掉，
+     否则鼠标扫过时"哪张漏了卡"反而看不出来。 */
+  .habit-card.is-clickable:not(.missed):hover {
+    box-shadow: none;
+    background: $border-lightest;
   }
 }
 </style>

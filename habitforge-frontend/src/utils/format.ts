@@ -16,6 +16,21 @@ export const categoryColor: Record<Category, string> = {
   OTHER: '#7f8c8d'
 }
 
+/**
+ * 桌面端的分类色：同色相降饱和。
+ *
+ * 上面那组是移动端的取值，逐像素基线的一部分，不能动。桌面端的极简标准是
+ * "橙色唯一主色 + 灰阶为主"，五个饱和色相并排出现在一屏卡片上会喧宾夺主，
+ * 所以只在桌面端换成低饱和版本 —— 仍然能区分分类，但不再抢内容。
+ */
+export const categoryColorDesktop: Record<Category, string> = {
+  HEALTH: '#5a9e7f',
+  LEARNING: '#6b8db5',
+  WORK: '#8b6fa3',
+  LIFE: '#c9903f',
+  OTHER: '#9ba3a8'
+}
+
 export const categoryEmoji: Record<Category, string> = {
   HEALTH: '💪',
   LEARNING: '📚',

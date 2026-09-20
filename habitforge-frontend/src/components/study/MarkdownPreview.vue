@@ -143,4 +143,31 @@ const html = computed(() => renderMarkdown(props.content))
 .md-body :deep(strong) {
   font-weight: 700;
 }
+
+/* ==========================================================================
+   桌面端（≥ $bp-desktop）
+   --------------------------------------------------------------------------
+   用户 brief 里"表格去斑马纹与竖线"在本项目的唯一对象就是这里 ——
+   应用界面本身没有 <table>（列表都是卡片/div），只有笔记正文渲染出的 markdown 表格。
+   原本是四边全框：竖线把宽表切成一格一格，桌面端读起来碎。改成只留横向分隔线。
+   ========================================================================== */
+@media (min-width: #{$bp-desktop}) {
+  .md-body :deep(th),
+  .md-body :deep(td) {
+    border: none;
+    border-bottom: 1px solid $border-color;
+    padding: $space-sm $space-md;
+  }
+
+  // 表头不再铺灰底，改用一条稍深的横线区分 —— 去掉一块面积色，页面更安静
+  .md-body :deep(th) {
+    background: transparent;
+    border-bottom-color: #d9dee3;
+  }
+
+  // 末行不再多一条压边线
+  .md-body :deep(tr:last-child td) {
+    border-bottom: none;
+  }
+}
 </style>

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import MarkdownPreview from '@/components/study/MarkdownPreview.vue'
+import { useIsDesktop } from '@/composables/useDesktop'
 import type { Question, QuestionType } from '@/types/question'
+
+const isDesktop = useIsDesktop()
 
 const props = withDefaults(
   defineProps<{
@@ -30,6 +33,21 @@ const TYPE_COLOR: Record<QuestionType, string> = {
   SHORT: '#9b59b6'
 }
 
+/** 桌面端：同色相降饱和，与 format.ts 的 categoryColorDesktop 同一套标准 */
+const TYPE_COLOR_DESKTOP: Record<QuestionType, string> = {
+  SINGLE: '#ff7a00',
+  MULTI: '#6b8db5',
+  JUDGE: '#5a9e7f',
+  SHORT: '#8b6fa3'
+}
+
+const typeColor = computed(() =>
+  isDesktop.value ? TYPE_COLOR_DESKTOP[props.question.questionType] : TYPE_COLOR[props.question.questionType]
+)
+
+/** 来源标签同样是内联 style，断点切换只能在 JS 侧做 */
+const sourceColor = computed(() => (isDesktop.value ? '#6b8db5' : '#3498db'))
+
 const SOURCE_LABEL: Record<string, string> = {
   PAST_EXAM: '真题',
   TEXTBOOK: '教材',
@@ -54,9 +72,9 @@ const answerText = computed(() => {
 <template>
   <div class="card question-card">
     <div class="q-head">
-      <van-tag round :color="TYPE_COLOR[question.questionType]">{{ TYPE_LABEL[question.questionType] }}</van-tag>
+      <van-tag round :color="typeColor">{{ TYPE_LABEL[question.questionType] }}</van-tag>
       <van-tag v-if="question.difficulty" round plain color="#8a94a6">难度 {{ question.difficulty }}</van-tag>
-      <van-tag v-if="question.sourceType" round plain color="#3498db">
+      <van-tag v-if="question.sourceType" round plain :color="sourceColor">
         {{ question.sourceDetail || SOURCE_LABEL[question.sourceType] || question.sourceType }}
       </van-tag>
     </div>
