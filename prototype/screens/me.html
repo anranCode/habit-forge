@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>我 · HabitForge 原型</title>
+<link rel="stylesheet" href="../styles/base.css" />
+<style>
+  .screen-me .sec-head,
+  .screen-me .row {
+    padding-left: 0;
+  }
+
+  .screen-me .sec-head::after {
+    display: none;
+  }
+
+  .sec-head .rule {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* 账号：一行名字 + 一排账目 */
+  .account {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding-bottom: 16px;
+  }
+
+  .account .name {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .account .lv {
+    font-size: 12px;
+    color: var(--seal);
+    border: 1px solid var(--seal);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ledger {
+    display: flex;
+    gap: 10px;
+    padding: 14px 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--rule-soft);
+    margin-bottom: 28px;
+  }
+
+  .ledger > div {
+    flex: 1;
+  }
+
+  .ledger .k {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  .ledger .v {
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 1.25;
+    margin-top: 2px;
+  }
+
+  .ledger .v small {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-left: 2px;
+  }
+
+  .state {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .state.done {
+    color: var(--ink-soft);
+  }
+
+  .row.is-locked .row-title {
+    color: var(--ink-faint);
+  }
+</style>
+</head>
+<body class="screen screen-me">
+
+<nav class="rail" aria-label="主导航">
+  <div class="rail-brand">HabitForge</div>
+  <ul class="rail-list">
+    <li><a href="today.html">今日</a></li>
+    <li><a href="library.html">库</a></li>
+    <li><a href="review.html">回顾</a></li>
+    <li><a class="on" href="me.html" aria-current="page">我</a></li>
+  </ul>
+  <div class="rail-foot">2026年9月27日</div>
+</nav>
+
+<main class="content">
+  <div class="wrap is-solo">
+    <div class="col-main">
+
+      <header class="masthead">
+        <div class="masthead-row">
+          <h1>我</h1>
+        </div>
+      </header>
+
+      <div class="account">
+        <span class="name">小胡</span>
+        <span class="lv">Lv.3</span>
+      </div>
+
+      <div class="ledger">
+        <div>
+          <div class="k">积分</div>
+          <div class="v">1,240</div>
+        </div>
+        <div>
+          <div class="k">当前连续</div>
+          <div class="v">19<small>天</small></div>
+        </div>
+        <div>
+          <div class="k">累计打卡</div>
+          <div class="v">486<small>次</small></div>
+        </div>
+      </div>
+
+      <section class="sec">
+        <div class="sec-head">
+          <h2>成就</h2>
+          <span class="rule"></span>
+        </div>
+
+        <div class="row">
+          <div class="row-body">
+            <div class="row-title">连续 21 天</div>
+            <div class="row-sub">不连续错过两天</div>
+          </div>
+          <div class="state done">已达成</div>
+        </div>
+
+        <div class="row">
+          <div class="row-body">
+            <div class="row-title">打卡满 100 天</div>
+          </div>
+          <div class="state done">已达成</div>
+        </div>
+
+        <div class="row">
+          <div class="row-body">
+            <div class="row-title">早起鸟</div>
+            <div class="row-sub">连续 10 天在 7 点前打卡</div>
+          </div>
+          <div class="state">还差 4 天</div>
+        </div>
+
+        <div class="row is-locked">
+          <div class="row-body">
+            <div class="row-title">复习不掉线</div>
+            <div class="row-sub">连续 30 天清空到期闪卡</div>
+          </div>
+          <div class="state">还差 11 天</div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head">
+          <h2>设置</h2>
+          <span class="rule"></span>
+        </div>
+
+        <a class="row" href="#">
+          <div class="row-body">
+            <div class="row-title">提醒</div>
+            <div class="row-sub">每天 8:00 和 21:00</div>
+          </div>
+          <div class="state">已开启</div>
+        </a>
+
+        <a class="row" href="#">
+          <div class="row-body">
+            <div class="row-title">导出数据</div>
+            <div class="row-sub">习惯记录、笔记、题库</div>
+          </div>
+        </a>
+
+        <a class="row" href="#">
+          <div class="row-body"><div class="row-title">账号与安全</div></div>
+        </a>
+
+        <a class="row" href="#">
+          <div class="row-body"><div class="row-title">关于 HabitForge</div></div>
+          <div class="state">v1.0.0</div>
+        </a>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<nav class="tabbar" aria-label="主导航">
+  <a href="today.html">今日</a>
+  <a href="library.html">库</a>
+  <a href="review.html">回顾</a>
+  <a class="on" href="me.html" aria-current="page">我</a>
+</nav>
+
+</body>
+</html>

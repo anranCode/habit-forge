@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HabitForge 重想原型</title>
+<style>
+  :root {
+    --paper: #f5f7f6;
+    --sheet: #fff;
+    --ink: #1b2430;
+    --ink-soft: #5b6773;
+    --ink-faint: #98a2ab;
+    --rule: #dde2e4;
+    --rule-soft: #eaeef0;
+    --seal: #c0362b;
+    --serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", SimSun, serif;
+    --sans: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --s: 0.68;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  :focus-visible { outline: 2px solid var(--seal); outline-offset: 2px; }
+
+  /* ---------- 顶栏 ---------- */
+
+  .head {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 14px 28px;
+    background: rgba(245, 247, 246, 0.94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .head .brand {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 17px;
+  }
+
+  .head nav {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .head nav a:hover { color: var(--seal); }
+
+  .modes {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+
+  .modes button {
+    font: inherit;
+    font-size: 12.5px;
+    padding: 5px 12px;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .modes button.on {
+    color: var(--seal);
+    border-color: var(--seal);
+    background: rgba(192, 54, 43, 0.06);
+  }
+
+  /* ---------- 引言 ---------- */
+
+  .intro {
+    max-width: 720px;
+    padding: 40px 28px 8px;
+  }
+
+  .intro h1 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 30px;
+    letter-spacing: 0.01em;
+  }
+
+  .intro .lede {
+    margin: 12px 0 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.75;
+  }
+
+  .intro .dir {
+    margin: 22px 0 0;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--ink);
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.75;
+  }
+
+  .intro .dir b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- 屏组 ---------- */
+
+  .group {
+    padding: 34px 28px 0;
+    scroll-margin-top: 64px;
+  }
+
+  .group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 20px;
+  }
+
+  .group-head h2 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 20px;
+  }
+
+  .group-head .route {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+
+  .group-head .why {
+    margin-left: auto;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    max-width: 460px;
+    text-align: right;
+  }
+
+  .frames {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  .frame {
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    overflow: hidden;
+  }
+
+  .frame-mob {
+    width: 390px;
+    height: 844px;
+    border-radius: 16px;
+  }
+
+  .frame-mob iframe {
+    width: 390px;
+    height: 844px;
+  }
+
+  .frame-desk {
+    width: calc(1280px * var(--s));
+    height: calc(860px * var(--s));
+    border-radius: 6px;
+  }
+
+  .frame-desk iframe {
+    width: 1280px;
+    height: 860px;
+    transform: scale(var(--s));
+    transform-origin: top left;
+  }
+
+  .frame iframe { display: block; border: 0; }
+
+  .frame-label {
+    font-size: 12px;
+    color: var(--ink-faint);
+    padding: 8px 2px 0;
+  }
+
+  body[data-mode="mob"] .frame-desk,
+  body[data-mode="mob"] .frame-desk + .frame-label { display: none; }
+
+  body[data-mode="desk"] .frame-mob,
+  body[data-mode="desk"] .frame-mob + .frame-label { display: none; }
+
+  body[data-mode="desk"] { --s: 1; }
+
+  .foot {
+    margin-top: 56px;
+    padding: 22px 28px 48px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    line-height: 1.8;
+  }
+
+  .foot code {
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body data-mode="both">
+
+<header class="head">
+  <span class="brand">HabitForge 重想原型</span>
+  <nav>
+    <a href="#today">今日</a>
+    <a href="#library">库</a>
+    <a href="#review">回顾</a>
+    <a href="#me">我</a>
+  </nav>
+  <div class="modes" role="group" aria-label="显示形态">
+    <button data-mode="both" class="on">并排</button>
+    <button data-mode="mob">只看手机</button>
+    <button data-mode="desk">只看桌面</button>
+  </div>
+</header>
+
+<div class="intro">
+  <h1>台账</h1>
+  <p class="lede">
+    把首页从「什么都塞成一张卡」换回一条今天要做什么的流。习惯打卡的本质就是一本「做了 / 没做」的账，
+    AI 排程是一张课程表，闪卡错题是索引卡 —— 这套材料的视觉语言是规线、表格数字、和一个「已办」的印记。
+  </p>
+  <p class="dir">
+    <b>结构</b>来自发丝规线和对齐，不来自卡片和阴影：撤掉全部圆角容器与 box-shadow，层级靠字号和留白。<br />
+    <b>完成</b>是在左页边盖一枚朱砂「已」印 —— 全站唯一一处"响"的东西，其余一律安静。<br />
+    <b>数字</b>一律表格数字并对齐成列，像账本的金额栏。<br />
+    <b>标题</b>用宋体。中文 App 几乎清一色黑体标题，宋体把印刷台账的文档感带进界面。<br />
+    <b>考试倒计时</b>常驻今日页头，用墨色不用朱砂 —— 朱砂只给"已办"，倒计时跟完成是反义，抢同一个颜色会把印章的意义冲淡。
+  </p>
+</div>
+
+<section class="group" id="today">
+  <div class="group-head">
+    <h2>今日</h2>
+    <span class="route">原 /home + /plan + /study/review</span>
+    <span class="why">页头常驻考试倒计时。分四段：已排期（有钟点）、待完成（就地完成）、收尾、今天做过。</span>
+  </div>
+  <div class="frames">
+    <div>
+      <div class="frame frame-mob"><iframe src="screens/today.html" title="今日 · 移动端"></iframe></div>
+      <div class="frame-label">手机 390</div>
+    </div>
+    <div>
+      <div class="frame frame-desk"><iframe src="screens/today.html" title="今日 · 桌面端"></iframe></div>
+      <div class="frame-label">桌面 1280</div>
+    </div>
+  </div>
+</section>
+
+<section class="group" id="library">
+  <div class="group-head">
+    <h2>库</h2>
+    <span class="route">原 /habits + /study/*（吃掉 /study 这个 hub）</span>
+    <span class="why">习惯与学习并列的两棵树。学习总览收成顶部一条状态行；科目行带考试日期，题库与错题本在这棵树下。</span>
+  </div>
+  <div class="frames">
+    <div>
+      <div class="frame frame-mob"><iframe src="screens/library.html" title="库 · 移动端"></iframe></div>
+      <div class="frame-label">手机 390</div>
+    </div>
+    <div>
+      <div class="frame frame-desk"><iframe src="screens/library.html" title="库 · 桌面端"></iframe></div>
+      <div class="frame-label">桌面 1280</div>
+    </div>
+  </div>
+</section>
+
+<section class="group" id="review">
+  <div class="group-head">
+    <h2>回顾</h2>
+    <span class="route">原 /track + /record 合并</span>
+    <span class="why">上半是账目（最近 30 天，满格的日子盖朱砂），下半是记录时间线。原来的两个 tab 合成一屏。</span>
+  </div>
+  <div class="frames">
+    <div>
+      <div class="frame frame-mob"><iframe src="screens/review.html" title="回顾 · 移动端"></iframe></div>
+      <div class="frame-label">手机 390</div>
+    </div>
+    <div>
+      <div class="frame frame-desk"><iframe src="screens/review.html" title="回顾 · 桌面端"></iframe></div>
+      <div class="frame-label">桌面 1280</div>
+    </div>
+  </div>
+</section>
+
+<section class="group" id="me">
+  <div class="group-head">
+    <h2>我</h2>
+    <span class="route">原 /profile</span>
+    <span class="why">保持安静。印章这个装置只在「今日」出现 —— 一个设计里只让一处响。</span>
+  </div>
+  <div class="frames">
+    <div>
+      <div class="frame frame-mob"><iframe src="screens/me.html" title="我 · 移动端"></iframe></div>
+      <div class="frame-label">手机 390</div>
+    </div>
+    <div>
+      <div class="frame frame-desk"><iframe src="screens/me.html" title="我 · 桌面端"></iframe></div>
+      <div class="frame-label">桌面 1280</div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  这是方向原型，不是可运行代码：没有后端、没有交互逻辑，数据是写死的样例。<br />
+  每屏都是<a href="screens/today.html">独立的响应式 HTML</a>，宽度决定形态 —— 也可以直接在浏览器里拖窗口宽度看断点。<br />
+  断点 <code>900px</code>；桌面端的右栏是账目的「合计」栏。
+</footer>
+
+<script>
+  document.querySelectorAll('.modes button').forEach((b) => {
+    b.addEventListener('click', () => {
+      document.body.dataset.mode = b.dataset.mode
+      document.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b))
+    })
+  })
+</script>
+
+</body>
+</html>

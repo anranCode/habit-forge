@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>库 · HabitForge 原型</title>
+<link rel="stylesheet" href="../styles/base.css" />
+<style>
+  /* 这一屏没有"完成"这回事，所以不画页边朱砂线，条目也不留印章位。
+     台账那套装置只属于"今日"。 */
+  .screen-library .sec-head {
+    padding-left: 0;
+  }
+
+  .screen-library .row {
+    padding-left: 0;
+  }
+
+  .screen-library .sec-head::after {
+    display: none;
+  }
+
+  .sec-head .rule {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .mini {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .mini:hover {
+    color: var(--seal);
+  }
+
+  /* 学习总览：原来 /study 那个 hub 页的内容，收成一条状态行放在最上面 */
+  .status-strip {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .status-strip .text {
+    flex: 1;
+    font-size: 14px;
+  }
+
+  .status-strip .text b {
+    font-family: var(--serif);
+    font-size: 17px;
+    color: var(--seal);
+  }
+
+  .row-meta.is-due {
+    color: var(--seal);
+  }
+
+  .row-meta b {
+    color: inherit;
+  }
+</style>
+</head>
+<body class="screen screen-library">
+
+<nav class="rail" aria-label="主导航">
+  <div class="rail-brand">HabitForge</div>
+  <ul class="rail-list">
+    <li><a href="today.html">今日</a></li>
+    <li><a class="on" href="library.html" aria-current="page">库</a></li>
+    <li><a href="review.html">回顾</a></li>
+    <li><a href="me.html">我</a></li>
+  </ul>
+  <div class="rail-foot">2026年9月27日</div>
+</nav>
+
+<main class="content">
+  <div class="wrap is-solo">
+    <div class="col-main">
+
+      <header class="masthead">
+        <div class="masthead-row">
+          <h1>库</h1>
+        </div>
+        <p class="masthead-sub">6 个习惯，3 个科目</p>
+      </header>
+
+      <div>
+
+        <section class="sec">
+          <div class="sec-head">
+            <h2>学习</h2>
+            <span class="rule"></span>
+            <a class="mini" href="#">新建科目</a>
+          </div>
+
+          <div class="status-strip">
+            <div class="text">今天到期 <b>23</b> 张卡，错题 <b>8</b> 道</div>
+            <a class="btn" href="today.html">开始复习</a>
+          </div>
+
+          <a class="row" href="#">
+            <div class="row-body">
+              <div class="row-title">英语</div>
+              <div class="row-sub">闪卡 320 张，考试 12月20日</div>
+            </div>
+            <div class="row-meta is-due"><b>23</b> 张到期</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body">
+              <div class="row-title">线性代数</div>
+              <div class="row-sub">闪卡 180 张，考试 12月21日</div>
+            </div>
+            <div class="row-meta">已复习完</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body">
+              <div class="row-title">专业课</div>
+              <div class="row-sub">题目 240 道，考试 12月21日</div>
+            </div>
+            <div class="row-meta is-due"><b>8</b> 道错题</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body"><div class="row-title">题库</div></div>
+            <div class="row-meta"><b>240</b> 道</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body"><div class="row-title">全部笔记</div></div>
+            <div class="row-meta"><b>12</b> 篇</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body"><div class="row-title">错题本</div></div>
+            <div class="row-meta"><b>8</b> 道</div>
+          </a>
+        </section>
+
+        <section class="sec">
+          <div class="sec-head">
+            <h2>习惯</h2>
+            <span class="rule"></span>
+            <a class="mini" href="#">新建习惯</a>
+          </div>
+
+          <a class="row" href="#">
+            <div class="row-body">
+              <div class="row-title">早读 30 分钟</div>
+              <div class="row-sub">每天</div>
+            </div>
+            <div class="row-meta">连续 <b>12</b> 天</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body">
+              <div class="row-title">背单词 50 个</div>
+              <div class="row-sub">每天</div>
+            </div>
+            <div class="row-meta">连续 <b>7</b> 天</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body">
+              <div class="row-title">跑步 3 公里</div>
+              <div class="row-sub">每周三、六</div>
+            </div>
+            <div class="row-meta">连续 <b>3</b> 天</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body">
+              <div class="row-title">冥想 10 分钟</div>
+              <div class="row-sub">每天</div>
+            </div>
+            <div class="row-meta">连续 <b>3</b> 天</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body">
+              <div class="row-title">喝够 8 杯水</div>
+              <div class="row-sub">每天</div>
+            </div>
+            <div class="row-meta">连续 <b>21</b> 天</div>
+          </a>
+
+          <a class="row" href="#">
+            <div class="row-body">
+              <div class="row-title">周记复盘</div>
+              <div class="row-sub">每周日</div>
+            </div>
+            <div class="row-meta">连续 <b>4</b> 周</div>
+          </a>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<nav class="tabbar" aria-label="主导航">
+  <a href="today.html">今日</a>
+  <a class="on" href="library.html" aria-current="page">库</a>
+  <a href="review.html">回顾</a>
+  <a href="me.html">我</a>
+</nav>
+
+</body>
+</html>

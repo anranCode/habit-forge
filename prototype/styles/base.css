@@ -1,0 +1,612 @@
+/* ============================================================
+   HabitForge 重想原型 · 共享样式
+   方向：台账 —— 规线给结构，表格数字给账目，朱砂印章给"已办"
+   ============================================================ */
+
+:root {
+  /* 纸与墨。纸白是冷调的（灰绿倾向），刻意避开暖米色。 */
+  --paper: #f5f7f6;
+  --sheet: #ffffff;
+  --ink: #1b2430;
+  --ink-soft: #5b6773;
+  --ink-faint: #98a2ab;
+
+  /* 发丝规线 */
+  --rule: #dde2e4;
+  --rule-soft: #eaeef0;
+
+  /* 朱砂 —— 全站唯一强调色。只出现在"已办"与"当前项"上，别处一律不用。 */
+  --seal: #c0362b;
+  --seal-line: rgba(192, 54, 43, 0.24);
+  --seal-tint: rgba(192, 54, 43, 0.07);
+
+  /* 标题宋体，正文黑体。中文界面清一色黑体标题，宋体是这里的刻意选择。 */
+  --serif: "Source Han Serif SC", "Noto Serif SC", "Songti SC", SimSun, serif;
+  --sans: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --rail-w: 208px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  /* 移动端底部导航占位 */
+  padding-bottom: 68px;
+}
+
+/* 数字一律表格数字，账目才对得齐 */
+b,
+.fig,
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- 内容区 ---------- */
+
+.content {
+  padding: 0 16px;
+}
+
+/* 桌面端：内容列不再是 540px 的移动列，而是台账的开本 */
+@media (min-width: 900px) {
+  body {
+    padding-bottom: 0;
+    padding-left: var(--rail-w);
+  }
+
+  .content {
+    padding: 0 32px;
+  }
+
+  /* 主列 + 右页边栏；.wrap.is-solo 用于没有右栏的屏 */
+  .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 680px) 232px;
+    gap: 64px;
+    align-items: start;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 40px 0 80px;
+  }
+
+  .wrap.is-solo {
+    grid-template-columns: minmax(0, 720px);
+  }
+}
+
+@media (max-width: 899px) {
+  .wrap {
+    padding: 20px 0 32px;
+  }
+}
+
+/* ---------- 页头（日期，像账本的抬头） ---------- */
+
+.masthead {
+  padding-bottom: 14px;
+}
+
+.masthead-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.masthead h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: 0.01em;
+}
+
+.masthead h1 .wk {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--ink-soft);
+  margin-left: 4px;
+}
+
+.carry {
+  font-size: 13px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.carry b {
+  font-family: var(--serif);
+  font-size: 17px;
+  color: var(--seal);
+  margin: 0 2px;
+}
+
+.masthead-sub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+
+@media (min-width: 900px) {
+  .masthead h1 {
+    font-size: 28px;
+  }
+
+  .masthead h1 .wk {
+    font-size: 15px;
+  }
+}
+
+/* ---------- 台账正文：左页边一条朱砂线，完成的条目在线上盖章 ---------- */
+
+.flow {
+  position: relative;
+}
+
+.flow::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 14px;
+  bottom: 14px;
+  width: 1px;
+  background: var(--seal-line);
+}
+
+.sec {
+  position: relative;
+}
+
+.sec + .sec {
+  margin-top: 26px;
+}
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 42px;
+  margin-bottom: 4px;
+}
+
+.sec-head h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.06em;
+}
+
+.sec-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+/* ---------- 条目 ---------- */
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0 11px 42px;
+  min-height: 46px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.sec > .row:last-child {
+  border-bottom: 0;
+}
+
+/* 印章：空着是"未办"（一枚空印模），盖上朱砂是"已办" */
+.mark {
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--sheet);
+  display: grid;
+  place-items: center;
+  font-family: var(--serif);
+  font-size: 13px;
+  font-style: normal;
+  color: transparent;
+  user-select: none;
+}
+
+.row .mark::after {
+  content: "";
+}
+
+.row.is-done .mark {
+  background: var(--seal);
+  border-color: var(--seal);
+  color: #fff;
+}
+
+.row.is-done .mark::after {
+  content: "已";
+}
+
+/* 手盖的印不会颗颗端正 —— 极小角度，只在少数几颗上 */
+.row.is-done:nth-child(3n) .mark {
+  transform: translateY(-50%) rotate(3deg);
+}
+
+.row.is-done:nth-child(4n) .mark {
+  transform: translateY(-50%) rotate(-2.5deg);
+}
+
+.row-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-title {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.row.is-done .row-title {
+  color: var(--ink-faint);
+}
+
+.row-sub {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+
+.row-meta {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.row-meta b {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+/* 已办的行连数字一起淡下去 —— 整行退到背景里，只剩印章还在 */
+.row.is-done .row-meta,
+.row.is-done .row-meta b {
+  color: var(--ink-faint);
+}
+
+@media (min-width: 900px) {
+  .flow::before {
+    left: 20px;
+  }
+
+  .sec-head {
+    padding-left: 52px;
+  }
+
+  .row {
+    padding-left: 52px;
+    padding-top: 13px;
+    padding-bottom: 13px;
+    gap: 16px;
+  }
+
+  /* 时间块跟着行一起对齐到同一个文字列 */
+  .block {
+    padding-left: 52px;
+  }
+
+  .block-time {
+    width: 52px;
+  }
+
+  .mark {
+    left: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 15px;
+  }
+
+  .row-title {
+    font-size: 15.5px;
+  }
+}
+
+/* 可点条目 */
+a.row,
+.row.is-tappable {
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+a.row:hover,
+.row.is-tappable:hover {
+  background: rgba(27, 36, 48, 0.025);
+}
+
+/* ---------- 时间块（AI 安排） ---------- */
+
+.block {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 0 10px 42px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.block-time {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 42px;
+  font-family: var(--serif);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.block-title {
+  flex: 1;
+  font-size: 15px;
+}
+
+.block-dur {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* ---------- 底部导航（移动端）/ 左侧栏（桌面端） ---------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  background: var(--sheet);
+  border-top: 1px solid var(--rule);
+}
+
+.tabbar a {
+  flex: 1;
+  padding: 13px 0 15px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+
+.tabbar a.on {
+  color: var(--seal);
+  font-weight: 600;
+}
+
+.rail {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .tabbar {
+    display: none;
+  }
+
+  .rail {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--rail-w);
+    padding: 26px 16px 22px;
+    background: var(--sheet);
+    border-right: 1px solid var(--rule);
+  }
+
+  .rail-brand {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 17px;
+    padding: 0 10px 22px;
+    letter-spacing: 0.01em;
+  }
+
+  .rail-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .rail-list a {
+    display: block;
+    padding: 9px 10px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+  }
+
+  .rail-list a:hover {
+    color: var(--ink);
+  }
+
+  .rail-list a.on {
+    color: var(--seal);
+    font-weight: 600;
+    border-left-color: var(--seal);
+  }
+
+  .rail-foot {
+    margin-top: auto;
+    padding: 0 10px;
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ---------- 右页边栏（桌面端）：账目的"合计"栏 ---------- */
+
+.aside {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .aside {
+    display: block;
+    position: sticky;
+    top: 40px;
+  }
+
+  .figs {
+    border-top: 1px solid var(--ink);
+    padding-top: 10px;
+  }
+
+  .figs h3,
+  .aside h3 {
+    margin: 0 0 10px;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+
+  .fig {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+
+  .fig b {
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--ink);
+  }
+
+  .fig.is-seal b {
+    color: var(--seal);
+  }
+
+  .aside-note {
+    margin-top: 28px;
+  }
+}
+
+/* 移动端把"合计"收成一行小字，不占屏 */
+.figs-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 0 0 22px;
+  padding: 10px 0;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule-soft);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.figs-inline b {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--ink);
+  margin-left: 4px;
+}
+
+@media (min-width: 900px) {
+  .figs-inline {
+    display: none;
+  }
+}
+
+/* ---------- 通用小件 ---------- */
+
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--seal);
+  background: transparent;
+  border: 1px solid var(--seal);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--seal-tint);
+}
+
+.btn-quiet {
+  color: var(--ink-soft);
+  border-color: var(--rule);
+}
+
+.btn-quiet:hover {
+  background: rgba(27, 36, 48, 0.03);
+}
+
+.empty {
+  padding: 28px 0 28px 42px;
+  font-size: 13.5px;
+  color: var(--ink-faint);
+}
+
+.timeline {
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--rule);
+}

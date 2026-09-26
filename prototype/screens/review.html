@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>回顾 · HabitForge 原型</title>
+<link rel="stylesheet" href="../styles/base.css" />
+<style>
+  /* 上半：账目 */
+  .track-figs {
+    display: flex;
+    gap: 10px;
+    padding: 4px 0 22px 42px;
+  }
+
+  .track-figs > div {
+    flex: 1;
+  }
+
+  .track-figs .k {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  .track-figs .v {
+    font-family: var(--serif);
+    font-size: 26px;
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+
+  .track-figs .v small {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-left: 2px;
+  }
+
+  /* 最近 30 天：一格一天，墨色深浅是当天的完成度。
+     满格的那天盖朱砂 —— 一眼看出哪些日子是"齐了"的。 */
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 44px;
+    margin-left: 42px;
+    margin-bottom: 10px;
+  }
+
+  .bars i {
+    flex: 1;
+    height: calc(var(--v) * 100%);
+    min-height: 3px;
+    background: var(--ink);
+    opacity: 0.28;
+    border-radius: 1px;
+  }
+
+  .bars i[data-full] {
+    background: var(--seal);
+    opacity: 1;
+  }
+
+  .bars-axis {
+    display: flex;
+    justify-content: space-between;
+    margin-left: 42px;
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 下半：记录时间线。规线在这里是中性的 —— 它是时间轴，不是"已办"线。 */
+  .timeline {
+    margin-top: 30px;
+  }
+
+  .entry {
+    display: block;
+    position: relative;
+    padding: 0 0 24px 42px;
+  }
+
+  .entry::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: 7px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 1px solid var(--ink-faint);
+  }
+
+  .entry .date {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .entry h3 {
+    margin: 3px 0 0;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .entry p {
+    margin: 5px 0 0;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  .entry .mood {
+    margin-top: 7px;
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+
+  .entry:hover h3 {
+    color: var(--seal);
+  }
+
+  /* 桌面右栏：各习惯的本月账 */
+  .rate {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .rate b {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  @media (min-width: 900px) {
+    /* 注意：这三块的对齐方式不同 —— .track-figs 用 padding，.bars/.bars-axis 用 margin。
+       一起写 margin-left 会让 .track-figs 叠加成 42 + 52 = 94px，比标题多缩进一截。 */
+    .track-figs {
+      padding-left: 52px;
+    }
+
+    .bars {
+      margin-left: 52px;
+      height: 64px;
+      gap: 4px;
+    }
+
+    .bars-axis {
+      margin-left: 52px;
+    }
+
+    .entry {
+      padding-left: 52px;
+    }
+
+    /* 圆点宽 7px、left 17 → 圆心 20.5；竖线宽 1px，left 20 才落在同一个圆心上 */
+    .timeline::before {
+      left: 20px;
+    }
+
+    .entry::before {
+      left: 17px;
+    }
+  }
+</style>
+</head>
+<body class="screen screen-review">
+
+<nav class="rail" aria-label="主导航">
+  <div class="rail-brand">HabitForge</div>
+  <ul class="rail-list">
+    <li><a href="today.html">今日</a></li>
+    <li><a href="library.html">库</a></li>
+    <li><a class="on" href="review.html" aria-current="page">回顾</a></li>
+    <li><a href="me.html">我</a></li>
+  </ul>
+  <div class="rail-foot">2026年9月27日</div>
+</nav>
+
+<main class="content">
+  <div class="wrap">
+    <div class="col-main">
+
+      <header class="masthead">
+        <div class="masthead-row">
+          <h1>回顾</h1>
+        </div>
+        <p class="masthead-sub">本月完成率比上月高 6 个点</p>
+      </header>
+
+      <section class="sec">
+        <div class="sec-head"><h2>最近 30 天</h2></div>
+
+        <div class="track-figs">
+          <div>
+            <div class="k">完成率</div>
+            <div class="v">78<small>%</small></div>
+          </div>
+          <div>
+            <div class="k">本月打卡</div>
+            <div class="v">126<small>次</small></div>
+          </div>
+          <div>
+            <div class="k">最长连续</div>
+            <div class="v">21<small>天</small></div>
+          </div>
+        </div>
+
+        <div class="bars">
+          <i style="--v: .60"></i><i style="--v: .80"></i><i style="--v: 1" data-full></i>
+          <i style="--v: .40"></i><i style="--v: .90"></i><i style="--v: .70"></i>
+          <i style="--v: 1" data-full></i><i style="--v: .50"></i><i style="--v: .80"></i>
+          <i style="--v: 1" data-full></i><i style="--v: .90"></i><i style="--v: .30"></i>
+          <i style="--v: 1" data-full></i><i style="--v: .70"></i><i style="--v: .80"></i>
+          <i style="--v: .60"></i><i style="--v: .90"></i><i style="--v: 1" data-full></i>
+          <i style="--v: .40"></i><i style="--v: .80"></i><i style="--v: .90"></i>
+          <i style="--v: .70"></i><i style="--v: 1" data-full></i><i style="--v: .60"></i>
+          <i style="--v: .80"></i><i style="--v: .50"></i><i style="--v: .90"></i>
+          <i style="--v: 1" data-full></i><i style="--v: .70"></i><i style="--v: 1" data-full></i>
+        </div>
+        <div class="bars-axis">
+          <span>8月29日</span>
+          <span>今天</span>
+        </div>
+      </section>
+
+      <div class="timeline">
+        <div class="sec-head"><h2>记录</h2></div>
+
+        <a class="entry" href="#">
+          <div class="date">9月26日 星期六</div>
+          <h3>第一次跑进 25 分钟</h3>
+          <p>本来只想跑 3 公里，状态不错多跑了一圈。前两周还觉得 30 分钟是道坎，今天回头看那道坎是假的。</p>
+          <div class="mood">心情：很好</div>
+        </a>
+
+        <a class="entry" href="#">
+          <div class="date">9月25日 星期五</div>
+          <h3>线代第三章卡住了</h3>
+          <p>特征值这块看了两遍还是懵。明天不往下走了，把第三章的习题从头再做一遍。</p>
+          <div class="mood">心情：一般</div>
+        </a>
+
+        <a class="entry" href="#">
+          <div class="date">9月24日 星期四</div>
+          <h3>早读坚持到第 10 天</h3>
+          <p>原来最难的不是读，是起床那五分钟。把这五分钟单独拎出来看，剩下的事就顺了。</p>
+          <div class="mood">心情：很好</div>
+        </a>
+
+        <a class="entry" href="#">
+          <div class="date">9月23日 星期三</div>
+          <p>下午开会到很晚，跑步没跑成，记一笔原因：会后太累，直接睡了。明天补上。</p>
+          <div class="mood">心情：有点累</div>
+        </a>
+      </div>
+
+    </div>
+
+    <aside class="aside">
+      <div class="figs">
+        <h3>各习惯 · 本月</h3>
+        <div class="rate"><span>喝够 8 杯水</span><b>100%</b></div>
+        <div class="rate"><span>周记复盘</span><b>100%</b></div>
+        <div class="rate"><span>早读 30 分钟</span><b>92%</b></div>
+        <div class="rate"><span>背单词 50 个</span><b>87%</b></div>
+        <div class="rate"><span>跑步 3 公里</span><b>71%</b></div>
+        <div class="rate"><span>冥想 10 分钟</span><b>65%</b></div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<nav class="tabbar" aria-label="主导航">
+  <a href="today.html">今日</a>
+  <a href="library.html">库</a>
+  <a class="on" href="review.html" aria-current="page">回顾</a>
+  <a href="me.html">我</a>
+</nav>
+
+</body>
+</html>

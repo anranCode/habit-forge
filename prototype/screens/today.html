@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>今日 · HabitForge 原型</title>
+<link rel="stylesheet" href="../styles/base.css" />
+<style>
+  /* 考试倒计时：页头常驻的一行。用墨色不用朱砂 —— 朱砂留给"已办"，
+     一个日期倒计时跟"完成"是反义，抢同一个颜色会把印章的意义冲淡。
+     （真要表达"来不及了"，规则是 7 天以内才转朱砂。） */
+  .exam {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 9px 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    font-size: 13px;
+  }
+
+  .exam-name {
+    font-weight: 600;
+  }
+
+  .exam-date {
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .exam-left {
+    margin-left: auto;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .exam-left b {
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--ink);
+    margin: 0 2px;
+  }
+
+  .row-meta.act {
+    color: var(--seal);
+  }
+
+  /* 桌面右栏的随手记 */
+  .note-box {
+    width: 100%;
+    min-height: 96px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    resize: vertical;
+  }
+
+  .note-box::placeholder {
+    color: var(--ink-faint);
+  }
+
+  @media (min-width: 900px) {
+    .done-strip {
+      padding-left: 52px;
+    }
+  }
+</style>
+</head>
+<body class="screen screen-today">
+
+<nav class="rail" aria-label="主导航">
+  <div class="rail-brand">HabitForge</div>
+  <ul class="rail-list">
+    <li><a class="on" href="today.html" aria-current="page">今日</a></li>
+    <li><a href="library.html">库</a></li>
+    <li><a href="review.html">回顾</a></li>
+    <li><a href="me.html">我</a></li>
+  </ul>
+  <div class="rail-foot">2026年9月27日</div>
+</nav>
+
+<main class="content">
+  <div class="wrap">
+    <div class="col-main">
+
+      <header class="masthead">
+        <div class="masthead-row">
+          <h1>9月27日<span class="wk">星期日</span></h1>
+          <div class="carry">连续 <b>19</b> 天</div>
+        </div>
+        <div class="exam">
+          <span class="exam-name">考研初试</span>
+          <span class="exam-date">12月20日</span>
+          <span class="exam-left">还有 <b>84</b> 天</span>
+        </div>
+        <p class="masthead-sub">今天要做 9 件事，已完成 4 件</p>
+      </header>
+
+      <!-- 移动端：合计收成一行，不占屏 -->
+      <div class="figs-inline">
+        <span>积分<b>1,240</b></span>
+        <span>到期卡<b>23</b></span>
+        <span>错题<b>8</b></span>
+      </div>
+
+      <div class="flow">
+
+        <section class="sec">
+          <div class="sec-head"><h2>已排期</h2></div>
+          <div class="block">
+            <span class="block-time">08:30</span>
+            <span class="block-title">早读《经济学人》精读</span>
+            <span class="block-dur">40 分钟</span>
+          </div>
+          <div class="block">
+            <span class="block-time">14:00</span>
+            <span class="block-title">线性代数 第三章</span>
+            <span class="block-dur">60 分钟</span>
+          </div>
+          <div class="block">
+            <span class="block-time">20:30</span>
+            <span class="block-title">英语单词复习</span>
+            <span class="block-dur">30 分钟</span>
+          </div>
+        </section>
+
+        <section class="sec">
+          <div class="sec-head"><h2>待完成</h2></div>
+
+          <div class="row is-tappable">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body"><div class="row-title">早读 30 分钟</div></div>
+            <div class="row-meta">连续 <b>12</b> 天</div>
+          </div>
+
+          <div class="row is-tappable">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body"><div class="row-title">背单词 50 个</div></div>
+            <div class="row-meta">连续 <b>7</b> 天</div>
+          </div>
+
+          <div class="row is-tappable">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body"><div class="row-title">跑步 3 公里</div></div>
+            <div class="row-meta">连续 <b>3</b> 天</div>
+          </div>
+
+          <div class="row is-tappable">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body">
+              <div class="row-title">复习到期的闪卡</div>
+              <div class="row-sub">英语、专业课</div>
+            </div>
+            <div class="row-meta"><b>23</b> 张</div>
+          </div>
+
+          <div class="row is-tappable">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body">
+              <div class="row-title">错题重做</div>
+              <div class="row-sub">线性代数</div>
+            </div>
+            <div class="row-meta"><b>8</b> 道</div>
+          </div>
+        </section>
+
+        <section class="sec">
+          <div class="sec-head"><h2>收尾</h2></div>
+          <a class="row" href="review.html">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body">
+              <div class="row-title">写今天的记录</div>
+              <div class="row-sub">今天还没有写</div>
+            </div>
+            <div class="row-meta act">去写</div>
+          </a>
+        </section>
+
+        <!-- 今天做过的：不藏起来，而是写进台账下半页 ——
+             盖了印、字迹淡下去。刷题量在这里看得见，印章也连成一条链。 -->
+        <section class="sec">
+          <div class="sec-head"><h2>今天做过</h2></div>
+
+          <div class="row is-done">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body"><div class="row-title">冥想 10 分钟</div></div>
+            <div class="row-meta">连续 <b>3</b> 天</div>
+          </div>
+
+          <div class="row is-done">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body"><div class="row-title">喝够 8 杯水</div></div>
+            <div class="row-meta">连续 <b>21</b> 天</div>
+          </div>
+
+          <div class="row is-done">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body">
+              <div class="row-title">专业课刷题</div>
+              <div class="row-sub">第 4 章 电路分析</div>
+            </div>
+            <div class="row-meta"><b>15</b> 道</div>
+          </div>
+
+          <div class="row is-done">
+            <i class="mark" aria-hidden="true"></i>
+            <div class="row-body">
+              <div class="row-title">英语闪卡新学</div>
+              <div class="row-sub">第 7 单元</div>
+            </div>
+            <div class="row-meta"><b>12</b> 张</div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <aside class="aside">
+      <div class="figs">
+        <h3>本日合计</h3>
+        <div class="fig is-seal"><span>连续天数</span><b>19</b></div>
+        <div class="fig"><span>积分</span><b>1,240</b></div>
+        <div class="fig"><span>到期闪卡</span><b>23</b></div>
+        <div class="fig"><span>错题</span><b>8</b></div>
+        <div class="fig"><span>今日完成</span><b>4 / 9</b></div>
+      </div>
+
+      <div class="aside-note">
+        <h3>随手记</h3>
+        <textarea class="note-box" placeholder="想到什么先记下来，晚上再整理"></textarea>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<nav class="tabbar" aria-label="主导航">
+  <a class="on" href="today.html" aria-current="page">今日</a>
+  <a href="library.html">库</a>
+  <a href="review.html">回顾</a>
+  <a href="me.html">我</a>
+</nav>
+
+</body>
+</html>
