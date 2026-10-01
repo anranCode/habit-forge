@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { HabitCreatePayload, Category, FrequencyType } from '@/types/habit'
+import type { HabitCreatePayload, Category, FrequencyType, HabitType } from '@/types/habit'
 import { usePopupPosition } from '@/composables/useDesktop'
 
 const popupPosition = usePopupPosition()
@@ -28,6 +28,11 @@ const categories: { value: Category; label: string }[] = [
   { value: 'WORK', label: '工作' },
   { value: 'LIFE', label: '生活' },
   { value: 'OTHER', label: '其他' }
+]
+
+const habitTypes: { value: HabitType; label: string; hint: string }[] = [
+  { value: 'GOOD', label: '好习惯', hint: '要做到，如：每天阅读 20 分钟' },
+  { value: 'BAD', label: '坏习惯戒断', hint: '要忍住，如：不刷短视频；打卡 = 今天忍住了' }
 ]
 
 const freqOptions: { value: FrequencyType; label: string }[] = [
@@ -112,6 +117,24 @@ function onTimeConfirm({ selectedValues }: { selectedValues: string[] }) {
           >
             {{ c.label }}
           </span>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field-label">习惯类型</div>
+        <div class="chips">
+          <span
+            v-for="t in habitTypes"
+            :key="t.value"
+            class="chip"
+            :class="{ active: (form.habitType || 'GOOD') === t.value }"
+            @click="form.habitType = t.value; sync()"
+          >
+            {{ t.label }}
+          </span>
+        </div>
+        <div class="text-light type-hint">
+          {{ ((form.habitType || 'GOOD') === 'BAD' ? habitTypes[1] : habitTypes[0]).hint }}
         </div>
       </div>
     </van-cell-group>
@@ -204,6 +227,7 @@ function onTimeConfirm({ selectedValues }: { selectedValues: string[] }) {
 <style scoped lang="scss">
 .field-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   padding: 12px 16px;
   background: #fff;
@@ -221,6 +245,15 @@ function onTimeConfirm({ selectedValues }: { selectedValues: string[] }) {
     flex-wrap: wrap;
     gap: 8px;
     flex: 1;
+  }
+
+  /* 习惯类型说明：占满整行换到 chips 下方, 与 chips 左对齐（72px = .field-label 宽度） */
+  .type-hint {
+    flex-basis: 100%;
+    padding-left: 72px;
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.5;
   }
 }
 

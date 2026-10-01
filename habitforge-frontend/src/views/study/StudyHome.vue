@@ -5,6 +5,7 @@ import { useGoBack } from '@/composables/useGoBack'
 import type { StudyOverview } from '@/types/study'
 import { apiStudyOverview } from '@/api'
 import SubjectCard from '@/components/study/SubjectCard.vue'
+import StudyTimerCard from '@/components/study/StudyTimerCard.vue'
 import { useIsDesktop } from '@/composables/useDesktop'
 
 const router = useRouter()
@@ -45,6 +46,18 @@ function goCreate() {
     </van-nav-bar>
 
     <div class="page-body">
+      <!-- 学习时长计时（P0）：开始/结束计时 + 今日累计 + 手动补录 -->
+      <StudyTimerCard :subjects="overview?.subjects ?? []" />
+
+      <!-- 本周 AI 复盘入口 -->
+      <div class="card review-entry is-clickable" @click="router.push('/report/weekly')">
+        <div class="left">
+          <div class="t">📊 本周复盘</div>
+          <div class="d text-light">AI 依据学习时长、打卡与复习数据给出客观评价和改进建议</div>
+        </div>
+        <van-icon name="arrow" color="var(--hf-text-light)" />
+      </div>
+
       <!-- 桌面端把汇总条与复习入口并成一行；移动端 .split 没有任何声明，仍是上下两块 -->
       <div class="split is-half">
         <!-- 顶部汇总条（apiStudyOverview 实时数据：到期卡/错题/今日复习） -->

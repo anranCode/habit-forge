@@ -141,6 +141,18 @@ public class JournalServiceImpl implements JournalService {
                 .orderByDesc(Journal::getJournalDate));
     }
 
+    @Override
+    public List<Journal> listByRangeWithContent(String userId, LocalDate from, LocalDate to) {
+        if (from == null || to == null || from.isAfter(to)) {
+            return List.of();
+        }
+        // 周报上下文只读: 落在统计区间内的日记, journalDate 升序（叙事顺序）
+        return journalMapper.selectList(new LambdaQueryWrapper<Journal>()
+                .eq(Journal::getUserId, userId)
+                .between(Journal::getJournalDate, from, to)
+                .orderByAsc(Journal::getJournalDate));
+    }
+
     // ================= 更新 / 删除 =================
 
     @Override

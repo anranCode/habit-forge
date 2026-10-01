@@ -2,6 +2,7 @@ package com.habitforge.modules.habit.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.habitforge.common.enums.FrequencyTypeEnum;
+import com.habitforge.common.enums.HabitTypeEnum;
 import com.habitforge.common.exception.BusinessException;
 import com.habitforge.common.exception.ErrorCode;
 import com.habitforge.common.util.FrequencyUtil;
@@ -40,7 +41,8 @@ public class HabitServiceImpl implements HabitService {
         habit.setName(dto.getName());
         habit.setIdentityTag(dto.getIdentityTag());
         habit.setCategory(orOther(dto.getCategory()));
-        habit.setHabitType("GOOD");
+        habit.setHabitType(dto.getHabitType() == null || dto.getHabitType().isBlank()
+                ? HabitTypeEnum.GOOD.name() : dto.getHabitType());
         habit.setFrequencyType(dto.getFrequencyType() == null ? FrequencyTypeEnum.DAILY.name() : dto.getFrequencyType());
         habit.setFrequencyDays(dto.getFrequencyDays());
         habit.setFrequencyTarget(dto.getFrequencyTarget() == null ? 1 : dto.getFrequencyTarget());
@@ -77,6 +79,9 @@ public class HabitServiceImpl implements HabitService {
         }
         if (dto.getCategory() != null && !dto.getCategory().isBlank()) {
             habit.setCategory(orOther(dto.getCategory()));
+        }
+        if (dto.getHabitType() != null && !dto.getHabitType().isBlank()) {
+            habit.setHabitType(dto.getHabitType());
         }
         if (dto.getFrequencyType() != null && !dto.getFrequencyType().isBlank()) {
             habit.setFrequencyType(dto.getFrequencyType());

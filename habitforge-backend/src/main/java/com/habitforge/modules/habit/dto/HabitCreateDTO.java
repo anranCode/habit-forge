@@ -15,6 +15,13 @@ public class HabitCreateDTO {
     @Size(max = 100, message = "身份标签最长 100 字")
     private String identityTag;
 
+    /**
+     * 习惯类型: GOOD 好习惯（要做到）/ BAD 坏习惯戒断（要忍住）。
+     * BAD 的打卡语义是「今天忍住了」, 链同样按连续天数计算。
+     */
+    @Pattern(regexp = "^(GOOD|BAD)?$", message = "习惯类型取值不合法")
+    private String habitType;
+
     @Pattern(regexp = "^(HEALTH|LEARNING|WORK|LIFE|OTHER)?$", message = "分类取值不合法")
     private String category;
 

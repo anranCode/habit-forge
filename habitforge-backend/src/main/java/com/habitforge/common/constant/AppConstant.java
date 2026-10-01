@@ -26,6 +26,41 @@ public final class AppConstant {
     /** 到期复习队列默认上限 */
     public static final int REVIEW_QUEUE_DEFAULT_LIMIT = 50;
 
+    /** 单段学习计时上限（分钟）: 12 小时, 防挂机把一条记录撑成整天 */
+    public static final int STUDY_SESSION_MAX_MINUTES = 12 * 60;
+
+    /** 学习计时写入限流：同一用户每分钟最多 30 次（开始/结束/补录共用, 正常人远够） */
+    public static final int STUDY_SESSION_RATE_LIMIT = 30;
+
+    /** 学习时长按日聚合查询区间上限（天） */
+    public static final int STUDY_TIME_MAX_RANGE_DAYS = 366;
+
+    // ================= P2 手机节制 =================
+
+    /** 用户未设置上限时的每日娱乐时长上限（分钟） */
+    public static final int FOCUS_DEFAULT_LIMIT_MINUTES = 60;
+
+    /** 单日娱乐时长录入上限（分钟, 24 小时） */
+    public static final int FOCUS_ENTERTAINMENT_MAX_MINUTES = 24 * 60;
+
+    /** 单日拿起手机次数上限（防手滑输入天文数字） */
+    public static final int FOCUS_PICKUPS_MAX = 1000;
+
+    /** 节制达标（当日娱乐时长不超上限）奖励积分; 从不达标改回达标同样发, 反向扣 */
+    public static final int POINTS_PER_FOCUS_COMPLIANT = 10;
+
+    /** 注意力写入限流：同一用户每分钟最多 30 次 */
+    public static final int FOCUS_RATE_LIMIT = 30;
+
+    /** 注意力趋势查询区间上限（天） */
+    public static final int FOCUS_MAX_RANGE_DAYS = 366;
+
+    /** 环境设计清单条数上限（每用户） */
+    public static final int ENV_SETTING_MAX = 50;
+
+    /** 问责契约条数上限（每用户） */
+    public static final int CONTRACT_MAX = 20;
+
     /** 等级阈值：每满 100 分升 1 级 */
     public static final int POINTS_PER_LEVEL = 100;
 
@@ -58,6 +93,9 @@ public final class AppConstant {
 
     /** AI 每日限流窗口（小时, 25h 让"当日"窗口跨过自然日边界冗余） */
     public static final long AI_RATE_WINDOW_HOURS = 25L;
+
+    /** AI 周报限流窗口（天, 8 天让"本周"窗口跨过周一自然边界冗余） */
+    public static final int AI_REPORT_RATE_WINDOW_DAYS = 8;
 
     /** AI user prompt 字符预算（超预算日记节按 3→2→1 天降档, 目标单次 ≤3k token） */
     public static final int AI_CONTEXT_CHAR_BUDGET = 5000;

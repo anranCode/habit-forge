@@ -40,6 +40,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Integer getFocusLimit(String userId) {
+        User user = userMapper.selectById(userId);
+        return user == null ? null : user.getFocusDailyLimit();
+    }
+
+    @Override
+    public void updateFocusLimit(String userId, Integer minutes) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+        user.setFocusDailyLimit(minutes);
+        userMapper.updateById(user);
+    }
+
+    @Override
     public void addPoints(String userId, int delta) {
         User user = userMapper.selectById(userId);
         if (user == null) {

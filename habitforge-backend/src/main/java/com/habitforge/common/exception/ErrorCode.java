@@ -70,7 +70,29 @@ public enum ErrorCode {
     REVIEW_RATING_INVALID(7005, "复习评分无效（1-4）"),
     NOTE_NOT_FOUND(7006, "笔记不存在"),
     QUESTION_NOT_FOUND(7007, "题目不存在"),
-    WRONG_NOT_FOUND(7008, "错题记录不存在");
+    WRONG_NOT_FOUND(7008, "错题记录不存在"),
+
+    // 学习时长 7xxx（P0 计时）
+    STUDY_SESSION_NOT_FOUND(7009, "学习记录不存在"),
+    STUDY_SESSION_RUNNING(7010, "已有正在进行的学习计时，请先结束它"),
+    STUDY_SESSION_NOT_RUNNING(7011, "该学习计时已结束"),
+    STUDY_SESSION_TIME_INVALID(7012, "学习时长或日期不合法"),
+
+    // 复盘/周报 8xxx
+    REVIEW_NOT_FOUND(8001, "复盘记录不存在"),
+    REVIEW_WEEK_LIMITED(8002, "本周报告生成次数已达上限"),
+
+    // 注意力/节制 9xxx（P2 手机节制）
+    FOCUS_VALUE_INVALID(9001, "娱乐时长或次数不合法"),
+    FOCUS_DATE_INVALID(9002, "日期无效（不能是未来的日子）"),
+
+    // 环境设计 90xx
+    ENV_SETTING_NOT_FOUND(9011, "环境设置不存在"),
+    ENV_SETTING_LIMIT_EXCEEDED(9012, "环境设置条数已达上限"),
+
+    // 问责契约 90xx
+    CONTRACT_NOT_FOUND(9021, "契约不存在"),
+    CONTRACT_STATUS_INVALID(9022, "契约状态不合法");
 
     private final int code;
     private final String message;

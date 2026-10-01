@@ -12,4 +12,10 @@ public interface UserService {
 
     /** 读取身份目标"我想成为..."（AI 上下文只读; 用户不存在返回 null） */
     String getIdentityGoal(String userId);
+
+    /** 读取每日娱乐时长上限（分钟; null = 用户没设过, 用系统默认） */
+    Integer getFocusLimit(String userId);
+
+    /** 设置每日娱乐时长上限（传 null 表示恢复系统默认） */
+    void updateFocusLimit(String userId, Integer minutes);
 }

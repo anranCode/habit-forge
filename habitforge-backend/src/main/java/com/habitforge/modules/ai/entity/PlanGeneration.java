@@ -14,13 +14,21 @@ import java.time.LocalDateTime;
 @TableName("plan_generations")
 public class PlanGeneration {
 
+    /** 今日安排生成 */
+    public static final String KIND_PLAN = "PLAN";
+    /** 每周复盘报告生成 */
+    public static final String KIND_WEEKLY_REPORT = "WEEKLY_REPORT";
+
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     private String userId;
 
-    /** 目标计划（懒创建失败时可空） */
+    /** 目标计划（懒创建失败时可空; 周报流行为 null） */
     private String planId;
+
+    /** 类型: PLAN 今日安排 / WEEKLY_REPORT 周报 */
+    private String kind;
 
     /** 模型名 */
     private String model;

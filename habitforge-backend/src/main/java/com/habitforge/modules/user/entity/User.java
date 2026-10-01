@@ -29,6 +29,9 @@ public class User {
 
     private Integer level;
 
+    /** 每日娱乐时长上限（分钟; null = 用系统默认值, 见 AppConstant.FOCUS_DEFAULT_LIMIT_MINUTES） */
+    private Integer focusDailyLimit;
+
     private Integer isActive;
 
     private LocalDateTime createdAt;

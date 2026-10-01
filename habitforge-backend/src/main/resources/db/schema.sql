@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
     avatar_url      VARCHAR(500)    NULL COMMENT '头像URL',
     points          INT             DEFAULT 0 COMMENT '积分',
     level           INT             DEFAULT 1 COMMENT '等级',
+    focus_daily_limit INT           NULL COMMENT '每日娱乐时长上限(分钟, NULL=用系统默认值)',
     is_active       TINYINT(1)      DEFAULT 1 COMMENT '是否启用',
     created_at      DATETIME        DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -95,6 +96,7 @@ CREATE TABLE IF NOT EXISTS environment_settings (
     id              VARCHAR(36)     PRIMARY KEY DEFAULT (UUID()),
     user_id         VARCHAR(36)     NOT NULL COMMENT '所属用户',
     type            VARCHAR(20)     NOT NULL COMMENT '类型: PROMPT/RESISTANCE/COMMITMENT',
+    category        VARCHAR(20)     DEFAULT 'OTHER' COMMENT '类别: PHONE手机节制/HABIT习惯环境/OTHER其他',
     description     VARCHAR(500)    NOT NULL COMMENT '设置描述',
     target_habit_id VARCHAR(36)     NULL COMMENT '关联的习惯ID',
     is_active       TINYINT(1)      DEFAULT 1 COMMENT '是否生效',
@@ -135,10 +137,19 @@ CREATE TABLE IF NOT EXISTS reviews (
     good_things     TEXT            NULL COMMENT '做得好的事',
     bad_things      TEXT            NULL COMMENT '做得不好的事',
     learnings       TEXT            NULL COMMENT '学到的东西',
-    review_date     DATE            NOT NULL COMMENT '复盘日期',
+    suggestions     TEXT            NULL COMMENT '改进建议(P0 周报: AI 生成后用户可编辑)',
+    score           TINYINT         NULL COMMENT '综合评分 0-100(AI 生成, 用户可改)',
+    period_start    DATE            NULL COMMENT '统计区间起(WEEKLY=周一)',
+    period_end      DATE            NULL COMMENT '统计区间止(WEEKLY=周日)',
+    stats_snapshot  TEXT            NULL COMMENT '客观数据快照 JSON(供审计/复现, 与喂给 AI 的同源)',
+    ai_generated    TINYINT(1)      DEFAULT 0 COMMENT '内容是否由 AI 生成(生成后仍可编辑)',
+    model           VARCHAR(100)    NULL COMMENT '生成所用模型',
+    total_tokens    INT             NULL COMMENT '本次生成 token 用量',
+    review_date     DATE            NOT NULL COMMENT '复盘日期(周报=生成当天)',
     created_at      DATETIME        DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_user_type_period (user_id, type, period_start),
     INDEX idx_user_id (user_id),
     INDEX idx_review_date (review_date),
     INDEX idx_type (type)
@@ -468,7 +479,8 @@ CREATE TABLE IF NOT EXISTS plan_free_slots (
 CREATE TABLE IF NOT EXISTS plan_generations (
     id                VARCHAR(36)   PRIMARY KEY DEFAULT (UUID()),
     user_id           VARCHAR(36)   NOT NULL COMMENT '所属用户',
-    plan_id           VARCHAR(36)   NULL COMMENT '目标计划(懒创建失败时可空)',
+    plan_id           VARCHAR(36)   NULL COMMENT '目标计划(懒创建失败时可空; 周报流行为空)',
+    kind              VARCHAR(20)   DEFAULT 'PLAN' COMMENT '类型: PLAN今日安排/WEEKLY_REPORT周报',
     model             VARCHAR(100)  NULL COMMENT '模型名',
     prompt_tokens     INT           NULL COMMENT '输入 token 用量',
     completion_tokens INT           NULL COMMENT '输出 token 用量',
@@ -482,3 +494,47 @@ CREATE TABLE IF NOT EXISTS plan_generations (
     FOREIGN KEY (plan_id) REFERENCES daily_plans(id) ON DELETE SET NULL,
     INDEX idx_user_time (user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='AI 生成流水表';
+
+-- ============================================================
+-- 25. 学习计时表（P0 学习时长: 一段专注一行; session_date 冗余便于按日聚合）
+--     进行中 = ended_at IS NULL; 同一用户至多一段进行中(服务层保证)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS study_sessions (
+    id              VARCHAR(36)     PRIMARY KEY DEFAULT (UUID()),
+    user_id         VARCHAR(36)     NOT NULL COMMENT '所属用户',
+    subject_id      VARCHAR(36)     NULL COMMENT '关联科目(可选)',
+    chapter_id      VARCHAR(36)     NULL COMMENT '关联章节(可选)',
+    session_date    DATE            NOT NULL COMMENT '归属日期(取 started_at 自然日, 冗余便于聚合)',
+    started_at      DATETIME        NOT NULL COMMENT '开始时间',
+    ended_at        DATETIME        NULL COMMENT '结束时间(NULL=进行中)',
+    minutes         INT             NULL COMMENT '时长(分钟, 结束时服务端计算)',
+    source          VARCHAR(20)     DEFAULT 'TIMER' COMMENT '来源: TIMER计时/MANUAL补录',
+    note            VARCHAR(200)    NULL COMMENT '备注',
+    created_at      DATETIME        DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE SET NULL,
+    INDEX idx_user_date (user_id, session_date),
+    INDEX idx_user_open (user_id, ended_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='学习计时表';
+
+-- ============================================================
+-- 26. 注意力日志表（P2 手机节制: user × day 一天一行, 与 journals 同构）
+--     娱乐时长 ≤ 用户上限 记为「节制达标」, 达标/撤销按差量结算积分
+-- ============================================================
+CREATE TABLE IF NOT EXISTS focus_logs (
+    id                    VARCHAR(36)  PRIMARY KEY DEFAULT (UUID()),
+    user_id               VARCHAR(36)  NOT NULL COMMENT '所属用户',
+    log_date              DATE         NOT NULL COMMENT '日志日期(不允许未来)',
+    entertainment_minutes INT          NULL COMMENT '娱乐/短视频时长(分钟; NULL=当日尚未录入, 不算达标)',
+    pickups               INT          NULL COMMENT '拿起手机次数(可选)',
+    urge_total            INT          NOT NULL DEFAULT 0 COMMENT '当日冲动次数(想刷的瞬间)',
+    urge_resisted         INT          NOT NULL DEFAULT 0 COMMENT '其中忍住没刷的次数',
+    note                  VARCHAR(200) NULL COMMENT '备注',
+    created_at            DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at            DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_user_date (user_id, log_date),
+    INDEX idx_user_date (user_id, log_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='注意力日志表(手机节制)';

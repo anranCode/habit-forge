@@ -175,6 +175,30 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '今日安排', backTo: '/home' }
   },
   {
+    path: '/focus',
+    name: 'FocusHome',
+    component: () => import('@/views/focus/FocusHome.vue'),
+    meta: { title: '注意力管理', backTo: '/home' }
+  },
+  {
+    path: '/focus/environment',
+    name: 'EnvironmentList',
+    component: () => import('@/views/focus/EnvironmentList.vue'),
+    meta: { title: '环境设计清单', backTo: '/focus' }
+  },
+  {
+    path: '/focus/contracts',
+    name: 'ContractList',
+    component: () => import('@/views/focus/ContractList.vue'),
+    meta: { title: '习惯契约', backTo: '/focus' }
+  },
+  {
+    path: '/report/weekly',
+    name: 'WeeklyReport',
+    component: () => import('@/views/report/WeeklyReport.vue'),
+    meta: { title: '本周复盘', backTo: '/study' }
+  },
+  {
     path: '/track',
     name: 'Track',
     component: () => import('@/views/track/Track.vue'),

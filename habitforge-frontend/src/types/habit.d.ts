@@ -1,12 +1,14 @@
 export type Category = 'HEALTH' | 'LEARNING' | 'WORK' | 'LIFE' | 'OTHER'
 export type FrequencyType = 'DAILY' | 'WEEKLY_DAYS' | 'WEEKLY_COUNT'
+/** GOOD 好习惯（要做到）/ BAD 坏习惯戒断（要忍住，打卡语义为"今天忍住了"） */
+export type HabitType = 'GOOD' | 'BAD'
 
 export interface Habit {
   id: string
   name: string
   identityTag?: string
   category: Category
-  habitType?: string
+  habitType?: HabitType
   frequencyType: FrequencyType
   frequencyDays?: string
   frequencyTarget?: number
@@ -29,6 +31,7 @@ export interface HabitCreatePayload {
   name: string
   identityTag?: string
   category?: Category
+  habitType?: HabitType
   frequencyType?: FrequencyType
   frequencyDays?: string
   frequencyTarget?: number

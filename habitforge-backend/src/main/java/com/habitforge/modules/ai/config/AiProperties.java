@@ -33,4 +33,21 @@ public class AiProperties {
 
     /** 有效块超出该数截断 */
     private int maxBlocks = 12;
+
+    // ================= P0 每周复盘报告 =================
+
+    /** 每人每周生成次数上限（含重新生成; 真值在 Redis, 键按周期起始日隔离） */
+    private int weeklyReportLimit = 2;
+
+    /** 周报上下文取近 N 天日记（一个自然周 = 7） */
+    private int reportJournalDays = 7;
+
+    /** 周报上下文心得条数上限 */
+    private int reportReflectionLimit = 15;
+
+    /** 每条日记/心得字段截断字数 */
+    private int reportCharsPerItem = 400;
+
+    /** AI 建议条数少于该数视为解析失败（返 6005, 不退额度） */
+    private int reportMinSuggestions = 2;
 }

@@ -16,6 +16,10 @@ public class HabitUpdateDTO {
     @Size(max = 100, message = "身份标签最长 100 字")
     private String identityTag;
 
+    /** GOOD 好习惯 / BAD 坏习惯戒断（见 HabitCreateDTO.habitType） */
+    @Pattern(regexp = "^(GOOD|BAD)?$", message = "习惯类型取值不合法")
+    private String habitType;
+
     @Pattern(regexp = "^(HEALTH|LEARNING|WORK|LIFE|OTHER)?$", message = "分类取值不合法")
     private String category;
 

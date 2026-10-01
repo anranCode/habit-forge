@@ -6,9 +6,10 @@ import { onMountedOrActivated } from '@vant/use'
 import type { Habit } from '@/types/habit'
 import type { JournalDetail, Reflection } from '@/types/journal'
 import { useHabitStore, useCheckinStore, useUserStore } from '@/stores'
-import { apiTodayJournal, apiReflectionsByJournal, apiStudyOverview, apiPlanToday } from '@/api'
+import { apiTodayJournal, apiReflectionsByJournal, apiStudyOverview, apiPlanToday, apiFocusToday } from '@/api'
 import type { StudyOverview } from '@/types/study'
 import type { DailyPlan } from '@/types/plan'
+import type { FocusLog } from '@/types/focus'
 import HabitCard from '@/components/habit/HabitCard.vue'
 import ReflectionEditor from '@/components/record/ReflectionEditor.vue'
 import StudyTaskCard from '@/components/study/StudyTaskCard.vue'
@@ -35,6 +36,8 @@ const reflections = ref<Reflection[]>([])
 const studyOverview = ref<StudyOverview | null>(null)
 // 今日 AI 安排摘要（未生成时 null）
 const plan = ref<DailyPlan | null>(null)
+// 今日注意力状态（P2 手机节制）
+const focus = ref<FocusLog | null>(null)
 const showReflectionEditor = ref(false)
 const reflectionHabit = ref<Habit | null>(null)
 const activeReflection = ref<Reflection | null>(null)
@@ -75,11 +78,20 @@ async function load() {
   await loadJournalAndReflections()
   await loadStudyOverview()
   await loadPlan()
+  await loadFocus()
 }
 
 async function loadPlan() {
   try {
     plan.value = await apiPlanToday()
+  } catch {
+    /* 错误已由拦截器提示 */
+  }
+}
+
+async function loadFocus() {
+  try {
+    focus.value = await apiFocusToday()
   } catch {
     /* 错误已由拦截器提示 */
   }
@@ -254,6 +266,29 @@ function goCreate() {
         <!-- 学习中心任务卡 -->
         <StudyTaskCard :overview="studyOverview" @click="router.push('/study')" />
 
+        <!-- 注意力管理（P2 手机节制）：今日娱乐时长与忍住率 -->
+        <div class="card focus-card is-clickable" @click="router.push('/focus')">
+          <div class="flex-between">
+            <span style="font-weight: 700"><span class="deco">📱 </span>注意力管理</span>
+            <span class="text-light">{{ focus && focus.entertainmentMinutes !== null ? '查看 ›' : '去记录 ›' }}</span>
+          </div>
+          <div v-if="focus && focus.entertainmentMinutes !== null" class="focus-line">
+            <span class="minutes" :class="{ over: !focus.compliant }">{{ focus.entertainmentMinutes }}</span>
+            <span class="text-light"> / {{ focus.limitMinutes }} 分钟</span>
+            <span class="badge" :class="focus.compliant ? 'ok' : 'warn'">
+              {{ focus.compliant ? '在限度内' : '超标' }}
+            </span>
+          </div>
+          <div v-else class="focus-line text-light">今天还没记录娱乐时长</div>
+          <div v-if="focus && focus.urgeTotal > 0" class="focus-sub text-light">
+            想刷 {{ focus.urgeTotal }} 次 · 忍住 {{ focus.urgeResisted }} 次<template
+              v-if="focus.resistRatePercent !== null"
+            >
+              · 忍住率 {{ focus.resistRatePercent }}%</template
+            >
+          </div>
+        </div>
+
         <!-- 今日记录 -->
         <div class="card journal-card is-clickable" @click="goTodayJournal">
           <div class="flex-between">
@@ -311,6 +346,49 @@ function goCreate() {
   margin-top: 6px;
   font-size: 13px;
   opacity: 0.7;
+}
+
+/* 注意力管理卡片（P2 手机节制） */
+.focus-card {
+  .focus-line {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    margin-top: 10px;
+    font-size: 13px;
+
+    .minutes {
+      font-size: 22px;
+      font-weight: 800;
+      color: $primary;
+
+      &.over {
+        color: #ee0a24;
+      }
+    }
+
+    .badge {
+      margin-left: 8px;
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+
+      &.ok {
+        color: #07c160;
+        background: rgba(7, 193, 96, 0.12);
+      }
+
+      &.warn {
+        color: #ee0a24;
+        background: rgba(238, 10, 36, 0.1);
+      }
+    }
+  }
+
+  .focus-sub {
+    font-size: 12px;
+    margin-top: 6px;
+  }
 }
 
 .level-badge {

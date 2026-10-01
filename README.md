@@ -21,6 +21,12 @@
 | 学习笔记 | Markdown 笔记 + 图片上传（MinIO），前端 marked+DOMPurify 渲染 |
 | 错题本 | 题库录入 + 错题重练，连对 2 次自动摘除 |
 | AI 今日安排 | 空闲时段录入 → AI 生成结构化时间块 → 一键采纳 → 完成并联动打卡 |
+| 学习时长记录 | 学习中心「开始/结束」计时 + 手动补录，按日/按科目汇总（学习维度 30 分钟达标线） |
+| 每周 AI 复盘 | 客观数据快照（学习时长/打卡/复习/日记/手机节制）→ AI 输出评分 + 客观评价 + 可执行建议，可编辑 |
+| 手机节制（注意力） | 每日娱乐时长 vs 上限达标（差量 ±10 积分）、「想刷但忍住了」冲动记录与忍住率、近 14 天趋势 |
+| 环境设计清单 | 启用 `environment_settings`：手机放远/卸载 App/灰度模式等可勾选清单，手机节制预设一键导入（幂等） |
+| 坏习惯戒断打卡 | `habit_type=BAD` 打通：打卡语义为「今天忍住了」，链按连续天数计 |
+| 习惯契约 | 启用 `contracts`：问责伙伴 + 违约代价，状态 ACTIVE/COMPLETED/BROKEN |
 
 ## 技术栈
 
@@ -121,6 +127,18 @@ npm run dev
 | PUT | `/plans/free-slots` | 覆盖式保存当日空闲时段 |
 | POST | `/plans/adopt` · `/plans/blocks/{id}/complete` | 一键采纳 / 完成（可联动打卡） |
 | GET | `/plans/usage` | 今日 AI 生成额度用量 |
+| POST | `/study/sessions/start` · `/{id}/end` | 开始/结束学习计时（已有进行中返 7010，超 12 小时返 7012） |
+| POST | `/study/sessions` | 手动补录时长（不允许未来日期） |
+| GET | `/study/sessions` · `/sessions/active` | 某日记录 / 进行中的计时（刷新后恢复计时） |
+| GET | `/study/time/summary` · `/time/daily` | 某日汇总 / 区间每日分钟（无记录的日子补 0） |
+| POST | `/reviews/weekly/generate` | AI 生成/重新生成某周复盘（同步阻塞，可能数十秒） |
+| GET | `/reviews/weekly` · `/weekly/usage` | 某周报告（未生成 data=null） / 本周生成额度 |
+| PUT | `/reviews/weekly/{id}` | 编辑周报（AI 只出初稿，终稿归用户） |
+| GET/PUT | `/focus/today` · `/focus/logs` | 今日注意力状态 / 录入某日娱乐时长（达标变化结算积分） |
+| POST | `/focus/urges` | 记一次「想刷手机」的冲动（忍住与否都记，只记今天） |
+| GET | `/focus/trend?from&to` · `PUT /focus/limit` | 区间趋势（未录入日 minutes 为 null） / 设置每日上限 |
+| GET/POST/PUT/DELETE | `/environment-settings` | 环境设计清单 CRUD（`PATCH /{id}/active` 勾选、`POST /batch` 预设幂等导入） |
+| GET/POST/PUT/DELETE | `/contracts` | 习惯契约 CRUD（`PATCH /{id}/status` 流转 ACTIVE/COMPLETED/BROKEN） |
 
 统一响应格式：`{ code, message, data, timestamp }`，code=200 成功，401 未登录，3001 今日已打卡等业务码见 `ErrorCode.java`。
 
@@ -131,6 +149,10 @@ npm run dev
 3. **打卡事务**：写 checkins、重算 streaks、发积分在同一 `@Transactional`。
 4. **频率模型**：DAILY / WEEKLY_DAYS（如周一三五）/ WEEKLY_COUNT（每周 N 次，链按"周"计）。
 5. **积分体系**：打卡 +10，里程碑 7/30/100 天分别 +50/+200/+500（写入 achievements），每 100 分升 1 级。
+6. **学习时长只认已结束的记录**：进行中的计时不计入统计，避免时长随秒数跳动；单段上限 12 小时（防挂机），超过则要求删除后手动补录。
+7. **周报的客观数据与 AI 输入同源**：`WeeklyReportContextAssembler` 生成一份快照，既拼进 prompt，也原样存进 `reviews.stats_snapshot`——报告可复现、可审计；prompt 超预算时按「日记正文 → 心得」降档，**数字骨架永不裁**，因为那是 AI 下结论的唯一依据。
+8. **节制达标按差量结算**：娱乐时长「不达标→达标」+10、「达标→不达标」−10（沿打卡撤销范式）；`entertainment_minutes` 允许为 NULL 表示"当日尚未录入"，**点了冲动按钮不会白拿达标分**；改每日上限不追溯调整已结算积分。
+9. **周报统计区间止于今天**：本周未过完时 periodEnd 取当天而非周日，否则未来的空白日会把"日均"摊薄，AI 会据此得出"你本周只学了 3 天"的错误结论。
 
 ## 环境变量
 
@@ -158,10 +180,10 @@ npm run dev
 ## Roadmap（v1.1+）
 
 - [ ] 补卡保护卡（每月 1 次）
-- [ ] 坏习惯戒断模式（表字段已预留 habit_type=BAD）
-- [ ] 环境设计模块（environment_settings 表已建）
-- [ ] 习惯契约（contracts 表已建，问责伙伴手填姓名）
-- [ ] 复盘中心（reviews 表已建）
+- [x] 坏习惯戒断模式（habit_type=BAD 已打通到表单与卡片）
+- [x] 环境设计模块（environment_settings + category=PHONE）
+- [x] 习惯契约（contracts 表启用，问责伙伴手填姓名）
+- [x] 每周 AI 复盘（reviews 表 type=WEEKLY；DAILY/MONTHLY/QUARTERLY 待补）
 - [ ] 打卡提醒推送
 
 ## 📄 License

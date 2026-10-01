@@ -16,7 +16,7 @@
 |------|------|
 | `habitforge-backend.jar` | Spring Boot 可执行 fat jar（Java 17，含 prod 配置）。**需本机 `mvn package` 重新生成**，仓库里那份是 2026-08-05 的旧包 |
 | `dist/` | 前端生产构建（Vite）。**需本机 `npm run build` 重新生成**，仓库里那份是 2026-08-06 的旧构建 |
-| `upgrade_2026-08_journal.sql`<br>`upgrade_2026-09_study.sql`<br>`upgrade_2026-10_ai_plan.sql` | 增量脚本（日记 4 张 + 学习 8 张 + AI 4 张），**不在本目录里**——只在 `habitforge-backend/src/main/resources/db/` 维护一份，按第三节第 1 步单独上传 |
+| `upgrade_2026-08_journal.sql`<br>`upgrade_2026-09_study.sql`<br>`upgrade_2026-10_ai_plan.sql`<br>`upgrade_2026-11_study_time.sql`<br>`upgrade_2026-12_focus.sql` | 增量脚本（日记 4 张 + 学习 8 张 + AI 4 张 + 学习时长/每周复盘 1 张新表与 2 处列扩展 + 手机节制 1 张新表与 2 处列扩展），**不在本目录里**——只在 `habitforge-backend/src/main/resources/db/` 维护一份，按第三节第 1 步单独上传 |
 | `nginx.conf` | nginx 站点配置（SPA history 路由 fallback + `/api/` 反代到后端） |
 | `Dockerfile.backend` | 精简版：直接 COPY 预构建 JAR，不在服务器上跑 Maven |
 | `Dockerfile.frontend` | 精简版：直接 COPY dist 到 nginx，不在服务器上跑 npm |
@@ -88,18 +88,21 @@ openssl rand -hex 32
 grep -n 'REPLACE_WITH' .env && echo "^^^ 上面这些还没填，先填完" || echo "✅ .env 无占位符残留"
 
 # 3.1) 数据库升级 —— 存量库不会自动跑 initdb 脚本，必须手工执行。
-#      按文件名顺序把三个都跑一遍即可：每个脚本的 CREATE TABLE 都带 IF NOT EXISTS，
-#      已经建过的表会自动跳过，重复执行安全。**顺序不能颠倒**——AI 那 4 张表的外键
-#      引用 subjects/chapters，得先跑 study 脚本才有这两张表。
+#      按文件名顺序把五个都跑一遍即可：**顺序不能颠倒**——AI 那 4 张表的外键引用
+#      subjects/chapters，得先跑 study 脚本；时长/复盘与手机节制脚本的外键同样引用它们。
+#      幂等性：五份脚本都可重复执行。前三份靠 CREATE TABLE IF NOT EXISTS；
+#      2026-11 与 2026-12 含 ALTER TABLE（MySQL 8 不支持 ADD COLUMN IF NOT EXISTS），
+#      改用 information_schema 判断 + PREPARE 动态执行，因此「新库已由 schema.sql 建好列」
+#      和「重复执行」两种场景都不会报错。
 #      先把 .env 读进当前 shell —— 必须在这条之前，否则 $MYSQL_PASSWORD 是空的：
 set -a && . ./.env && set +a
 #      看一眼现状，便于对照升级结果：
 docker exec mysql8 mysql -u"${MYSQL_USER:-root}" -p"$MYSQL_PASSWORD" habitforge -e 'SHOW TABLES;'
-for f in upgrade_2026-08_journal.sql upgrade_2026-09_study.sql upgrade_2026-10_ai_plan.sql; do
+for f in upgrade_2026-08_journal.sql upgrade_2026-09_study.sql upgrade_2026-10_ai_plan.sql upgrade_2026-11_study_time.sql upgrade_2026-12_focus.sql; do
   echo ">>> $f"
   docker exec -i mysql8 mysql -u"${MYSQL_USER:-root}" -p"$MYSQL_PASSWORD" habitforge < "$f" || exit 1
 done
-# 校验：升级后应能看到 journal 系列 4 张 + study 8 张 + plan 4 张（累计 24 张）
+# 校验：升级后应能看到 journal 4 张 + study 8 张 + plan 4 张 + study_sessions + focus_logs（累计 26 张）
 docker exec mysql8 mysql -u"${MYSQL_USER:-root}" -p"$MYSQL_PASSWORD" habitforge \
   -e 'SHOW TABLES;'
 
@@ -186,7 +189,7 @@ docker compose up -d --build     # 自动重建并重启容器
 > **关于 `deploy_journal.py`**：仓库根目录确实有这个脚本，但它被 `.gitignore` 的 `deploy_*.py` 排除，
 > **不在版本库里**（`deploy/` 目录下也没有）——换台机器 clone 下来是没有的。它把「拷产物 → 传 SQL →
 > 整目录同步 → 重建 → 冒烟」串成一条命令，但 `SQL_NAME` 只写死了 `upgrade_2026-08_journal.sql`，
-> 跑本次三个脚本需要自己改。**本文件第三节的手工步骤才是权威路径**，脚本只在作者本机上作为加速用。
+> 跑本次五个脚本需要自己改。**本文件第三节的手工步骤才是权威路径**，脚本只在作者本机上作为加速用。
 > 若希望它随仓库发布，需先把它移进 `deploy/` 并调整 `.gitignore`。
 
 ## 五、⚠️ 安全事项（重要）

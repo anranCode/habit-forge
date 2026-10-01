@@ -80,6 +80,12 @@ app:
     reflection-chars: 200                 # 心得每字段截断字数
     min-blocks: 3                         # 有效块少于该数视为解析失败(6005)
     max-blocks: 12                        # 超出截断
+    # ---- P0 每周复盘报告 ----
+    weekly-report-limit: 2                # 每人每周生成次数上限(含重新生成; 计数在 Redis, 按周期起始日隔离)
+    report-journal-days: 7                # 周报上下文日记窗口(一个自然周)
+    report-reflection-limit: 15           # 周报上下文心得条数上限
+    report-chars-per-item: 400            # 日记/心得单条截断字数
+    report-min-suggestions: 2             # AI 建议少于该数视为解析失败(6005, 不退额度)
 
 # 日志
 logging:

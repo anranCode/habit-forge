@@ -80,3 +80,47 @@ export interface ChapterUpdatePayload {
   parentId?: string | null
   sortOrder?: number
 }
+
+/** 学习记录（一段专注；进行中 endedAt/minutes 为 null） */
+export interface StudySession {
+  id: string
+  subjectId: string | null
+  subjectName: string | null
+  chapterId: string | null
+  chapterName: string | null
+  /** yyyy-MM-dd */
+  sessionDate: string
+  /** ISO 时间；MANUAL 补录为当天 00:00 占位，不代表真实时刻 */
+  startedAt: string
+  endedAt: string | null
+  /** 进行中为 null */
+  minutes: number | null
+  /** TIMER 计时器 / MANUAL 手动补录 */
+  source: 'TIMER' | 'MANUAL'
+  note: string | null
+  running: boolean
+}
+
+/** 每日学习时长（无记录的日子后端补 0） */
+export interface DailyStudyTime {
+  /** yyyy-MM-dd */
+  date: string
+  minutes: number
+  sessionCount: number
+}
+
+/** 某日学习时长汇总 */
+export interface StudyTimeSummary {
+  date: string
+  minutes: number
+  sessionCount: number
+}
+
+export interface StudySessionManualPayload {
+  /** 不传 = 今天；不允许未来 */
+  sessionDate?: string
+  subjectId?: string
+  chapterId?: string
+  minutes: number
+  note?: string
+}
