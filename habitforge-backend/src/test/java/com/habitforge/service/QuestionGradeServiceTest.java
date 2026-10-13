@@ -3,6 +3,10 @@ package com.habitforge.service;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.habitforge.common.exception.BusinessException;
+import com.habitforge.common.exception.ErrorCode;
+import com.habitforge.modules.ai.dto.ShortGradeDraft;
+import com.habitforge.modules.ai.dto.ShortGradeOutcome;
+import com.habitforge.modules.ai.service.ShortGradeService;
 import com.habitforge.modules.study.dto.GradeRequest;
 import com.habitforge.modules.study.dto.GradeResponse;
 import com.habitforge.modules.study.entity.Question;
@@ -25,13 +29,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 /**
- * 判分编排的副作用矩阵：答错入本 / 答对且在本未摘走 practice / 答对且不在本零副作用。
- * （AI 拆点、限流、流水属 P4 的 ShortGradeService，不在本测试射程）
+ * 判分编排的副作用矩阵：答错入本 / 答对且在本未摘走 practice / 答对且不在本零副作用 /
+ * SHORT 走 AI 通道（映射回显 + AI 异常绝不沾错题本）。
+ * （AI 拆点、限流、流水本身属 ShortGradeService，见 ShortGradeServiceTest）
  */
 @ExtendWith(MockitoExtension.class)
 class QuestionGradeServiceTest {
@@ -42,6 +51,8 @@ class QuestionGradeServiceTest {
     private WrongQuestionMapper wrongQuestionMapper;
     @Mock
     private WrongQuestionService wrongQuestionService;
+    @Mock
+    private ShortGradeService shortGradeService;
 
     @InjectMocks
     private QuestionGradeServiceImpl gradeService;
@@ -147,11 +158,38 @@ class QuestionGradeServiceTest {
     }
 
     @Test
-    void short_rejectedUntilP4_andNoSideEffect() {
+    void short_outcomeMapsToAiGrade_andWrongAddsToBook() {
         when(questionMapper.selectById(QID)).thenReturn(question("SHORT", "参考答案"));
+        when(shortGradeService.grade(eq(USER_ID), any(Question.class), anyString()))
+                .thenReturn(new ShortGradeOutcome(
+                        List.of(
+                                new ShortGradeDraft.PointDraft("要点一", true),
+                                new ShortGradeDraft.PointDraft("要点二", false),
+                                new ShortGradeDraft.PointDraft("要点三", false)),
+                        1, 3, 0.33, false, "grade-row-1"));
+        when(wrongQuestionMapper.selectOne(any())).thenReturn(row(1, 0, 0));
+
+        GradeResponse resp = gradeService.grade(USER_ID, request("我的作答"));
+
+        assertFalse(resp.isCorrect());
+        verify(wrongQuestionService).add(USER_ID, QID);
+        assertEquals("grade-row-1", resp.getGradeId());
+        assertNotNull(resp.getAiGrade());
+        assertEquals(1, resp.getAiGrade().getCovered());
+        assertEquals(3, resp.getAiGrade().getTotal());
+        assertEquals(3, resp.getAiGrade().getPoints().size());
+        assertTrue(resp.getAiGrade().getPoints().get(0).isHit());
+    }
+
+    /** 未判分 ≠ 答错：AI 通道抛任何异常，执行流必须在错题本副作用之前中断 */
+    @Test
+    void short_aiFailure_neverTouchesWrongBook() {
+        when(questionMapper.selectById(QID)).thenReturn(question("SHORT", "参考答案"));
+        when(shortGradeService.grade(anyString(), any(Question.class), anyString()))
+                .thenThrow(new BusinessException(ErrorCode.AI_SERVICE_ERROR));
 
         assertThrows(BusinessException.class, () -> gradeService.grade(USER_ID, request("我的作答")));
-        verify(wrongQuestionService, never()).add(anyString(), anyString());
+        verifyNoInteractions(wrongQuestionService, wrongQuestionMapper);
     }
 
     @Test

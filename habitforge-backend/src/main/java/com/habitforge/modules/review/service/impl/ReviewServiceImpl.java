@@ -12,7 +12,7 @@ import com.habitforge.modules.ai.client.WeeklyReportPromptTemplate;
 import com.habitforge.modules.ai.config.AiProperties;
 import com.habitforge.modules.ai.dto.WeeklyReportDraft;
 import com.habitforge.modules.ai.entity.PlanGeneration;
-import com.habitforge.modules.ai.mapper.PlanGenerationMapper;
+import com.habitforge.modules.ai.service.PlanGenerationWriter;
 import com.habitforge.modules.review.dto.WeeklyReportResponse;
 import com.habitforge.modules.review.dto.WeeklyReportUpdateRequest;
 import com.habitforge.modules.review.dto.WeeklyReportUsageResponse;
@@ -51,7 +51,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final WeeklyReportPromptTemplate promptTemplate;
     private final WeeklyReportContextAssembler contextAssembler;
     private final ReviewMapper reviewMapper;
-    private final PlanGenerationMapper generationMapper;
+    private final PlanGenerationWriter generationWriter;
 
     // ================= 查询 / 编辑 =================
 
@@ -153,7 +153,7 @@ public class ReviewServiceImpl implements ReviewService {
                 }
                 log.warn("周报 AI 调用失败 user={}, period={} ~ {}: {}", userId, periodStart, periodEnd, e.getMessage());
                 releaseQuota(limitKey);
-                writeGeneration(userId, null, false, describe(e), null);
+                generationWriter.write(userId, null, PlanGeneration.KIND_WEEKLY_REPORT, null, null, false, describe(e), null);
                 throw new BusinessException(ErrorCode.AI_SERVICE_ERROR);
             }
 
@@ -168,7 +168,7 @@ public class ReviewServiceImpl implements ReviewService {
             } catch (Exception e) {
                 // 解析失败 token 已耗: 不退额度, 留失败流水与原始输出排障
                 log.warn("周报解析失败 user={}, period={}: {}", userId, periodStart, e.getMessage());
-                writeGeneration(userId, result, false, describe(e), result.content());
+                generationWriter.write(userId, null, PlanGeneration.KIND_WEEKLY_REPORT, null, result, false, describe(e), result.content());
                 throw new BusinessException(ErrorCode.AI_RESPONSE_INVALID);
             }
 
@@ -177,10 +177,10 @@ public class ReviewServiceImpl implements ReviewService {
                 saved = persist(userId, periodStart, periodEnd, draft, suggestions, context.snapshotJson(), result);
             } catch (Exception e) {
                 log.error("周报落库失败 user={}, period={}: {}", userId, periodStart, e.getMessage());
-                writeGeneration(userId, result, false, describe(e), result.content());
+                generationWriter.write(userId, null, PlanGeneration.KIND_WEEKLY_REPORT, null, result, false, describe(e), result.content());
                 throw new BusinessException(ErrorCode.AI_SERVICE_ERROR);
             }
-            writeGeneration(userId, result, true, null, result.content());
+            generationWriter.write(userId, null, PlanGeneration.KIND_WEEKLY_REPORT, null, result, true, null, result.content());
             log.info("周报生成成功 user={}, period={} ~ {}, score={}", userId, periodStart, periodEnd, saved.getScore());
             return WeeklyReportResponse.from(saved);
         } finally {
@@ -297,27 +297,6 @@ public class ReviewServiceImpl implements ReviewService {
             redisUtil.release(limitKey);
         } catch (Exception e) {
             log.warn("周报额度退还失败: {}", e.getMessage());
-        }
-    }
-
-    /** 每次生成（含失败）写流水; 流水失败只记日志, 不掩盖主异常 */
-    private void writeGeneration(String userId, PlanAiClient.ChatResult result, boolean success,
-                                 String error, String rawOutput) {
-        try {
-            PlanGeneration gen = new PlanGeneration();
-            gen.setUserId(userId);
-            gen.setPlanId(null);
-            gen.setKind(PlanGeneration.KIND_WEEKLY_REPORT);
-            gen.setModel(result == null ? null : result.model());
-            gen.setPromptTokens(result == null || result.promptTokens() == null ? null : result.promptTokens().intValue());
-            gen.setCompletionTokens(result == null || result.completionTokens() == null ? null : result.completionTokens().intValue());
-            gen.setTotalTokens(result == null ? 0 : (int) result.totalTokens());
-            gen.setSuccess(success);
-            gen.setError(error == null ? null : error.substring(0, Math.min(error.length(), 500)));
-            gen.setRawOutput(rawOutput);
-            generationMapper.insert(gen);
-        } catch (Exception e) {
-            log.error("周报生成流水写入失败 user={}: {}", userId, e.getMessage());
         }
     }
 

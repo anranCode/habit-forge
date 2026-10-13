@@ -8,11 +8,11 @@ import type { QuestionType, RandomQuery } from '@/types/question'
 import { apiSubjects, apiChaptersBySubject, apiRandomQuestions } from '@/api'
 import { usePopupPosition } from '@/composables/useDesktop'
 import { usePracticeStore } from '@/stores'
-import { TYPE_LABEL } from '@/constants/question'
+import { TYPE_LABEL, TYPE_ORDER } from '@/constants/question'
 
 /**
  * 刷题选题页（功能B 入口）：范围(整个题库/科目/章节) + 题型 + 题量 → 随机取题 → 会话页。
- * P3 只开客观题；SHORT 的勾选在 P4 接上 AI 判分后放开。
+ * SHORT 可勾选但默认不勾: 判分走 AI(耗额度、要等判卷), 让用户按需显式选择。
  */
 defineOptions({ name: 'QuizSetup' })
 
@@ -31,9 +31,9 @@ const subjectId = ref((route.query.subjectId as string) || '')
 const chapterId = ref('')
 const showChapterPicker = ref(false)
 
-/** 可选客观题型（顺序与 constants 的 TYPE_ORDER 一致） */
-const OBJECTIVE_TYPES: QuestionType[] = ['SINGLE', 'MULTI', 'JUDGE']
-const types = ref<QuestionType[]>([...OBJECTIVE_TYPES])
+/** 可勾题型 = 全部四类；默认只勾客观题（SHORT=AI 判分, 显式勾选才进队列） */
+const ALL_TYPES: QuestionType[] = TYPE_ORDER
+const types = ref<QuestionType[]>(['SINGLE', 'MULTI', 'JUDGE'])
 
 const COUNT_PRESETS = [5, 10, 20, 50]
 const limit = ref(10)
@@ -99,7 +99,7 @@ async function start() {
   const q: RandomQuery = { limit: limit.value }
   if (scope.value !== 'ALL') q.subjectId = subjectId.value
   if (scope.value === 'CHAPTER') q.chapterId = chapterId.value
-  if (types.value.length < OBJECTIVE_TYPES.length) q.questionTypes = [...types.value].join(',')
+  if (types.value.length < ALL_TYPES.length) q.questionTypes = [...types.value].join(',')
 
   starting.value = true
   try {
@@ -159,11 +159,11 @@ onMounted(loadSubjects)
 
       <van-cell-group inset class="grp" title="题型">
         <div class="type-row">
-          <div v-for="t in OBJECTIVE_TYPES" :key="t" class="type-cell" :class="{ on: types.includes(t) }" @click="toggleType(t)">
+          <div v-for="t in ALL_TYPES" :key="t" class="type-cell" :class="{ on: types.includes(t) }" @click="toggleType(t)">
             {{ TYPE_LABEL[t] }}题
           </div>
         </div>
-        <div class="text-light type-note">主观题按要点 AI 判分，判分链路接入后开放勾选</div>
+        <div class="text-light type-note">主观题由 AI 按要点判分，覆盖参考答案 50% 即为对，判卷需稍等</div>
       </van-cell-group>
 
       <van-cell-group inset class="grp" title="题量">

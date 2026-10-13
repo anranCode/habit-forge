@@ -15,6 +15,7 @@ import com.habitforge.modules.ai.entity.PlanGeneration;
 import com.habitforge.modules.ai.mapper.PlanFreeSlotMapper;
 import com.habitforge.modules.ai.mapper.PlanGenerationMapper;
 import com.habitforge.modules.ai.service.DailyPlanService;
+import com.habitforge.modules.ai.service.PlanGenerationWriter;
 import com.habitforge.modules.ai.service.impl.AiScheduleServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,6 +77,8 @@ class AiScheduleServiceTest {
 
     private AiProperties props;
     private AiScheduleServiceImpl service;
+    /** 真实写手包 mock mapper: 下沉重构不改本套件断言面(流水行形状仍由 generationMapper 捕获) */
+    private PlanGenerationWriter generationWriter;
 
     @Mock
     private RedisUtil redisUtil;
@@ -100,14 +103,15 @@ class AiScheduleServiceTest {
         // 凭证属性留空(null) => 凭证护栏放行, 判断权交给 ChatModel, 与本测试的关注点(限流/锁/翻译)无关
         ObjectProvider<AnthropicConnectionProperties> connProvider = mock(ObjectProvider.class);
         PlanAiClient aiClient = new PlanAiClient(provider, connProvider);
+        generationWriter = new PlanGenerationWriter(generationMapper);
         service = new AiScheduleServiceImpl(props, redisUtil, aiClient, new PlanPromptTemplate(),
-                contextAssembler, dailyPlanService, freeSlotMapper, generationMapper);
+                contextAssembler, dailyPlanService, freeSlotMapper, generationWriter);
     }
 
     /** 用替身 PlanAiClient 装配服务（验证 catch 对 PlanAiClient 异常的处理, 绕开 ChatClient 包装） */
     private AiScheduleServiceImpl serviceWith(PlanAiClient aiClient) {
         return new AiScheduleServiceImpl(props, redisUtil, aiClient, new PlanPromptTemplate(),
-                contextAssembler, dailyPlanService, freeSlotMapper, generationMapper);
+                contextAssembler, dailyPlanService, freeSlotMapper, generationWriter);
     }
 
     // ================= 公共桩 =================

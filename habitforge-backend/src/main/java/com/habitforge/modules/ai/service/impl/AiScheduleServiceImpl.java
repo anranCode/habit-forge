@@ -17,9 +17,9 @@ import com.habitforge.modules.ai.entity.PlanBlock;
 import com.habitforge.modules.ai.entity.PlanFreeSlot;
 import com.habitforge.modules.ai.entity.PlanGeneration;
 import com.habitforge.modules.ai.mapper.PlanFreeSlotMapper;
-import com.habitforge.modules.ai.mapper.PlanGenerationMapper;
 import com.habitforge.modules.ai.service.AiScheduleService;
 import com.habitforge.modules.ai.service.DailyPlanService;
+import com.habitforge.modules.ai.service.PlanGenerationWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,7 +46,7 @@ public class AiScheduleServiceImpl implements AiScheduleService {
     private final PlanContextAssembler contextAssembler;
     private final DailyPlanService dailyPlanService;
     private final PlanFreeSlotMapper freeSlotMapper;
-    private final PlanGenerationMapper generationMapper;
+    private final PlanGenerationWriter generationWriter;
 
     @Override
     public PlanResponse generate(String userId, LocalDate date) {
@@ -95,7 +95,7 @@ public class AiScheduleServiceImpl implements AiScheduleService {
                 // 上游失败（网络/鉴权/超时/模型缺失）: 退还额度 + 失败流水
                 log.warn("AI 上游调用失败 user={}, date={}: {}", userId, date, e.getMessage());
                 releaseQuota(limitKey);
-                writeGeneration(userId, plan, null, null, null, false, describe(e), null);
+                generationWriter.write(userId, plan.getId(), PlanGeneration.KIND_PLAN, null, null, false, describe(e), null);
                 throw new BusinessException(ErrorCode.AI_SERVICE_ERROR);
             }
 
@@ -107,8 +107,8 @@ public class AiScheduleServiceImpl implements AiScheduleService {
             } catch (Exception e) {
                 // 解析失败 token 已耗: 不退额度, 但仍留流水+原始输出排障
                 log.warn("AI 返回解析失败 user={}, date={}: {}", userId, date, e.getMessage());
-                writeGeneration(userId, plan, result.promptTokens(), result.completionTokens(), result.model(),
-                        false, describe(e), result.content());
+                generationWriter.write(userId, plan.getId(), PlanGeneration.KIND_PLAN, null,
+                        result, false, describe(e), result.content());
                 throw new BusinessException(ErrorCode.AI_RESPONSE_INVALID);
             }
 
@@ -117,12 +117,12 @@ public class AiScheduleServiceImpl implements AiScheduleService {
             } catch (Exception e) {
                 // 落块失败 token 已耗: 同样留失败流水(带原始输出)再抛, 避免「有消耗无流水」
                 log.error("AI 落块失败 user={}, date={}: {}", userId, date, e.getMessage());
-                writeGeneration(userId, plan, result.promptTokens(), result.completionTokens(), result.model(),
-                        false, describe(e), result.content());
+                generationWriter.write(userId, plan.getId(), PlanGeneration.KIND_PLAN, null,
+                        result, false, describe(e), result.content());
                 throw new BusinessException(ErrorCode.AI_SERVICE_ERROR);
             }
-            writeGeneration(userId, plan, result.promptTokens(), result.completionTokens(), result.model(),
-                    true, null, result.content());
+            generationWriter.write(userId, plan.getId(), PlanGeneration.KIND_PLAN, null,
+                    result, true, null, result.content());
             return dailyPlanService.getPlanResponse(userId, date);
         } finally {
             try {
@@ -161,27 +161,6 @@ public class AiScheduleServiceImpl implements AiScheduleService {
             redisUtil.release(limitKey);
         } catch (Exception e) {
             log.warn("AI 额度退还失败: {}", e.getMessage());
-        }
-    }
-
-    /** 每次生成(含失败)写流水; 流水本身失败只记日志, 不掩盖主异常 */
-    private void writeGeneration(String userId, DailyPlan plan, Long promptTokens, Long completionTokens,
-                                 String model, boolean success, String error, String rawOutput) {
-        try {
-            PlanGeneration gen = new PlanGeneration();
-            gen.setUserId(userId);
-            gen.setPlanId(plan == null ? null : plan.getId());
-            gen.setModel(model);
-            gen.setPromptTokens(promptTokens == null ? null : promptTokens.intValue());
-            gen.setCompletionTokens(completionTokens == null ? null : completionTokens.intValue());
-            gen.setTotalTokens((int) ((promptTokens == null ? 0L : promptTokens)
-                    + (completionTokens == null ? 0L : completionTokens)));
-            gen.setSuccess(success);
-            gen.setError(error == null ? null : error.substring(0, Math.min(error.length(), 500)));
-            gen.setRawOutput(rawOutput);
-            generationMapper.insert(gen);
-        } catch (Exception e) {
-            log.error("AI 生成流水写入失败 user={}: {}", userId, e.getMessage());
         }
     }
 

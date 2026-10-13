@@ -20,6 +20,7 @@ declare module 'vue' {
     MarkdownEditor: typeof import('./src/components/study/MarkdownEditor.vue')['default']
     MarkdownPreview: typeof import('./src/components/study/MarkdownPreview.vue')['default']
     PlanCard: typeof import('./src/components/plan/PlanCard.vue')['default']
+    PracticeQuestionCard: typeof import('./src/components/study/PracticeQuestionCard.vue')['default']
     QuestionCard: typeof import('./src/components/study/QuestionCard.vue')['default']
     ReflectionEditor: typeof import('./src/components/record/ReflectionEditor.vue')['default']
     ReviewProgress: typeof import('./src/components/study/ReviewProgress.vue')['default']

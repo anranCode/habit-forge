@@ -43,6 +43,16 @@ public final class AppConstant {
     /** 取题限流：同一用户每分钟 10 次（一次取题=一次刷题会话, 正常人远够） */
     public static final int PRACTICE_FETCH_RATE_LIMIT = 10;
 
+    /**
+     * SHORT 判对阈值: 要点覆盖率 ≥ 0.5 即算对（计划决策 6, 阈值唯一事实源）。
+     * 模型只拆要点判 hit、不输出对错; ShortGradeServiceImpl 用
+     * covered >= ceil(total * 本常量) 换算。改这里即改判定口径, prompt 里的"50%"是给人看的说明。
+     */
+    public static final double SHORT_GRADE_PASS_RATIO = 0.5;
+
+    /** SHORT 作答落库/送模型的截断长度（与 GradeRequest @Size 一致, 双保险） */
+    public static final int SHORT_GRADE_ANSWER_MAX_CHARS = 2000;
+
     // ================= P2 手机节制 =================
 
     /** 用户未设置上限时的每日娱乐时长上限（分钟） */

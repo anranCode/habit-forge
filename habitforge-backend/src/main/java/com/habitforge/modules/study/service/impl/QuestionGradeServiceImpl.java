@@ -3,6 +3,8 @@ package com.habitforge.modules.study.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.habitforge.common.exception.BusinessException;
 import com.habitforge.common.exception.ErrorCode;
+import com.habitforge.modules.ai.dto.ShortGradeOutcome;
+import com.habitforge.modules.ai.service.ShortGradeService;
 import com.habitforge.modules.study.dto.GradeRequest;
 import com.habitforge.modules.study.dto.GradeResponse;
 import com.habitforge.modules.study.entity.Question;
@@ -30,6 +32,7 @@ public class QuestionGradeServiceImpl implements QuestionGradeService {
     private final QuestionMapper questionMapper;
     private final WrongQuestionMapper wrongQuestionMapper;
     private final WrongQuestionService wrongQuestionService;
+    private final ShortGradeService shortGradeService;
 
     @Override
     public GradeResponse grade(String userId, GradeRequest request) {
@@ -43,10 +46,22 @@ public class QuestionGradeServiceImpl implements QuestionGradeService {
                 .standardAnswer(question.getAnswer())
                 .analysis(question.getAnalysis());
 
+        GradeResponse.AiGrade aiGrade = null;
+        String gradeId = null;
         if ("SHORT".equals(question.getQuestionType())) {
-            // P4 接 ShortGradeService(AI 拆点判 hit + question_grades 留痕)。
-            // 占位期间前端 QuizSetup 不开 SHORT、重练改造在 P5, 不存在能打到这里的 UI 路径。
-            throw new BusinessException(ErrorCode.BAD_REQUEST, "主观题 AI 判分即将开放，请先刷客观题");
+            // AI 拆要点判 hit + question_grades 留痕; 对错在服务端按阈值换算。
+            // 抛 6001/6003/6004/6005/7014 时执行流在副作用之前中断 —— "未判分≠答错", 错题本绝不沾。
+            ShortGradeOutcome outcome = shortGradeService.grade(userId, question, answer);
+            correct = outcome.correct();
+            aiGrade = GradeResponse.AiGrade.builder()
+                    .points(outcome.points().stream()
+                            .map(p -> GradeResponse.PointHit.builder().point(p.point()).hit(p.hit()).build())
+                            .toList())
+                    .covered(outcome.covered())
+                    .total(outcome.total())
+                    .ratio(outcome.ratio())
+                    .build();
+            gradeId = outcome.gradeId();
         } else {
             correct = AnswerMatcher.match(question.getQuestionType(), question.getAnswer(), answer);
         }
@@ -56,7 +71,7 @@ public class QuestionGradeServiceImpl implements QuestionGradeService {
 
         log.info("判分 user={}, question={}, type={}, correct={}", userId, question.getId(),
                 question.getQuestionType(), correct);
-        return builder.correct(correct).wrongBook(wrongBook).build();
+        return builder.correct(correct).aiGrade(aiGrade).gradeId(gradeId).wrongBook(wrongBook).build();
     }
 
     /** 答错入本(重复答错 count+1 由 upsert 承担); 答对且在本未摘才走 practice, 不在本则无副作用 */

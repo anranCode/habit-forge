@@ -86,6 +86,11 @@ app:
     report-reflection-limit: 15           # 周报上下文心得条数上限
     report-chars-per-item: 400            # 日记/心得单条截断字数
     report-min-suggestions: 2             # AI 建议少于该数视为解析失败(6005, 不退额度)
+    # ---- 题库 AI(考点识别 P6 / 主观题判分 P4) ----
+    points-daily-limit: 30                # 每人每日识别考点次数上限(超限 7013)
+    grade-daily-limit: 60                 # 每人每日判分次数上限(超限 7014, 兼作重复提交兜底)
+    points-max-per-question: 8            # 单题考点数上限(识别输出截断)
+    point-max-chars: 20                   # 单个考点字数上限
 
 # 日志
 logging:

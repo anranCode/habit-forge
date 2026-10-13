@@ -50,4 +50,18 @@ public class AiProperties {
 
     /** AI 建议条数少于该数视为解析失败（返 6005, 不退额度） */
     private int reportMinSuggestions = 2;
+
+    // ================= 题库 AI（考点识别 P6 / 主观题判分 P4） =================
+
+    /** 每人每日 AI 识别考点次数上限（超限 7013; 单题一次, 批量循环也走此计数） */
+    private int pointsDailyLimit = 30;
+
+    /** 每人每日 AI 判分次数上限（超限 7014; 重答重判各计一次, 兼作风险 2 的重复提交兜底） */
+    private int gradeDailyLimit = 60;
+
+    /** 单题考点数上限（识别输出截断; 与手工录入的 PointsCodec.MAX_POINTS 同值同语义） */
+    private int pointsMaxPerQuestion = 8;
+
+    /** 单个考点字数上限（超长截断） */
+    private int pointMaxChars = 20;
 }

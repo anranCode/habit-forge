@@ -127,7 +127,7 @@ const isShort = computed(() => props.question.questionType === 'SHORT')
       <van-button round block plain type="danger" :disabled="submitting" @click="emit('submit', 'F')">错误</van-button>
     </div>
 
-    <!-- 主观：文本域（P3 选题不开 SHORT，UI 先行、P4 判分接通） -->
+    <!-- 主观：文本域（判分走 AI 要点覆盖, 见 QuizSetup 勾选说明） -->
     <template v-if="isShort && !result">
       <van-field
         v-model="shortText"
