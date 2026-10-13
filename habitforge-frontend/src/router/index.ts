@@ -169,6 +169,18 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '错题练习', backTo: '/study/wrongs' }
   },
   {
+    path: '/study/practice',
+    name: 'QuizSetup',
+    component: () => import('@/views/study/QuizSetup.vue'),
+    meta: { title: '刷题', backTo: '/study' }
+  },
+  {
+    path: '/study/practice/session',
+    name: 'QuizSession',
+    component: () => import('@/views/study/QuizSession.vue'),
+    meta: { title: '刷题', backTo: '/study/practice' }
+  },
+  {
     path: '/plan',
     name: 'PlanToday',
     component: () => import('@/views/plan/PlanToday.vue'),

@@ -58,6 +58,15 @@ function goCreate() {
         <van-icon name="arrow" color="var(--hf-text-light)" />
       </div>
 
+      <!-- 刷题入口（功能B：随机推送 + 服务端判分 + 答错自动入本） -->
+      <div class="card review-entry is-clickable" @click="router.push('/study/practice')">
+        <div class="left">
+          <div class="t">✍️ 刷题</div>
+          <div class="d text-light">按整个题库或章节随机推题，提交即时判分，答错自动进错题本</div>
+        </div>
+        <van-icon name="arrow" color="var(--hf-text-light)" />
+      </div>
+
       <!-- 桌面端把汇总条与复习入口并成一行；移动端 .split 没有任何声明，仍是上下两块 -->
       <div class="split is-half">
         <!-- 顶部汇总条（apiStudyOverview 实时数据：到期卡/错题/今日复习） -->

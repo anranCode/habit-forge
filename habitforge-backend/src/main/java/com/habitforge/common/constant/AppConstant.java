@@ -35,6 +35,14 @@ public final class AppConstant {
     /** 学习时长按日聚合查询区间上限（天） */
     public static final int STUDY_TIME_MAX_RANGE_DAYS = 366;
 
+    // ================= 刷题/判分（功能B） =================
+
+    /** 单次随机取题上限（ORDER BY RAND() 全表扫, 这个量级可接受; 见计划风险 3） */
+    public static final int PRACTICE_FETCH_MAX = 50;
+
+    /** 取题限流：同一用户每分钟 10 次（一次取题=一次刷题会话, 正常人远够） */
+    public static final int PRACTICE_FETCH_RATE_LIMIT = 10;
+
     // ================= P2 手机节制 =================
 
     /** 用户未设置上限时的每日娱乐时长上限（分钟） */

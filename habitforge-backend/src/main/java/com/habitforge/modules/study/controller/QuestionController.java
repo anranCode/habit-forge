@@ -3,9 +3,13 @@ package com.habitforge.modules.study.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.habitforge.common.result.Result;
 import com.habitforge.common.util.SecurityUtils;
+import com.habitforge.modules.study.dto.GradeRequest;
+import com.habitforge.modules.study.dto.GradeResponse;
+import com.habitforge.modules.study.dto.PracticeQuestionResponse;
 import com.habitforge.modules.study.dto.QuestionCreateRequest;
 import com.habitforge.modules.study.dto.QuestionResponse;
 import com.habitforge.modules.study.dto.QuestionUpdateRequest;
+import com.habitforge.modules.study.service.QuestionGradeService;
 import com.habitforge.modules.study.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +23,7 @@ import java.util.List;
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final QuestionGradeService questionGradeService;
 
     @PostMapping
     public Result<QuestionResponse> create(@Valid @RequestBody QuestionCreateRequest request) {
@@ -47,6 +52,22 @@ public class QuestionController {
     @GetMapping("/knowledge-points")
     public Result<List<String>> knowledgePoints(@RequestParam(required = false) String subjectId) {
         return Result.success(questionService.knowledgePoints(SecurityUtils.getCurrentUserId(), subjectId));
+    }
+
+    /** 随机取题(刷题会话): 范围 全库/科目/章节, questionTypes 逗号集(空=全部), limit 服务端夹到 50 */
+    @GetMapping("/random")
+    public Result<List<PracticeQuestionResponse>> random(@RequestParam(required = false) String subjectId,
+                                                         @RequestParam(required = false) String chapterId,
+                                                         @RequestParam(required = false) String questionTypes,
+                                                         @RequestParam(required = false) Integer limit) {
+        return Result.success(questionService.randomQuestions(SecurityUtils.getCurrentUserId(),
+                subjectId, chapterId, questionTypes, limit));
+    }
+
+    /** 统一判分: 客观题服务端判, SHORT AI 判(P4); 答错自动入本、答对累计连对 */
+    @PostMapping("/grade")
+    public Result<GradeResponse> grade(@Valid @RequestBody GradeRequest request) {
+        return Result.success(questionGradeService.grade(SecurityUtils.getCurrentUserId(), request));
     }
 
     @GetMapping("/{id}")

@@ -4,8 +4,11 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.habitforge.common.constant.AppConstant;
 import com.habitforge.common.exception.BusinessException;
 import com.habitforge.common.exception.ErrorCode;
+import com.habitforge.common.util.RedisUtil;
+import com.habitforge.modules.study.dto.PracticeQuestionResponse;
 import com.habitforge.modules.study.dto.QuestionCreateRequest;
 import com.habitforge.modules.study.dto.QuestionOptionDTO;
 import com.habitforge.modules.study.dto.QuestionResponse;
@@ -23,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -43,6 +47,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionMapper questionMapper;
     private final SubjectMapper subjectMapper;
     private final ChapterMapper chapterMapper;
+    private final RedisUtil redisUtil;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -116,6 +121,46 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionResponse getDetail(String userId, String id) {
         return toResponse(loadOwned(userId, id));
+    }
+
+    @Override
+    public List<PracticeQuestionResponse> randomQuestions(String userId, String subjectId, String chapterId,
+                                                          String questionTypes, Integer limit) {
+        if (!redisUtil.tryAcquire("practice:fetch:" + userId,
+                AppConstant.PRACTICE_FETCH_RATE_LIMIT, Duration.ofMinutes(1))) {
+            throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS, "取题太频繁，请 1 分钟后再试");
+        }
+        Set<String> types = new HashSet<>(QUESTION_TYPES);
+        if (StrUtil.isNotBlank(questionTypes)) {
+            types = new HashSet<>();
+            for (String t : questionTypes.split(",")) {
+                String trimmed = t.trim();
+                if (trimmed.isEmpty()) {
+                    continue;
+                }
+                if (!QUESTION_TYPES.contains(trimmed)) {
+                    throw new BusinessException(ErrorCode.BAD_REQUEST, "题型不合法: " + trimmed);
+                }
+                types.add(trimmed);
+            }
+            if (types.isEmpty()) {
+                types = new HashSet<>(QUESTION_TYPES);
+            }
+        }
+        int n = (limit == null || limit < 1) ? 10 : Math.min(limit, AppConstant.PRACTICE_FETCH_MAX);
+        // select 列裁剪 = answer/analysis 不出库(防透题第一道门, 第二道是 PracticeQuestionResponse 无此字段)
+        List<Question> rows = questionMapper.selectList(new LambdaQueryWrapper<Question>()
+                .select(Question::getId, Question::getQuestionType, Question::getStem,
+                        Question::getOptions, Question::getDifficulty)
+                .eq(Question::getUserId, userId)
+                .eq(StrUtil.isNotBlank(subjectId), Question::getSubjectId, subjectId)
+                .eq(StrUtil.isNotBlank(chapterId), Question::getChapterId, chapterId)
+                .in(Question::getQuestionType, types)
+                .last("ORDER BY RAND() LIMIT " + n));
+        if (rows.isEmpty()) {
+            throw new BusinessException(ErrorCode.PRACTICE_SCOPE_EMPTY);
+        }
+        return rows.stream().map(PracticeQuestionResponse::from).toList();
     }
 
     @Override

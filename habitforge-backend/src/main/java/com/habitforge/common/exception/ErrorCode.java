@@ -78,6 +78,9 @@ public enum ErrorCode {
     STUDY_SESSION_NOT_RUNNING(7011, "该学习计时已结束"),
     STUDY_SESSION_TIME_INVALID(7012, "学习时长或日期不合法"),
 
+    // 刷题/判分 7xxx（7013/7014 留给 P6/P4 的 AI 限流）
+    PRACTICE_SCOPE_EMPTY(7015, "所选范围内没有可刷的题目"),
+
     // 复盘/周报 8xxx
     REVIEW_NOT_FOUND(8001, "复盘记录不存在"),
     REVIEW_WEEK_LIMITED(8002, "本周报告生成次数已达上限"),
