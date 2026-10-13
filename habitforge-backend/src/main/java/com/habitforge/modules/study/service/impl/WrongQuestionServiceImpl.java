@@ -74,6 +74,11 @@ public class WrongQuestionServiceImpl implements WrongQuestionService {
 
     @Override
     public List<WrongQuestionResponse> list(String userId, String subjectId, Integer limit) {
+        return list(userId, subjectId, limit, true);
+    }
+
+    @Override
+    public List<WrongQuestionResponse> list(String userId, String subjectId, Integer limit, boolean reveal) {
         int size = (limit == null || limit <= 0)
                 ? DEFAULT_LIMIT
                 : Math.min(limit, MAX_LIMIT);
@@ -109,7 +114,7 @@ public class WrongQuestionServiceImpl implements WrongQuestionService {
                 .collect(Collectors.toMap(Question::getId, Function.identity()));
         return wrongs.stream()
                 .filter(w -> questionById.containsKey(w.getQuestionId()))
-                .map(w -> buildResponse(w, questionById.get(w.getQuestionId())))
+                .map(w -> buildResponse(w, questionById.get(w.getQuestionId()), reveal))
                 .toList();
     }
 
@@ -172,10 +177,19 @@ public class WrongQuestionServiceImpl implements WrongQuestionService {
     }
 
     private WrongQuestionResponse buildResponse(WrongQuestion wrong, Question question) {
+        return buildResponse(wrong, question, true);
+    }
+
+    private WrongQuestionResponse buildResponse(WrongQuestion wrong, Question question, boolean reveal) {
         List<QuestionOptionDTO> options = StrUtil.isBlank(question.getOptions())
                 ? null
                 : JSONUtil.toList(question.getOptions(), QuestionOptionDTO.class);
-        return WrongQuestionResponse.from(wrong,
-                QuestionResponse.from(question, options, PointsCodec.parse(question.getKnowledgePoints())));
+        QuestionResponse qr = QuestionResponse.from(question, options, PointsCodec.parse(question.getKnowledgePoints()));
+        if (!reveal) {
+            // 重练队列防透题: 答案与解析不出响应(判分走 POST /questions/grade, 判完才回显)
+            qr.setAnswer(null);
+            qr.setAnalysis(null);
+        }
+        return WrongQuestionResponse.from(wrong, qr);
     }
 }

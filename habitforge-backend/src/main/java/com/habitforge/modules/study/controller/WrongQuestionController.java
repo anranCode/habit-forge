@@ -4,7 +4,6 @@ import com.habitforge.common.result.Result;
 import com.habitforge.common.util.SecurityUtils;
 import com.habitforge.modules.study.dto.WrongQuestionAddRequest;
 import com.habitforge.modules.study.dto.WrongQuestionMasteredRequest;
-import com.habitforge.modules.study.dto.WrongQuestionPracticeRequest;
 import com.habitforge.modules.study.dto.WrongQuestionResponse;
 import com.habitforge.modules.study.service.WrongQuestionService;
 import jakarta.validation.Valid;
@@ -26,19 +25,15 @@ public class WrongQuestionController {
         return Result.success(wrongQuestionService.add(SecurityUtils.getCurrentUserId(), request.getQuestionId()), "已加入错题本");
     }
 
-    /** 待复习错题(mastered=0, wrong_count desc + last_wrong_at asc, 附题目详情) */
+    /**
+     * 待复习错题(mastered=0, wrong_count desc + last_wrong_at asc, 附题目详情)。
+     * reveal=false → 每题 answer/analysis 为 null: 重练队列专用, 对错只能由 POST /questions/grade 判定。
+     */
     @GetMapping
     public Result<List<WrongQuestionResponse>> list(@RequestParam(required = false) String subjectId,
-                                                    @RequestParam(required = false) Integer limit) {
-        return Result.success(wrongQuestionService.list(SecurityUtils.getCurrentUserId(), subjectId, limit));
-    }
-
-    /** 重练登记(自报答对/答错; 连对 2 次自动 mastered) */
-    @PostMapping("/{questionId}/practice")
-    public Result<WrongQuestionResponse> practice(@PathVariable String questionId,
-                                                  @Valid @RequestBody WrongQuestionPracticeRequest request) {
-        return Result.success(wrongQuestionService.practice(
-                SecurityUtils.getCurrentUserId(), questionId, request.getCorrect()));
+                                                    @RequestParam(required = false) Integer limit,
+                                                    @RequestParam(required = false, defaultValue = "true") boolean reveal) {
+        return Result.success(wrongQuestionService.list(SecurityUtils.getCurrentUserId(), subjectId, limit, reveal));
     }
 
     /** 手动摘除/恢复 */

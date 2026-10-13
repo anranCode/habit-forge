@@ -34,10 +34,6 @@ export const apiAddWrong = (questionId: string) =>
 export const apiWrongList = (params?: { subjectId?: string; limit?: number; reveal?: boolean }) =>
   request.get<never, WrongQuestion[]>('/wrong-questions', { params })
 
-/** 错题练习登记：correct 连对 2 次自动 mastered */
-export const apiPracticeWrong = (questionId: string, correct: boolean) =>
-  request.post<never, WrongQuestion>(`/wrong-questions/${questionId}/practice`, { correct })
-
 export const apiSetWrongMastered = (questionId: string, mastered: boolean) =>
   request.patch<never, WrongQuestion>(`/wrong-questions/${questionId}/mastered`, { mastered })
 

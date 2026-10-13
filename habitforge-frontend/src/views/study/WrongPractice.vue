@@ -3,11 +3,16 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGoBack } from '@/composables/useGoBack'
 import { showToast, showSuccessToast } from 'vant'
-import type { WrongQuestion } from '@/types/question'
-import { apiWrongList, apiPracticeWrong } from '@/api'
-import QuestionCard from '@/components/study/QuestionCard.vue'
+import type { GradeResult, WrongQuestion } from '@/types/question'
+import { apiWrongList, apiGradeQuestion } from '@/api'
+import PracticeQuestionCard from '@/components/study/PracticeQuestionCard.vue'
 import { useIsDesktop } from '@/composables/useDesktop'
 
+/**
+ * 错题重练：与刷题共用同一判分管线（POST /questions/grade）。
+ * 队列 reveal:false 拉取 —— 答案/解析不出接口，判分后才回显；
+ * 自评两按钮（"客户端自报对错"入口）已随 P5 拆除，主观题也走 AI 判分。
+ */
 const isDesktop = useIsDesktop()
 defineOptions({ name: 'WrongPractice' })
 
@@ -22,9 +27,9 @@ const subjectId = (route.query.subjectId as string) || ''
 
 const queue = ref<WrongQuestion[]>([])
 const idx = ref(0)
-const revealed = ref(false)
 const loading = ref(true)
-const answering = ref(false)
+const result = ref<GradeResult | null>(null)
+const submitting = ref(false)
 const finished = computed(() => !loading.value && idx.value >= queue.value.length)
 const current = computed(() => (idx.value < queue.value.length ? queue.value[idx.value] : null))
 
@@ -39,8 +44,9 @@ const progress = computed(() =>
 async function load() {
   loading.value = true
   try {
+    // reveal=false: 重练队列防透题, 判分前答案不出库
     queue.value = await apiWrongList(
-      subjectId ? { subjectId, limit: 20 } : { limit: 20 }
+      subjectId ? { subjectId, limit: 20, reveal: false } : { limit: 20, reveal: false }
     )
   } catch {
     /* 拦截器已提示 */
@@ -51,35 +57,42 @@ async function load() {
 
 onMounted(load)
 
-async function answer(correct: boolean) {
+async function onSubmit(answer: string) {
   const q = current.value?.question
-  if (!q || answering.value) return
-  answering.value = true
+  if (!q || submitting.value) return
+  submitting.value = true
   try {
-    const res = await apiPracticeWrong(q.id, correct)
+    const res = await apiGradeQuestion({ questionId: q.id, answer })
+    result.value = res
     practiced.value += 1
-    if (!correct) {
-      showToast(res.wrongCount > 1 ? `已记录，累计错 ${res.wrongCount} 次` : '别灰心，再来一遍')
-    } else if (res.mastered) {
-      removed.value += 1
-      showSuccessToast('连对 2 次，已摘除 🎉')
+    const book = res.wrongBook
+    if (res.correct) {
+      if (book?.mastered) {
+        removed.value += 1
+        showSuccessToast('连对 2 次，已摘除 🎉')
+      } else if (book) {
+        showToast(`答对了！再连对 ${Math.max(2 - book.correctStreak, 1)} 次即摘除`)
+      }
     } else {
-      showToast(`答对了！再连对 ${Math.max(2 - res.correctStreak, 1)} 次即摘除`)
+      showToast(book && book.wrongCount > 1 ? `已记录，累计错 ${book.wrongCount} 次` : '别灰心，再来一遍')
     }
-    idx.value += 1
-    revealed.value = false
   } catch {
-    /* 拦截器已提示 */
+    /* 拦截器已提示；作答保留在卡上可重试提交 */
   } finally {
-    answering.value = false
+    submitting.value = false
   }
+}
+
+function next() {
+  idx.value += 1
+  result.value = null
 }
 
 async function practiceAgain() {
   idx.value = 0
   practiced.value = 0
   removed.value = 0
-  revealed.value = false
+  result.value = null
   await load()
 }
 </script>
@@ -123,30 +136,21 @@ async function practiceAgain() {
       </div>
 
       <template v-else-if="current">
-        <QuestionCard :question="current.question" :revealed="revealed">
-          <template #actions>
-            <van-button
-              size="small"
-              round
-              plain
-              type="danger"
-              :loading="answering"
-              @click.stop="answer(false)"
-            >
-              答错了
-            </van-button>
-            <van-button size="small" round type="success" :loading="answering" @click.stop="answer(true)">
-              答对了
-            </van-button>
-          </template>
-        </QuestionCard>
-
-        <div v-if="!revealed" class="reveal-wrap">
-          <van-button block round plain type="primary" color="#ff7a00" @click="revealed = true">
-            先回想一下 · 显示答案与解析
+        <PracticeQuestionCard
+          :key="current.question.id"
+          :question="current.question"
+          :result="result"
+          :submitting="submitting"
+          @submit="onSubmit"
+        />
+        <div v-if="result" class="next-wrap">
+          <van-button block round type="primary" color="#ff7a00" @click="next">
+            {{ idx + 1 >= queue.length ? '完成本组' : '下一题' }}
           </van-button>
         </div>
-        <div v-else class="hint text-light">自评后进入下一题（答对连对 2 次自动摘除）</div>
+        <div v-else-if="current.question.questionType !== 'JUDGE'" class="hint text-light">
+          提交后服务端判分；答错累计次数，答对连对 2 次自动摘除
+        </div>
       </template>
 
       <div v-else-if="!loading" class="empty-tip">
@@ -170,8 +174,8 @@ async function practiceAgain() {
   border-radius: 0;
 }
 
-.reveal-wrap {
-  margin-top: 4px;
+.next-wrap {
+  margin-top: 12px;
 }
 
 .hint {

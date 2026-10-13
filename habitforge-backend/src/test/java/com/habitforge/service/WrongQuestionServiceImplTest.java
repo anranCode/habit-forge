@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -173,5 +174,25 @@ class WrongQuestionServiceImplTest {
 
         assertTrue(resp.getMastered());
         verify(wrongQuestionMapper).updateById(any(WrongQuestion.class));
+    }
+
+    // ================= 重练队列 reveal =================
+
+    /** reveal=false: 判分前答案/解析不出响应(计划决策 2 的第二道门); 默认 true 不受影响 */
+    @Test
+    void list_revealFalse_stripsAnswerAndAnalysis() {
+        Question q = question(USER_ID);
+        q.setAnalysis("解析文本");
+        when(wrongQuestionMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(java.util.List.of(row(1, 0, 0)));
+        when(questionMapper.selectBatchIds(any())).thenReturn(java.util.List.of(q));
+
+        var hidden = wrongQuestionService.list(USER_ID, null, 20, false).get(0).getQuestion();
+        assertNull(hidden.getAnswer());
+        assertNull(hidden.getAnalysis());
+        assertEquals("题干", hidden.getStem()); // 题干/选项照常下发, 只剥答案与解析
+
+        var shown = wrongQuestionService.list(USER_ID, null, 20, true).get(0).getQuestion();
+        assertEquals("A", shown.getAnswer());
+        assertEquals("解析文本", shown.getAnalysis());
     }
 }
