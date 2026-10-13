@@ -4,9 +4,10 @@ import { useRoute } from 'vue-router'
 import { useGoBack } from '@/composables/useGoBack'
 import { showToast, showSuccessToast } from 'vant'
 import type { Question, QuestionCreatePayload, QuestionType, QuestionUpdatePayload } from '@/types/question'
-import type { Subject } from '@/types/study'
-import { apiQuestion, apiCreateQuestion, apiUpdateQuestion, apiSubjects } from '@/api'
+import type { Subject, Chapter } from '@/types/study'
+import { apiQuestion, apiCreateQuestion, apiUpdateQuestion, apiSubjects, apiChaptersBySubject } from '@/api'
 import { usePopupPosition } from '@/composables/useDesktop'
+import { TYPE_OPTIONS, SOURCE_OPTIONS } from '@/constants/question'
 
 const popupPosition = usePopupPosition()
 defineOptions({ name: 'QuestionEdit' })
@@ -26,6 +27,15 @@ const subjectName = ref('')
 const showSubjectPicker = ref(false)
 const subjectColumns = computed(() => subjects.value.map((s) => ({ text: s.name, value: s.id })))
 
+// 章节级联（交互照搬 FlashcardEdit：先选科目，章节可选，切科目清章节并重载）
+const chapters = ref<Chapter[]>([])
+const showChapterPicker = ref(false)
+const chapterName = computed(() => chapters.value.find((c) => c.id === form.chapterId)?.name || '')
+
+const MAX_POINTS = 8
+const MAX_POINT_CHARS = 20
+const pointDraft = ref('')
+
 interface OptionRow {
   key: string
   text: string
@@ -33,6 +43,7 @@ interface OptionRow {
 
 const form = reactive({
   subjectId: '',
+  chapterId: '',
   questionType: 'SINGLE' as QuestionType,
   stem: '',
   options: [
@@ -46,24 +57,32 @@ const form = reactive({
   analysis: '',
   sourceType: 'CUSTOM',
   sourceDetail: '',
-  difficulty: 3
+  difficulty: 3,
+  knowledgePoints: [] as string[]
 })
+
+function addPoint() {
+  const v = pointDraft.value.trim()
+  if (!v) return
+  if (v.length > MAX_POINT_CHARS) {
+    showToast(`考点不超过 ${MAX_POINT_CHARS} 字`)
+    return
+  }
+  if (form.knowledgePoints.length >= MAX_POINTS) {
+    showToast(`最多 ${MAX_POINTS} 个考点`)
+    return
+  }
+  if (form.knowledgePoints.includes(v)) {
+    pointDraft.value = ''
+    return
+  }
+  form.knowledgePoints.push(v)
+  pointDraft.value = ''
+}
 
 const hasOptions = computed(() => form.questionType === 'SINGLE' || form.questionType === 'MULTI')
 
-const TYPES: { value: QuestionType; label: string }[] = [
-  { value: 'SINGLE', label: '单选' },
-  { value: 'MULTI', label: '多选' },
-  { value: 'JUDGE', label: '判断' },
-  { value: 'SHORT', label: '主观' }
-]
-
-const SOURCES: { value: string; label: string }[] = [
-  { value: 'CUSTOM', label: '自定义' },
-  { value: 'PAST_EXAM', label: '真题' },
-  { value: 'TEXTBOOK', label: '教材' },
-  { value: 'AI', label: 'AI 生成' }
-]
+// 题型/来源的选项与中文标签统一收在 constants/question.ts（见 TYPE_OPTIONS / SOURCE_OPTIONS）
 
 /** 选项 key 始终与位置对齐（删中间项后自动重排 A/B/C…） */
 function rekeys() {
@@ -118,6 +137,18 @@ function onSubjectConfirm(p: { selectedValues: (string | number)[] }) {
   form.subjectId = v
   subjectName.value = subjects.value.find((s) => s.id === v)?.name ?? ''
   showSubjectPicker.value = false
+  // 切科目后原章节必不属于新科目，清空并重载（FlashcardEdit 同款语义）
+  form.chapterId = ''
+  loadChapters(v)
+}
+
+async function loadChapters(subjectId: string) {
+  chapters.value = subjectId ? await apiChaptersBySubject(subjectId).catch(() => [] as Chapter[]) : []
+}
+
+function pickChapter(id: string) {
+  form.chapterId = id // '' = 不关联章节
+  showChapterPicker.value = false
 }
 
 async function loadSubjects() {
@@ -134,6 +165,9 @@ async function loadQuestion() {
     const q: Question = await apiQuestion(editId.value)
     form.subjectId = q.subjectId
     subjectName.value = subjects.value.find((s) => s.id === q.subjectId)?.name ?? '（科目已删除）'
+    form.chapterId = q.chapterId ?? ''
+    await loadChapters(q.subjectId)
+    form.knowledgePoints = q.knowledgePoints ? [...q.knowledgePoints] : []
     form.questionType = q.questionType
     form.stem = q.stem
     form.analysis = q.analysis ?? ''
@@ -166,6 +200,8 @@ onMounted(async () => {
 const saving = ref(false)
 
 function buildPayload(): QuestionCreatePayload | QuestionUpdatePayload | null {
+  addPoint() // 输入框里有草稿没敲回车也视为要保存的考点（addPoint 自带去重/上限守卫）
+
   if (!form.subjectId) {
     showToast('请选择科目')
     return null
@@ -224,12 +260,20 @@ function buildPayload(): QuestionCreatePayload | QuestionUpdatePayload | null {
   }
 
   if (isEdit.value) {
-    const payload: QuestionUpdatePayload = { ...common, options }
+    // chapterId 传 '' = 显式清除（后端把空串当清除指令，null 才是不改）；knowledgePoints 恒传，空数组 = 清空
+    const payload: QuestionUpdatePayload = {
+      ...common,
+      options,
+      chapterId: form.chapterId || '',
+      knowledgePoints: [...form.knowledgePoints]
+    }
     return payload
   }
   const payload: QuestionCreatePayload = {
     ...common,
     subjectId: form.subjectId,
+    chapterId: form.chapterId || undefined,
+    knowledgePoints: form.knowledgePoints.length ? [...form.knowledgePoints] : undefined,
     analysis: form.analysis.trim() || undefined,
     sourceDetail: form.sourceDetail.trim() || undefined
   }
@@ -276,10 +320,18 @@ async function save() {
           :disabled="isEdit"
           @click="!isEdit && (showSubjectPicker = true)"
         />
+        <van-field
+          :model-value="form.chapterId ? chapterName : ''"
+          label="章节"
+          :placeholder="form.subjectId ? '可不选' : '先选科目'"
+          readonly
+          is-link
+          @click="form.subjectId && (showChapterPicker = true)"
+        />
         <van-field label="题型">
           <template #input>
             <van-radio-group v-model="form.questionType" direction="horizontal">
-              <van-radio v-for="t in TYPES" :key="t.value" :name="t.value">{{ t.label }}</van-radio>
+              <van-radio v-for="t in TYPE_OPTIONS" :key="t.value" :name="t.value">{{ t.label }}</van-radio>
             </van-radio-group>
           </template>
         </van-field>
@@ -364,7 +416,7 @@ async function save() {
         <van-field label="来源">
           <template #input>
             <van-radio-group v-model="form.sourceType" direction="horizontal">
-              <van-radio v-for="s in SOURCES" :key="s.value" :name="s.value">{{ s.label }}</van-radio>
+              <van-radio v-for="s in SOURCE_OPTIONS" :key="s.value" :name="s.value">{{ s.label }}</van-radio>
             </van-radio-group>
           </template>
         </van-field>
@@ -372,6 +424,28 @@ async function save() {
         <van-field label="难度">
           <template #input>
             <van-stepper v-model="form.difficulty" :min="1" :max="5" />
+          </template>
+        </van-field>
+        <van-field label="考点">
+          <template #input>
+            <div class="points-edit">
+              <van-tag
+                v-for="(p, i) in form.knowledgePoints"
+                :key="p"
+                closeable
+                type="primary"
+                size="medium"
+                @close="form.knowledgePoints.splice(i, 1)"
+                >{{ p }}</van-tag
+              >
+              <input
+                v-model="pointDraft"
+                class="point-input"
+                maxlength="20"
+                :placeholder="form.knowledgePoints.length >= MAX_POINTS ? '已达上限' : '回车添加，如：中值定理'"
+                @keyup.enter="addPoint"
+              />
+            </div>
           </template>
         </van-field>
       </van-cell-group>
@@ -390,6 +464,35 @@ async function save() {
         @confirm="onSubjectConfirm"
         @cancel="showSubjectPicker = false"
       />
+    </van-popup>
+
+    <!-- 章节选择（级联于已选科目）——弹层结构与样式照搬 FlashcardEdit，保持两处 picker 一致 -->
+    <van-popup
+      class="hf-popup"
+      v-model:show="showChapterPicker"
+      :position="popupPosition"
+      round
+      :style="{ maxHeight: '60%' }"
+    >
+      <div class="picker">
+        <div class="picker__title">选择章节（可选）</div>
+        <div class="picker__list">
+          <div class="picker-item" :class="{ active: !form.chapterId }" @click="pickChapter('')">
+            <span>不关联章节</span>
+            <van-icon v-if="!form.chapterId" name="success" color="#ff7a00" />
+          </div>
+          <div
+            v-for="c in chapters"
+            :key="c.id"
+            class="picker-item"
+            :class="{ active: c.id === form.chapterId }"
+            @click="pickChapter(c.id)"
+          >
+            <span>{{ c.name }}</span>
+            <van-icon v-if="c.id === form.chapterId" name="success" color="#ff7a00" />
+          </div>
+        </div>
+      </div>
     </van-popup>
   </div>
 </template>
@@ -418,5 +521,58 @@ async function save() {
 
 .submit-row {
   margin-top: 20px;
+}
+
+/* 考点编辑：tag 流 + 内联输入框（van-field 的 #input 插槽里，宽度跟单元格走） */
+.points-edit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+
+  .point-input {
+    flex: 1;
+    min-width: 96px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    color: $text-main;
+
+    &::placeholder {
+      color: $text-light;
+    }
+  }
+}
+
+/* 章节 picker 弹层（与 FlashcardEdit 同款） */
+.picker {
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+
+  &__title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  &__list {
+    overflow-y: auto;
+  }
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 4px;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f2f5;
+  cursor: pointer;
+
+  &.active {
+    color: $primary;
+    font-weight: 600;
+  }
 }
 </style>

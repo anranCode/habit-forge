@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/questions")
 @RequiredArgsConstructor
@@ -31,10 +33,20 @@ public class QuestionController {
                                                @RequestParam(required = false) String sourceType,
                                                @RequestParam(required = false) Integer difficulty,
                                                @RequestParam(required = false) String keyword,
+                                               @RequestParam(required = false) String knowledgePoint,
                                                @RequestParam(defaultValue = "1") long page,
                                                @RequestParam(defaultValue = "20") long size) {
         return Result.success(questionService.page(SecurityUtils.getCurrentUserId(),
-                subjectId, chapterId, questionType, sourceType, difficulty, keyword, page, size));
+                subjectId, chapterId, questionType, sourceType, difficulty, keyword, knowledgePoint, page, size));
+    }
+
+    /**
+     * 考点去重清单(题库筛选下拉选项源), subjectId 空=全库。
+     * 字面量路径优先于 /{id}, 不会被 detail 抢走。
+     */
+    @GetMapping("/knowledge-points")
+    public Result<List<String>> knowledgePoints(@RequestParam(required = false) String subjectId) {
+        return Result.success(questionService.knowledgePoints(SecurityUtils.getCurrentUserId(), subjectId));
     }
 
     @GetMapping("/{id}")

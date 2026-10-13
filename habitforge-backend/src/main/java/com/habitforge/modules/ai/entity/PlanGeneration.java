@@ -18,6 +18,10 @@ public class PlanGeneration {
     public static final String KIND_PLAN = "PLAN";
     /** 每周复盘报告生成 */
     public static final String KIND_WEEKLY_REPORT = "WEEKLY_REPORT";
+    /** 题目考点 AI 识别（P6 接入, ref_id=question_id） */
+    public static final String KIND_POINTS = "POINTS";
+    /** 主观题 AI 判分（P4 接入, ref_id=question_id） */
+    public static final String KIND_GRADE = "GRADE";
 
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
@@ -27,8 +31,11 @@ public class PlanGeneration {
     /** 目标计划（懒创建失败时可空; 周报流行为 null） */
     private String planId;
 
-    /** 类型: PLAN 今日安排 / WEEKLY_REPORT 周报 */
+    /** 类型: PLAN 今日安排 / WEEKLY_REPORT 周报 / POINTS 考点识别 / GRADE 主观题判分 */
     private String kind;
+
+    /** POINTS/GRADE 流的题目 id; PLAN/WEEKLY_REPORT 行为 null(不加 FK, 题目物理删除后留痕不悬空) */
+    private String refId;
 
     /** 模型名 */
     private String model;

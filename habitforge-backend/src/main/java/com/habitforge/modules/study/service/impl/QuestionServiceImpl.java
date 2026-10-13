@@ -17,12 +17,15 @@ import com.habitforge.modules.study.mapper.ChapterMapper;
 import com.habitforge.modules.study.mapper.QuestionMapper;
 import com.habitforge.modules.study.mapper.SubjectMapper;
 import com.habitforge.modules.study.service.QuestionService;
+import com.habitforge.modules.study.service.support.PointsCodec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -62,6 +65,7 @@ public class QuestionServiceImpl implements QuestionService {
         question.setSourceType(request.getSourceType() == null ? "CUSTOM" : request.getSourceType());
         question.setSourceDetail(request.getSourceDetail());
         question.setDifficulty(request.getDifficulty());
+        question.setKnowledgePoints(PointsCodec.toStored(PointsCodec.normalize(request.getKnowledgePoints())));
         questionMapper.insert(question);
         log.info("创建题目 user={}, subject={}, type={}", userId, request.getSubjectId(), type);
         return toResponse(question);
@@ -69,9 +73,11 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public Page<QuestionResponse> page(String userId, String subjectId, String chapterId, String questionType,
-                                       String sourceType, Integer difficulty, String keyword, long page, long size) {
+                                       String sourceType, Integer difficulty, String keyword, String knowledgePoint,
+                                       long page, long size) {
         long current = page < 1 ? 1 : page;
         long limit = size < 1 ? 20 : Math.min(size, 100);
+        boolean filterPoint = StrUtil.isNotBlank(knowledgePoint);
         LambdaQueryWrapper<Question> wrapper = new LambdaQueryWrapper<Question>()
                 .eq(Question::getUserId, userId)
                 .eq(subjectId != null, Question::getSubjectId, subjectId)
@@ -80,12 +86,31 @@ public class QuestionServiceImpl implements QuestionService {
                 .eq(sourceType != null && !sourceType.isBlank(), Question::getSourceType, sourceType)
                 .eq(difficulty != null, Question::getDifficulty, difficulty)
                 .like(StrUtil.isNotBlank(keyword), Question::getStem, keyword == null ? null : keyword.trim())
+                // 带引号整元素匹配(见 PointsCodec.likeElement), 防「函数」命中「复合函数」
+                .like(filterPoint, Question::getKnowledgePoints, filterPoint ? PointsCodec.likeElement(knowledgePoint) : null)
                 .orderByDesc(Question::getCreatedAt);
         Page<Question> result = questionMapper.selectPage(new Page<>(current, limit), wrapper);
 
         Page<QuestionResponse> mapped = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
         mapped.setRecords(result.getRecords().stream().map(this::toResponse).toList());
         return mapped;
+    }
+
+    @Override
+    public List<String> knowledgePoints(String userId, String subjectId) {
+        // 全量扫 points 列解析去重 —— 题库规模(千级)下可接受, 不预建标签表(计划决策: 标签数组方案)
+        List<Question> rows = questionMapper.selectList(new LambdaQueryWrapper<Question>()
+                .select(Question::getKnowledgePoints)
+                .eq(Question::getUserId, userId)
+                .eq(StrUtil.isNotBlank(subjectId), Question::getSubjectId, subjectId));
+        Set<String> distinct = new LinkedHashSet<>();
+        for (Question row : rows) {
+            List<String> points = PointsCodec.parse(row.getKnowledgePoints());
+            if (points != null) {
+                distinct.addAll(points);
+            }
+        }
+        return new ArrayList<>(distinct);
     }
 
     @Override
@@ -98,8 +123,13 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponse update(String userId, String id, QuestionUpdateRequest request) {
         Question question = loadOwned(userId, id);
         if (request.getChapterId() != null) {
-            requireChapterInSubject(request.getChapterId(), question.getSubjectId());
-            question.setChapterId(request.getChapterId());
+            if (request.getChapterId().isBlank()) {
+                // '' = 显式"不关联章节"(null 才是"不改"); 章节选择器要能摘掉旧章节
+                question.setChapterId(null);
+            } else {
+                requireChapterInSubject(request.getChapterId(), question.getSubjectId());
+                question.setChapterId(request.getChapterId());
+            }
         }
         if (request.getQuestionType() != null) {
             question.setQuestionType(request.getQuestionType());
@@ -126,6 +156,10 @@ public class QuestionServiceImpl implements QuestionService {
         }
         if (request.getDifficulty() != null) {
             question.setDifficulty(request.getDifficulty());
+        }
+        if (request.getKnowledgePoints() != null) {
+            // normalize 把空数组归成空列表 → toStored 存 NULL, 即"清空考点"
+            question.setKnowledgePoints(PointsCodec.toStored(PointsCodec.normalize(request.getKnowledgePoints())));
         }
         // 类型与选项最终一致性(可能只改了 questionType)
         validateTypeAndOptions(question.getQuestionType(), parseOptions(question.getOptions()));
@@ -197,7 +231,8 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     private QuestionResponse toResponse(Question question) {
-        return QuestionResponse.from(question, parseOptions(question.getOptions()));
+        return QuestionResponse.from(question, parseOptions(question.getOptions()),
+                PointsCodec.parse(question.getKnowledgePoints()));
     }
 
     private Subject requireOwnedSubject(String userId, String subjectId) {

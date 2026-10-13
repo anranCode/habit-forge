@@ -15,6 +15,7 @@ import com.habitforge.modules.study.entity.WrongQuestion;
 import com.habitforge.modules.study.mapper.QuestionMapper;
 import com.habitforge.modules.study.mapper.WrongQuestionMapper;
 import com.habitforge.modules.study.service.WrongQuestionService;
+import com.habitforge.modules.study.service.support.PointsCodec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -174,6 +175,7 @@ public class WrongQuestionServiceImpl implements WrongQuestionService {
         List<QuestionOptionDTO> options = StrUtil.isBlank(question.getOptions())
                 ? null
                 : JSONUtil.toList(question.getOptions(), QuestionOptionDTO.class);
-        return WrongQuestionResponse.from(wrong, QuestionResponse.from(question, options));
+        return WrongQuestionResponse.from(wrong,
+                QuestionResponse.from(question, options, PointsCodec.parse(question.getKnowledgePoints())));
     }
 }

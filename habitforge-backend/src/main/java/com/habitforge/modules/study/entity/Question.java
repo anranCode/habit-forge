@@ -8,7 +8,8 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 题库题目（options 存 JSON 数组字符串, 服务层 hutool JSONUtil 序列化/校验, 不用 TypeHandler）
+ * 题库题目（options/knowledge_points 存 JSON 数组字符串, 服务层 hutool JSONUtil 序列化/校验, 不用 TypeHandler;
+ * 考点编解码收在 PointsCodec）
  */
 @Data
 @TableName("questions")
@@ -45,6 +46,9 @@ public class Question {
 
     /** 难度 1-5 */
     private Integer difficulty;
+
+    /** 考点标签 JSON 字符串数组(null=未标注; PointsCodec 负责编解码与上限校验) */
+    private String knowledgePoints;
 
     private LocalDateTime createdAt;
 

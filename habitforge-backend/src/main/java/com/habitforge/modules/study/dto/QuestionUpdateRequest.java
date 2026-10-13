@@ -31,4 +31,7 @@ public class QuestionUpdateRequest {
     @Min(value = 1, message = "难度最小 1")
     @Max(value = 5, message = "难度最大 5")
     private Integer difficulty;
+
+    /** 考点标签: null=不改, 空数组=清空(与 chapterId 的"显式传值才动"惯例一致) */
+    private List<String> knowledgePoints;
 }

@@ -3,10 +3,11 @@ import { ref, computed, watch, onMounted, onActivated, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGoBack } from '@/composables/useGoBack'
 import type { Question, QuestionQuery } from '@/types/question'
-import type { Subject } from '@/types/study'
-import { apiQuestions, apiSubjects } from '@/api'
+import type { Subject, Chapter } from '@/types/study'
+import { apiQuestions, apiSubjects, apiChaptersBySubject, apiKnowledgePoints } from '@/api'
 import QuestionCard from '@/components/study/QuestionCard.vue'
 import { useIsDesktop } from '@/composables/useDesktop'
+import { TYPE_DROPDOWN_OPTIONS, SOURCE_DROPDOWN_OPTIONS } from '@/constants/question'
 
 defineOptions({ name: 'QuestionBank' })
 
@@ -24,6 +25,11 @@ const subjects = ref<Subject[]>([])
 const activeSubject = ref((route.query.subjectId as string) || '')
 const qType = ref('') // '' = 全部题型
 const sourceType = ref('') // '' = 全部来源
+// 章节筛选仅在选中科目时可用；考点筛选全库可用（选项源是后端去重清单）
+const chapterId = ref('')
+const knowledgePoint = ref('')
+const chapters = ref<Chapter[]>([])
+const pointNames = ref<string[]>([])
 
 const list = ref<Question[]>([])
 const total = ref(0)
@@ -31,26 +37,35 @@ const page = ref(1)
 const loading = ref(false)
 const finished = ref(false)
 
-const typeOptions = [
-  { text: '全部题型', value: '' },
-  { text: '单选题', value: 'SINGLE' },
-  { text: '多选题', value: 'MULTI' },
-  { text: '判断题', value: 'JUDGE' },
-  { text: '主观题', value: 'SHORT' }
-]
+// 下拉选项收在 constants/question.ts；顺序与原字面量一致（来源下拉"真题在前"与录题 radio 不同序，各保各的）
+const typeOptions = TYPE_DROPDOWN_OPTIONS
+const sourceOptions = SOURCE_DROPDOWN_OPTIONS
 
-const sourceOptions = [
-  { text: '全部来源', value: '' },
-  { text: '真题', value: 'PAST_EXAM' },
-  { text: '教材', value: 'TEXTBOOK' },
-  { text: '自定义', value: 'CUSTOM' },
-  { text: 'AI 生成', value: 'AI' }
-]
+/** 章节/考点下拉的动态选项（含"全部"头项，与静态下拉同 {text,value} 形状） */
+const chapterOptions = computed(() => [{ text: '全部章节', value: '' }].concat(chapters.value.map((c) => ({ text: c.name, value: c.id }))))
+const pointOptions = computed(() => [{ text: '全部考点', value: '' }].concat(pointNames.value.map((p) => ({ text: p, value: p }))))
+
+async function loadFilterOptions(subjectId: string) {
+  chapters.value = subjectId ? await apiChaptersBySubject(subjectId).catch(() => [] as Chapter[]) : []
+  pointNames.value = await apiKnowledgePoints(subjectId || undefined).catch(() => [] as string[])
+  // 科目变了，旧考点可能不属于新科目 —— 选中项失效就退回"全部"
+  if (knowledgePoint.value && !pointNames.value.includes(knowledgePoint.value)) knowledgePoint.value = ''
+}
 
 const nonce = ref(0)
 
 /** 筛选条件指纹：变化时强制重建 van-list 以重触首屏加载（nonce 用于页面重新激活后的手动刷新） */
-const filterKey = computed(() => `${activeSubject.value}|${qType.value}|${sourceType.value}|${nonce.value}`)
+const filterKey = computed(
+  () =>
+    `${activeSubject.value}|${qType.value}|${sourceType.value}|${chapterId.value}|${knowledgePoint.value}|${nonce.value}`
+)
+
+// 切科目后旧章节必不属于新科目；考点清单按科目重建（全部科目 = 全库清单）
+watch(activeSubject, () => {
+  chapterId.value = ''
+  knowledgePoint.value = ''
+  loadFilterOptions(activeSubject.value)
+})
 
 async function loadSubjects() {
   try {
@@ -67,6 +82,8 @@ async function loadMore() {
     if (activeSubject.value) params.subjectId = activeSubject.value
     if (qType.value) params.questionType = qType.value
     if (sourceType.value) params.sourceType = sourceType.value
+    if (chapterId.value) params.chapterId = chapterId.value
+    if (knowledgePoint.value) params.knowledgePoint = knowledgePoint.value
     const res = await apiQuestions(params)
     list.value = list.value.concat(res.records)
     total.value = Number(res.total)
@@ -94,6 +111,8 @@ watch(filterKey, async () => {
 
 onMounted(() => {
   loadSubjects()
+  // 深链 ?subjectId= 时 activeSubject 初始非空，选项源要按它拉
+  loadFilterOptions(activeSubject.value)
 })
 
 // 录题/编辑/详情返回后刷新列表（新题、题干改动）；改 nonce 以重建 van-list 重触加载
@@ -132,6 +151,8 @@ function goDetail(q: Question) {
       <van-dropdown-menu active-color="#ff7a00">
         <van-dropdown-item v-model="qType" :options="typeOptions" />
         <van-dropdown-item v-model="sourceType" :options="sourceOptions" />
+        <van-dropdown-item v-if="activeSubject" v-model="chapterId" :options="chapterOptions" />
+        <van-dropdown-item v-model="knowledgePoint" :options="pointOptions" />
       </van-dropdown-menu>
     </div>
 

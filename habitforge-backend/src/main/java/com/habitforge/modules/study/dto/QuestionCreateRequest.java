@@ -41,4 +41,7 @@ public class QuestionCreateRequest {
     @Min(value = 1, message = "难度最小 1")
     @Max(value = 5, message = "难度最大 5")
     private Integer difficulty;
+
+    /** 考点标签列表(≤8 个、单个≤20 字, 服务层 trim 去重), null/空=不标注 */
+    private List<String> knowledgePoints;
 }

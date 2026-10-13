@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 题目响应（options 已由服务层从 JSON 字符串反序列化为列表）
+ * 题目响应（options/knowledgePoints 已由服务层从 JSON 字符串反序列化为列表）
  */
 @Data
 @Builder
@@ -26,10 +26,12 @@ public class QuestionResponse {
     private String sourceType;
     private String sourceDetail;
     private Integer difficulty;
+    /** 考点标签; null=未标注 */
+    private List<String> knowledgePoints;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static QuestionResponse from(Question question, List<QuestionOptionDTO> options) {
+    public static QuestionResponse from(Question question, List<QuestionOptionDTO> options, List<String> knowledgePoints) {
         return QuestionResponse.builder()
                 .id(question.getId())
                 .subjectId(question.getSubjectId())
@@ -42,6 +44,7 @@ public class QuestionResponse {
                 .sourceType(question.getSourceType())
                 .sourceDetail(question.getSourceDetail())
                 .difficulty(question.getDifficulty())
+                .knowledgePoints(knowledgePoints)
                 .createdAt(question.getCreatedAt())
                 .updatedAt(question.getUpdatedAt())
                 .build();
