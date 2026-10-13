@@ -9,7 +9,8 @@ import {
   apiDeleteQuestion,
   apiAddWrong,
   apiWrongList,
-  apiSetWrongMastered
+  apiSetWrongMastered,
+  apiRecognizePoints
 } from '@/api'
 import QuestionCard from '@/components/study/QuestionCard.vue'
 
@@ -27,6 +28,21 @@ const question = ref<Question | null>(null)
 const wrongEntry = ref<WrongQuestion | null>(null)
 const revealed = ref(false)
 const busy = ref(false)
+const recognizing = ref(false)
+
+/** AI 识别考点: 端点成功回带最新详情, 直接替换本地对象省一次刷新; 失败(含 6001)由拦截器提示 */
+async function recognizePoints() {
+  if (recognizing.value) return
+  recognizing.value = true
+  try {
+    question.value = await apiRecognizePoints(id)
+    showSuccessToast('考点已更新')
+  } catch {
+    /* 拦截器已提示 */
+  } finally {
+    recognizing.value = false
+  }
+}
 
 async function load() {
   try {
@@ -97,6 +113,23 @@ const statusText = computed(() => {
       <template v-if="question">
         <QuestionCard :question="question" :revealed="revealed" :show-mark-wrong="false" />
 
+        <!-- 考点标签: 手动录入与 AI 识别共用同一列, 未标注时只留识别入口 -->
+        <div v-if="question.knowledgePoints?.length" class="points-row">
+          <van-tag v-for="p in question.knowledgePoints" :key="p" type="primary" size="medium">{{ p }}</van-tag>
+        </div>
+        <van-button
+          block
+          round
+          plain
+          type="primary"
+          class="ai-points-btn"
+          :loading="recognizing"
+          loading-text="AI 正在识别…"
+          @click="recognizePoints"
+        >
+          AI 识别考点
+        </van-button>
+
         <van-button v-if="!revealed" block round plain type="primary" color="#ff7a00" @click="revealed = true">
           显示答案与解析
         </van-button>
@@ -120,6 +153,18 @@ const statusText = computed(() => {
 </template>
 
 <style scoped lang="scss">
+.points-row {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ai-points-btn {
+  margin-top: 12px;
+}
+
 .wrong-status {
   margin-top: 12px;
   font-size: 12px;

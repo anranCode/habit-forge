@@ -3,6 +3,7 @@ package com.habitforge.modules.study.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.habitforge.common.result.Result;
 import com.habitforge.common.util.SecurityUtils;
+import com.habitforge.modules.ai.service.QuestionPointsService;
 import com.habitforge.modules.study.dto.GradeRequest;
 import com.habitforge.modules.study.dto.GradeResponse;
 import com.habitforge.modules.study.dto.PracticeQuestionResponse;
@@ -24,6 +25,7 @@ public class QuestionController {
 
     private final QuestionService questionService;
     private final QuestionGradeService questionGradeService;
+    private final QuestionPointsService questionPointsService;
 
     @PostMapping
     public Result<QuestionResponse> create(@Valid @RequestBody QuestionCreateRequest request) {
@@ -73,6 +75,13 @@ public class QuestionController {
     @GetMapping("/{id}")
     public Result<QuestionResponse> detail(@PathVariable String id) {
         return Result.success(questionService.getDetail(SecurityUtils.getCurrentUserId(), id));
+    }
+
+    /** AI 识别考点(覆盖写 knowledge_points), 成功回带最新详情省一次前端刷新; 护栏语义见 QuestionPointsService */
+    @PostMapping("/{id}/recognize-points")
+    public Result<QuestionResponse> recognizePoints(@PathVariable String id) {
+        questionPointsService.recognize(SecurityUtils.getCurrentUserId(), id);
+        return Result.success(questionService.getDetail(SecurityUtils.getCurrentUserId(), id), "考点识别完成");
     }
 
     /** 各字段可选, null 表示不修改 */
