@@ -110,6 +110,10 @@ public class QuestionServiceImpl implements QuestionService {
                 .eq(StrUtil.isNotBlank(subjectId), Question::getSubjectId, subjectId));
         Set<String> distinct = new LinkedHashSet<>();
         for (Question row : rows) {
+            // 只 select 了 knowledge_points 一列，旧题该列全 NULL 时 MyBatis 返回 null 整行对象
+            if (row == null) {
+                continue;
+            }
             List<String> points = PointsCodec.parse(row.getKnowledgePoints());
             if (points != null) {
                 distinct.addAll(points);
