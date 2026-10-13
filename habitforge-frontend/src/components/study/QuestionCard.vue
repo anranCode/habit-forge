@@ -2,7 +2,8 @@
 import { computed } from 'vue'
 import MarkdownPreview from '@/components/study/MarkdownPreview.vue'
 import { useIsDesktop } from '@/composables/useDesktop'
-import type { Question, QuestionType } from '@/types/question'
+import type { Question } from '@/types/question'
+import { TYPE_LABEL, TYPE_COLOR, TYPE_COLOR_DESKTOP, SOURCE_LABEL, SOURCE_COLOR } from '@/constants/question'
 
 const isDesktop = useIsDesktop()
 
@@ -19,41 +20,12 @@ const props = withDefaults(
 
 const emit = defineEmits<{ (e: 'add-wrong'): void }>()
 
-const TYPE_LABEL: Record<QuestionType, string> = {
-  SINGLE: '单选',
-  MULTI: '多选',
-  JUDGE: '判断',
-  SHORT: '主观'
-}
-
-const TYPE_COLOR: Record<QuestionType, string> = {
-  SINGLE: '#ff7a00',
-  MULTI: '#3498db',
-  JUDGE: '#27ae60',
-  SHORT: '#9b59b6'
-}
-
-/** 桌面端：同色相降饱和，与 format.ts 的 categoryColorDesktop 同一套标准 */
-const TYPE_COLOR_DESKTOP: Record<QuestionType, string> = {
-  SINGLE: '#ff7a00',
-  MULTI: '#6b8db5',
-  JUDGE: '#5a9e7f',
-  SHORT: '#8b6fa3'
-}
-
 const typeColor = computed(() =>
   isDesktop.value ? TYPE_COLOR_DESKTOP[props.question.questionType] : TYPE_COLOR[props.question.questionType]
 )
 
 /** 来源标签同样是内联 style，断点切换只能在 JS 侧做 */
-const sourceColor = computed(() => (isDesktop.value ? '#6b8db5' : '#3498db'))
-
-const SOURCE_LABEL: Record<string, string> = {
-  PAST_EXAM: '真题',
-  TEXTBOOK: '教材',
-  AI: 'AI 生成',
-  CUSTOM: '自定义'
-}
+const sourceColor = computed(() => (isDesktop.value ? SOURCE_COLOR.desktop : SOURCE_COLOR.mobile))
 
 /** 选择题正确项 key 集合（判断/主观无选项，返回空） */
 const answerKeys = computed(() =>

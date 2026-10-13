@@ -385,6 +385,7 @@ CREATE TABLE IF NOT EXISTS questions (
     source_type     VARCHAR(20)     DEFAULT 'CUSTOM' COMMENT '来源: PAST_EXAM真题/TEXTBOOK教材/CUSTOM自编/AI生成',
     source_detail   VARCHAR(100)    NULL COMMENT '来源详情(如: 2025年10月真题)',
     difficulty      TINYINT         NULL COMMENT '难度1-5',
+    knowledge_points TEXT           NULL COMMENT '考点标签JSON字符串数组(如 ["中值定理","极限计算"])',
     created_at      DATETIME        DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
@@ -480,7 +481,8 @@ CREATE TABLE IF NOT EXISTS plan_generations (
     id                VARCHAR(36)   PRIMARY KEY DEFAULT (UUID()),
     user_id           VARCHAR(36)   NOT NULL COMMENT '所属用户',
     plan_id           VARCHAR(36)   NULL COMMENT '目标计划(懒创建失败时可空; 周报流行为空)',
-    kind              VARCHAR(20)   DEFAULT 'PLAN' COMMENT '类型: PLAN今日安排/WEEKLY_REPORT周报',
+    kind              VARCHAR(20)   DEFAULT 'PLAN' COMMENT '类型: PLAN今日安排/WEEKLY_REPORT周报/POINTS考点识别/GRADE主观题判分',
+    ref_id            VARCHAR(36)   NULL COMMENT '通用引用对象(POINTS/GRADE=question_id; 旧行NULL)',
     model             VARCHAR(100)  NULL COMMENT '模型名',
     prompt_tokens     INT           NULL COMMENT '输入 token 用量',
     completion_tokens INT           NULL COMMENT '输出 token 用量',
@@ -538,3 +540,25 @@ CREATE TABLE IF NOT EXISTS focus_logs (
     UNIQUE KEY uk_user_date (user_id, log_date),
     INDEX idx_user_date (user_id, log_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='注意力日志表(手机节制)';
+
+-- ============================================================
+-- 27. 主观题 AI 判分记录（一次判分一行; 重答即重判、追加不覆盖; 删题连带删留痕）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS question_grades (
+    id           VARCHAR(36)   PRIMARY KEY DEFAULT (UUID()),
+    user_id      VARCHAR(36)   NOT NULL COMMENT '所属用户',
+    question_id  VARCHAR(36)   NOT NULL COMMENT '题目ID',
+    user_answer  VARCHAR(2000) NOT NULL COMMENT '学生作答全文(服务层截断后落库)',
+    correct      TINYINT(1)    NOT NULL COMMENT '判定结果(阈值换算在服务端, 非模型输出)',
+    points       TEXT          NULL COMMENT 'AI 要点拆解JSON: [{"point":"...","hit":true}]',
+    covered      INT           NULL COMMENT '命中要点数',
+    total        INT           NULL COMMENT '要点总数',
+    ratio        DECIMAL(4,2)  NULL COMMENT '覆盖率 covered/total(审计冗余; 判定不读它, 见 SHORT_GRADE_PASS_RATIO)',
+    model        VARCHAR(100)  NULL COMMENT '判分所用模型',
+    total_tokens INT           NULL COMMENT '本次判分 token 用量',
+    created_at   DATETIME      DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id)     REFERENCES users(id)     ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    INDEX idx_user_question (user_id, question_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='主观题AI判分记录表';

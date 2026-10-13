@@ -1,15 +1,9 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import type { QuestionType, WrongQuestion } from '@/types/question'
+import type { WrongQuestion } from '@/types/question'
+import { TYPE_LABEL } from '@/constants/question'
 
 defineProps<{ wrong: WrongQuestion }>()
-
-const TYPE_LABEL: Record<QuestionType, string> = {
-  SINGLE: '单选',
-  MULTI: '多选',
-  JUDGE: '判断',
-  SHORT: '主观'
-}
 
 /** 题干摘要：粗剥 Markdown 记号后截断 */
 function excerpt(stem: string): string {
